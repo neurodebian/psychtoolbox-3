@@ -173,6 +173,13 @@ function oldPriority=Priority(newPriority)
 persistent killUpdateNotNeeded;
 persistent didPriorityKillUpdate;
 
+if ~isempty(getenv('PSYCH_IN_VM'))
+   % Running inside Virtual machine. We no-op. Everything else has potential
+   % for bogging the VM down to a standstill:
+   oldPriority = 0; % Dummy return - No realtime sched active.
+   return;
+end
+
 if IsLinux
    % Linux: We do not use a separate MEX file anymore. Instead we use a
    % built-in helper subroutine of Screen(), accessed via the special code -5
@@ -186,7 +193,7 @@ if IsLinux
       oldPriority = Screen('GetMouseHelper', -5);
    else
       % New priority provided: Query and return old level, set new one:
-      if newPriority < 0 | newPriority > 99 %#ok<OR2>
+      if newPriority < 0 || newPriority > 99
          error('Invalid Priority level specified! Not one between 0 and 99.');
       end
 
@@ -204,7 +211,7 @@ if IsOSX
         c = Screen('Computer');
         osrelease = sscanf(c.kern.osrelease, '%i.%i.%i');
 
-        if (osrelease(1)==8 & osrelease(2)>=7) | (osrelease(1)>=9) %#ok<AND2,OR2>
+        if (osrelease(1)==8 && osrelease(2)>=7) || (osrelease(1)>=9)
             % OS-X 10.4.7 or later -> No need to kill update.
             killUpdateNotNeeded = 1;
         else
@@ -226,11 +233,11 @@ if IsOSX
     else % strcmp('THREAD_TIME_CONSTRAINT_POLICY', flavorNameString)
         %Values in priority struct returned by MachGetPriorityFlavor are in ticks but should be in seconds
         %it does not matter here because we are only concerned with the ratio
-        if priorityStruct.policy.period == 0 | priorityStruct.policy.computation == 0 %#ok<OR2>
+        if priorityStruct.policy.period == 0 || priorityStruct.policy.computation == 0
             %this is an illegitimate setting, so restore to standard priority
             %and go from there.
             MachSetStandardPriority;
-            oldPriority=0;      
+            oldPriority=0;
         else
             oldPriorityRatio= priorityStruct.policy.computation / priorityStruct.policy.period;
             % Make sure we never exceed an oldPriority of 9, even in case
@@ -280,7 +287,7 @@ if IsOSX
         for i = 1:length(screenNumbers)
             frameRates(i)=Screen('FrameRate', screenNumbers(i)); %#ok<AGROW>
         end
-        [zeroRates, zeroRateIndices]=find(frameRates==0);
+        [zeroRates, zeroRateIndices]=find(frameRates==0); %#ok<*ASGLU>
         frameRates(zeroRateIndices)=defaultFrameRate;
         framePeriods=1./frameRates;
         
@@ -321,7 +328,7 @@ if IsWin
       oldPriority = Screen('GetMouseHelper', -3);
    else
       % New priority provided: Query and return old level, set new one:
-      if newPriority<0 | newPriority>2 %#ok<OR2>
+      if newPriority<0 || newPriority>2
          error('Invalid Priority level specified! Not one of 0, 1 or 2.');
       end
       

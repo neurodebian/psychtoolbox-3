@@ -64,6 +64,11 @@
 // Current ListenChar state:
 static int	listenchar_enabled = 0;
 
+// Include Cocoa glue on OSX 64-Bit for window focus queries:
+#if (PSYCH_SYSTEM == PSYCH_OSX) && defined(__LP64__)
+#include "PsychCocoaGlue.h"
+#endif
+
 #if PSYCH_SYSTEM == PSYCH_LINUX
 
 /* These are needed for realtime scheduling and memory locking control: */
@@ -84,58 +89,105 @@ static int	listenchar_enabled = 0;
 #include <sys/ioctl.h>
 #include <termios.h>
 
+// This implementation also does at/detaching of the stdin stream
+// from the controlling tty, control of character echo'ing, buffering,
+// and canonical input processing, depending on the requested state
+// transitions between different listenchar states.
+//
+// These are Unix only features.
 int _kbhit(void) {
-	struct termios		term;
-    static const int	STDIN = 0;
-    static int			current_mode = 0;
-    int					bytesWaiting;
+	struct termios          term;
+    int                     bytesWaiting;
+    static int              current_mode = 0;
+    static struct termios   oldterm;
+    static int              fd = -1;
 
 	// Change of mode requested?
     if (current_mode != listenchar_enabled) {
-        // Use termios to turn off line buffering
-        tcgetattr(STDIN, &term);
 
-		// MK: Ok, none of these settings works as we'd like it to work :-(
-		// The only reasonable case is clearing the ICANON flag, which gives
-		// us what we want. All other settings commented out, because they
-		// do more harm than good.
-		
-		if (listenchar_enabled == 0) {
-			// Enable canonic input processing - The normal mode:
-//			term.c_lflag |= ICANON;
-		}
-		else {
+        // Enable of character suppression requested?
+        if (!(current_mode & 2) && (listenchar_enabled & 2)) {
+            // Switching from unsuppressed to suppressed.
+
+            // Get backup of filedescriptor fd of real stdin:
+            fd = dup(fileno(stdin));
+
+            // Get current termios state of real stdin:
+            tcgetattr(fileno(stdin), &term);
+            
+            // Back it up:
+            oldterm = term;
+            
+            // Disable echo on real stdin:
+            term.c_lflag &= ~ECHO;
+            tcsetattr(fileno(stdin), TCSANOW, &term);
+
+            // Detach stdin from controlling tty, redirect to
+            // /dev/zero, so it doesn't get any input from now on,
+            // regardless what characters go to the terminal:
+            freopen("/dev/zero", "r", stdin);
+
+            // We are detached: No characters received from terminal,
+            // no characters echo'ed by terminal itself.
+        }
+
+        // Disable of character suppression requested?
+        if ((current_mode & 2) && !(listenchar_enabled & 2)) {
+            // Switching from suppressed to unsuppressed:
+            
+            // Reassign filedescriptor fd of real stdin to stdin from
+            // our previous backup, thereby reattaching stdin to the
+            // controlling tty:
+            dup2(fd, fileno(stdin));
+
+            // Close and invalidate our backup fildescriptor:
+            close(fd);
+            fd = -1;
+            
+            // Clear potential error conditions:
+            clearerr(stdin);
+            
+            // Restore termios settings from backup as well. This
+            // reenables auto-echo'ing of tty if it was enabled
+            // beforehand (different between Octave and matlab -nojvm),
+            // and flushes all buffers, so we don't get spillover that
+            // was cached in some low-level kernel line-discipline buffer:
+            tcsetattr(fileno(stdin), TCSAFLUSH, &oldterm);
+            
+            // We are reattached.
+        }
+        
+        // Transition to active character listening?
+		if ((current_mode == 0) && (listenchar_enabled > 0) && (fd == -1)) {
+            // Yes, and stdin attached to real controlling tty.
+            
+            // Get current settings of stream:
+            tcgetattr(fileno(stdin), &term);
+            
 			// Disable canonic input processing so we don't need to wait
 			// for newline before we get input:
 			term.c_lflag &= ~ICANON;
-		}
-		
-//		if (listenchar_enabled == 2) {
-//			// Disable echoing of characters:
-//			term.c_lflag &= ~(ECHO);
-//		}
-//		else {
-//			// Enable echoing of characters:
-//			term.c_lflag |= (ECHO);
-//		}
-		
-        tcsetattr(STDIN, TCSANOW, &term);
-		
-		// Disable bufferin of characters:
-        setbuf(stdin, NULL);
+
+            // Apply:
+            tcsetattr(fileno(stdin), TCSANOW, &term);
+
+            // Disable buffering of characters:
+            setbuf(stdin, NULL);            
+        }
 
 		// New opmode established:
         current_mode = listenchar_enabled;
     }
 
 	// Query number of pending characters in stdin stream:
-    ioctl(STDIN, FIONREAD, &bytesWaiting);
-    return bytesWaiting;
+    ioctl(fileno(stdin), FIONREAD, &bytesWaiting);
+    return(bytesWaiting);
 }
 
 #else
 // _kbhit() is part of MS-Windows CRT standard runtime library. We just
-// need to include the conio header file:
+// need to include the conio header file. Character suppression does not
+// work with it though:
 #include <conio.h>
 #endif
 
@@ -282,14 +334,24 @@ PsychError SCREENGetMouseHelper(void)
 			buttonArray[i]=(double)(buttonState & (1<<i));
 	}
 			
-	//cursor position
+	// Get cursor position:
+#ifndef __LP64__
+    // 32-Bit Carbon version:
 	GetGlobalMouse(&mouseXY);
 	PsychCopyOutDoubleArg(1, kPsychArgOptional, (double)mouseXY.h);
 	PsychCopyOutDoubleArg(2, kPsychArgOptional, (double)mouseXY.v);
-
+#else
+    // 64-Bit HIToolbox version (OSX 10.5 and later):
+    HIPoint outPoint;
+    HIGetMousePosition(kHICoordSpaceScreenPixel, NULL, &outPoint);
+	PsychCopyOutDoubleArg(1, kPsychArgOptional, (double) outPoint.x);
+	PsychCopyOutDoubleArg(2, kPsychArgOptional, (double) outPoint.y);
+#endif
 	// Return optional keyboard input focus status:
 	if (numButtons > 0) {
 		// Window provided?
+        // We only have the function GetUserFocusWindow on 32-Bit Carbon.
+        // We have a drop-in replacement in OSX/PsychCocoaGlue.c for 64-Bit Cocoa.
 		if (PsychIsWindowIndexArg(2)) {
 			// Yes: Check if it has focus.
 			PsychAllocInWindowRecordArg(2, TRUE, &windowRecord);
@@ -298,7 +360,8 @@ PsychError SCREENGetMouseHelper(void)
 			}
 
 			PsychCopyOutDoubleArg(4, kPsychArgOptional, (double) (GetUserFocusWindow() == windowRecord->targetSpecific.windowHandle) ? 1 : 0);
-		} else {
+		} else
+        {
 			// No. Just always return "has focus":
 			PsychCopyOutDoubleArg(4, kPsychArgOptional, (double) 1);
 		}
@@ -486,7 +549,7 @@ PsychError SCREENGetMouseHelper(void)
 					SetPriorityClass(currentProcess, NORMAL_PRIORITY_CLASS);
 
 					// Disable any MMCSS scheduling for us:
-					PsychSetThreadPriority(0x1, 0, 0);
+					PsychSetThreadPriority((psych_thread*) 0x1, 0, 0);
 				break;
 				
 				case 1: // High priority scheduling:
@@ -495,7 +558,7 @@ PsychError SCREENGetMouseHelper(void)
 					// Additionally try to schedule us MMCSS: This will lift us roughly into the
 					// same scheduling range as REALTIME_PRIORITY_CLASS, even if we are non-admin users
 					// on Vista and Windows-7 and later, however with a scheduler safety net applied.
-					PsychSetThreadPriority(0x1, 10, 0);
+					PsychSetThreadPriority((psych_thread*) 0x1, 10, 0);
 				break;
 				
 				case 2: // Realtime scheduling:
@@ -507,7 +570,7 @@ PsychError SCREENGetMouseHelper(void)
 						// Additionally try to schedule us MMCSS: This will lift us roughly into the
 						// same scheduling range as REALTIME_PRIORITY_CLASS, even if we are non-admin users
 						// on Vista and Windows-7 and later, however with a scheduler safety net applied.
-						PsychSetThreadPriority(0x1, 10, 0);
+						PsychSetThreadPriority((psych_thread*) 0x1, 10, 0);
 					}
 				break;
 			}

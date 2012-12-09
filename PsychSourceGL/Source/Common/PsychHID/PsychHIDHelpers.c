@@ -35,6 +35,10 @@ hid_device* source[MAXDEVICEINDEXS];
 
 #endif
 
+#if (PSYCH_SYSTEM == PSYCH_OSX) && defined(__LP64__)
+IOHIDDeviceInterface122** deviceInterfaces[MAXDEVICEINDEXS];
+#endif
+
 // Tracker used to maintain references to open generic USB devices.
 // PsychUSBDeviceRecord is currently defined in PsychHID.h.
 PsychUSBDeviceRecord usbDeviceRecordBank[PSYCH_HID_MAX_GENERIC_USB_DEVICES];
@@ -68,6 +72,11 @@ void PsychInitializePsychHID(void)
 		hidEventBufferWritePos[i] = 0;
 	}
 
+    #if (PSYCH_SYSTEM == PSYCH_OSX) && defined(__LP64__)
+    for (i = 0; i < MAXDEVICEINDEXS; i++)
+        deviceInterfaces[i] = NULL;
+    #endif
+    
 	// Initialize OS specific interfaces and routines:
 	PsychHIDInitializeHIDStandardInterfaces();
 
@@ -141,6 +150,10 @@ PsychError PsychHIDCleanup(void)
 	// Disable online help system:
 	PsychClearGiveHelp();
 
+    // Disable any kind of low-level stdin<->tty magic for character reception
+    // or suppression in console mode (for octave and matlab -nojvm):
+    ConsoleInputHelper(-10);
+    
 	// Shutdown USB-HID report low-level functions, e.g., for DAQ toolbox on OS/X:
 	error = PsychHIDReceiveReportsCleanup(); // PsychHIDReceiveReport.c
 	
@@ -150,6 +163,18 @@ PsychError PsychHIDCleanup(void)
 	// Release all other HID device data structures:
 	#if PSYCH_SYSTEM == PSYCH_OSX
         // Via Apple HIDUtils:
+        #if (PSYCH_SYSTEM == PSYCH_OSX) && defined(__LP64__)
+        int i;
+        for (i = 0; i < MAXDEVICEINDEXS; i++) {
+            if (deviceInterfaces[i]) {
+                IOHIDDeviceInterface** interface = (IOHIDDeviceInterface**) deviceInterfaces[i];
+                (*interface)->close(interface);
+                (*interface)->Release(interface);
+                deviceInterfaces[i] = NULL;
+            }
+        }
+        #endif
+
         if(HIDHaveDeviceList()) HIDReleaseDeviceList();
 	#else
         // Then our high-level list:
@@ -215,7 +240,7 @@ pRecDevice PsychHIDGetDeviceRecordPtrFromIndex(int deviceIndex)
         ++i;
     }
     
-    PsychErrorExitMsg(PsychError_internal, "Invalid device index specified.  Has a device has been unplugged? Try rebuilding the device list");
+    PsychErrorExitMsg(PsychError_user, "Invalid device index specified. Has a device been unplugged? Try rebuilding the device list");
     return(NULL);  //make the compiler happy.
 }
 
@@ -274,15 +299,34 @@ psych_bool PsychHIDFlushEventBuffer(int deviceIndex)
 	return(TRUE);
 }
 
-unsigned int PsychHIDAvailEventBuffer(int deviceIndex)
+/* Return number of events in buffer for 'deviceIndex':
+ * flags == 0 -> All events.
+ * flags &  1 -> Only keypress events with valid mapped ASCII CookedKey keycode.
+ */
+unsigned int PsychHIDAvailEventBuffer(int deviceIndex, unsigned int flags)
 {
-	unsigned int navail;
+	unsigned int navail, i, j;
+    
 	if (deviceIndex < 0) deviceIndex = PsychHIDGetDefaultKbQueueDevice();
 
     if (!hidEventBuffer[deviceIndex]) return(0);
 
 	PsychLockMutex(&hidEventBufferMutex[deviceIndex]);
+    
+    // Compute total number of available events by default:
 	navail = hidEventBufferWritePos[deviceIndex] - hidEventBufferReadPos[deviceIndex];
+    
+    // Only count of valid "CookedKey" mapped keypress events, e.g., for use by CharAvail(), requested?
+    if (flags & 1) {
+        // Yes: Iterate over all available events and only count number of keypress events
+        // with meaningful 'CookedKey' field:
+        navail = 0;
+        for (i = hidEventBufferReadPos[deviceIndex]; i < hidEventBufferWritePos[deviceIndex]; i++) {
+            j = i % hidEventBufferCapacity[deviceIndex];
+            if ((hidEventBuffer[deviceIndex][j].status & (1<<0)) && (hidEventBuffer[deviceIndex][j].cookedEventCode > 0)) navail++;
+        }
+    }
+    
 	PsychUnlockMutex(&hidEventBufferMutex[deviceIndex]);
 	
 	return(navail);
@@ -386,7 +430,33 @@ void PsychHIDShutdownHIDStandardInterfaces(void)
 */
 void PsychHIDVerifyInit(void)
 {
-    if(!HIDHaveDeviceList()) HIDBuildDeviceList( 0, 0);
+    psych_bool success = TRUE;
+    
+    // Build HID device list if it doesn't already exist:
+    if (!HIDHaveDeviceList()) success = (psych_bool) HIDBuildDeviceList(0, 0);
+    
+    // This check can only be made against the 64-Bit HID Utilities, as the older 32-Bit
+    // version is even more crappy and can't report meaningful error status:
+    #if defined(__LP64__)
+    if (!success) {
+        printf("PsychHID-ERROR: Could not enumerate HID devices (HIDBuildDeviceList() failed)! There can be various reasons,\n");
+        printf("PsychHID-ERROR: ranging from bugs in Apples HID software to a buggy HID device driver for some connected device,\n");
+        printf("PsychHID-ERROR: to general operating system malfunction. A reboot or device driver update for 3rd party HID devices\n");
+        printf("PsychHID-ERROR: maybe could help. Check the OSX system log for possible HID related error messages or hints. Aborting...\n");
+        PsychErrorExitMsg(PsychError_system, "HID device enumeration failed due to malfunction in the OSX 64 Bit Apple HID Utilities framework.");
+    }
+    #endif
+    
+    // Double-Check to protect against pathetic Apple software:
+    if (!HIDHaveDeviceList()) {
+        printf("PsychHID-ERROR: Could not enumerate HID devices (HIDBuildDeviceList() success, but HIDHaveDeviceList() still failed)!\n");
+        printf("PsychHID-ERROR: Reasons can be ranging from bugs in Apples HID software to a buggy HID device driver for some connected device,\n");
+        printf("PsychHID-ERROR: to general operating system malfunction. A reboot or device driver update for 3rd party HID devices\n");
+        printf("PsychHID-ERROR: maybe could help. Check the OSX system log for possible HID related error messages or hints. Aborting...\n");
+        PsychErrorExitMsg(PsychError_system, "HID device enumeration failed due to malfunction in the OSX Apple HID Utilities framework (II).");
+    }
+    
+    // Verify no security sensitive application is blocking our low-level access to HID devices:
 	PsychHIDWarnInputDisabled(NULL);
 }
 
@@ -411,6 +481,88 @@ psych_bool PsychHIDWarnInputDisabled(const char* callerName)
 	return(FALSE);
 }
 
+#ifdef __LP64__
+// 64-Bit HID device interface setup & query: 10.5 Leopard and later:
+//
+// ---------------------------------
+// This routines is largely transplanted - with modifications - from HID Utilities v1.0:
+// Create and open an interface to device, required prior to extracting values or building queues
+// Note: appliction now owns the device and must close and release it prior to exiting
+
+//unsigned long HIDCreateOpenDeviceInterface (UInt32 hidDevice, pRecDevice pDevice)
+static IOHIDDeviceInterface122** HIDCreateOpenDeviceInterface(pRecDevice pDevice)
+{
+    IOReturn result = kIOReturnSuccess;
+    HRESULT plugInResult = S_OK;
+    SInt32 score = 0;
+    IOCFPlugInInterface** ppPlugInInterface = NULL;
+    IOHIDDeviceInterface** interface = NULL;
+    io_service_t hidDevice = 0L;
+    
+    // Get low-level device for given HIDDeviceRef from HID Utilities v2.0:
+    hidDevice = AllocateHIDObjectFromIOHIDDeviceRef((IOHIDDeviceRef) pDevice);
+    if (0L == hidDevice) {
+        printf("PTB-ERROR: PsychHID: Failed to allocate low-level HID-Object for high-level HID device.\n");
+        return(NULL);
+    }
+    
+    // This code is borrowed from HID Utilities v1.0:
+    // Create and open interface for IORegistry device:
+    result = IOCreatePlugInInterfaceForService (hidDevice, kIOHIDDeviceUserClientTypeID,
+                                                kIOCFPlugInInterfaceID, &ppPlugInInterface, &score);
+    if (kIOReturnSuccess == result)
+    {
+        // Call a method of the intermediate plug-in to create the device interface
+        plugInResult = (*ppPlugInInterface)->QueryInterface (ppPlugInInterface,
+                                                             CFUUIDGetUUIDBytes (kIOHIDDeviceInterfaceID), (void *) &interface);
+        if (S_OK != plugInResult)
+            printf("PTB-ERROR: PsychHID: CouldnÕt query HID class device interface from plugInInterface: %x [].", plugInResult);
+        IODestroyPlugInInterface(ppPlugInInterface);
+    }
+    else
+        printf("PTB-ERROR: PsychHID: Failed to create **plugInInterface via IOCreatePlugInInterfaceForService: %x [].\n", result);
+    
+	if (NULL != interface)
+	{
+		result = (*interface)->open(interface, 0);
+		if (kIOReturnSuccess != result)
+			printf("PTB-ERROR: PsychHID: Failed to open HID device low-level interface via open: %x [].\n", result);
+	}
+    
+    // Release reference to high-level device via HID Utilities v2.0::
+    if (hidDevice) FreeHIDObject(hidDevice);
+
+    return((IOHIDDeviceInterface122**) interface);
+}
+
+IOHIDDeviceInterface122** PsychHIDGetDeviceInterfacePtrFromIndex(int deviceIndex)
+{
+    IOHIDDeviceInterface122 **interface = NULL;
+    pRecDevice dev = PsychHIDGetDeviceRecordPtrFromIndex(deviceIndex);
+    if (dev) {
+        // Interface already open?
+        if (NULL == deviceInterfaces[deviceIndex]) {
+            // No. Need to create it:
+            deviceInterfaces[deviceIndex] = HIDCreateOpenDeviceInterface(dev);
+        }
+        
+        // Assign it:
+        interface = deviceInterfaces[deviceIndex];
+    }
+
+    return(interface);    
+}
+#else
+// 32-Bit legacy path for >= 10.4 Tiger:
+IOHIDDeviceInterface122** PsychHIDGetDeviceInterfacePtrFromIndex(int deviceIndex)
+{
+    IOHIDDeviceInterface122 **interface = NULL;
+    pRecDevice dev = PsychHIDGetDeviceRecordPtrFromIndex(deviceIndex);
+    if (dev) interface = (IOHIDDeviceInterface122**) dev->interface;
+    return(interface);
+}
+#endif
+
 /*
     PsychHIDGetDeviceListByUsage()
 */ 
@@ -423,8 +575,12 @@ void PsychHIDGetDeviceListByUsage(long usagePage, long usage, int *numDeviceIndi
     currentDeviceIndex=0;
     *numDeviceIndices=0;
     for(currentDevice=HIDGetFirstDevice(); currentDevice != NULL; currentDevice=HIDGetNextDevice(currentDevice)){    
-        ++currentDeviceIndex;     
+        ++currentDeviceIndex;
+#ifndef __LP64__        
         if(currentDevice->usagePage==usagePage && currentDevice->usage==usage){
+#else
+        if(IOHIDDevice_GetUsagePage(currentDevice) == usagePage && IOHIDDevice_GetUsage(currentDevice) == usage){
+#endif
             deviceRecords[*numDeviceIndices]=currentDevice;
             deviceIndices[*numDeviceIndices]=currentDeviceIndex;  //the array is 0-indexed, devices are 1-indexed.   
             ++(*numDeviceIndices);
@@ -449,7 +605,11 @@ void PsychHIDGetDeviceListByUsages(int numUsages, long *usagePages, long *usages
 		currentDeviceIndex=0;
 		for(currentDevice=HIDGetFirstDevice(); currentDevice != NULL; currentDevice=HIDGetNextDevice(currentDevice)){    
 			++currentDeviceIndex;     
+#ifndef __LP64__        
 			if(currentDevice->usagePage==*usagePage && currentDevice->usage==*usage){
+#else
+            if(IOHIDDevice_GetPrimaryUsagePage(currentDevice) == *usagePage && IOHIDDevice_GetPrimaryUsage(currentDevice) == *usage){
+#endif
 				deviceRecords[*numDeviceIndices]=currentDevice;
 				deviceIndices[*numDeviceIndices]=currentDeviceIndex;  //the array is 0-indexed, devices are 1-indexed.   
 				++(*numDeviceIndices);
@@ -489,8 +649,7 @@ int PsychHIDGetIndexFromRecord(pRecDevice deviceRecord, pRecElement elementRecor
     else{
         PsychErrorExitMsg(PsychError_internal, "Element record not found within device record");
         return(0); //make the compiler happy
-    }    
-    
+    }
 }
 
 
@@ -551,17 +710,8 @@ pRecElement PsychHIDGetCollectionRecordFromDeviceRecordAndCollectionIndex(pRecDe
 */ 
 psych_bool PsychHIDQueryOpenDeviceInterfaceFromDeviceIndex(int deviceIndex)
 {
-    pRecDevice 			deviceRecord;
-
     PsychHIDVerifyInit();
-    deviceRecord=PsychHIDGetDeviceRecordPtrFromIndex(deviceIndex);
-    return(deviceRecord->interface != NULL);    
-}
-
-psych_bool PsychHIDQueryOpenDeviceInterfaceFromDeviceRecordPtr(pRecDevice deviceRecord)
-{
-    PsychHIDVerifyInit();
-    return(deviceRecord->interface != NULL);
+    return(PsychHIDGetDeviceInterfacePtrFromIndex(deviceIndex) != NULL);
 }
 
 void PsychHIDVerifyOpenDeviceInterfaceFromDeviceIndex(int deviceIndex)
@@ -569,13 +719,6 @@ void PsychHIDVerifyOpenDeviceInterfaceFromDeviceIndex(int deviceIndex)
     if(!PsychHIDQueryOpenDeviceInterfaceFromDeviceIndex(deviceIndex))
         PsychErrorExitMsg(PsychError_internal, "Device interface field is NULL.  libHIDUtilities failed to open the device interface ?");
 }
-
-void PsychHIDVerifyOpenDeviceInterfaceFromDeviceRecordPtr(pRecDevice deviceRecord)
-{
-    if(!PsychHIDQueryOpenDeviceInterfaceFromDeviceRecordPtr(deviceRecord))
-        PsychErrorExitMsg(PsychError_internal, "Device interface field is NULL.  libHIDUtilities failed to open the device interface ?");
-}
-
 
 /*
     PsychHIDGetTypeMaskStringFromTypeMask()
@@ -626,16 +769,27 @@ void PsychHIDGetTypeMaskStringFromTypeMask(HIDElementTypeMask maskValue, char **
 */
 int PsychHIDCountCollectionElements(pRecElement collectionRecord, HIDElementTypeMask elementTypeMask)
 {
-    pRecElement		currentElement;
-    int			numElements=0;
+    pRecElement         currentElement;
+    int                 numElements = 0;
+    CFIndex             i, nmax;
     HIDElementTypeMask	currentElementMaskValue;
-    
+
+    #ifdef __LP64__
+    CFArrayRef children = IOHIDElementGetChildren(collectionRecord);
+    nmax = CFArrayGetCount(children);
+    for (i = 0 ; i < nmax; i++) {
+        currentElement = (pRecElement) CFArrayGetValueAtIndex(children, i);
+        currentElementMaskValue = HIDConvertElementTypeToMask(IOHIDElementGetType(currentElement));  
+        if(currentElementMaskValue & elementTypeMask) ++numElements;
+    }
+    #else
     for(currentElement=collectionRecord->pChild; currentElement != NULL; currentElement= currentElement->pSibling)
     {
         currentElementMaskValue=HIDConvertElementTypeToMask(currentElement->type);  
         if(currentElementMaskValue & elementTypeMask)
             ++numElements;
     }
+    #endif
     return(numElements);
 }
 
@@ -651,10 +805,24 @@ int PsychHIDCountCollectionElements(pRecElement collectionRecord, HIDElementType
 */
 int PsychHIDFindCollectionElements(pRecElement collectionRecord, HIDElementTypeMask elementTypeMask, pRecElement *collectionMembers, int maxListElements)
 {
-    pRecElement		currentElement;
-    int			numElements=0;
+    pRecElement         currentElement;
+    int                 numElements = 0;
+    CFIndex             i, nmax;
     HIDElementTypeMask	currentElementMaskValue;
     
+    #ifdef __LP64__
+    CFArrayRef children = IOHIDElementGetChildren(collectionRecord);
+    nmax = CFArrayGetCount(children);
+    for (i = 0 ; i < nmax; i++) {
+        currentElement = (pRecElement) CFArrayGetValueAtIndex(children, i);
+        currentElementMaskValue = HIDConvertElementTypeToMask(IOHIDElementGetType(currentElement));  
+        if(currentElementMaskValue & elementTypeMask) {
+            if(numElements == maxListElements) PsychErrorExitMsg(PsychError_internal, "Number of collection elements exceeds allocated storage space." );
+            collectionMembers[numElements] = currentElement;
+            ++numElements;
+        }
+    }
+    #else
     for(currentElement=collectionRecord->pChild; currentElement != NULL; currentElement= currentElement->pSibling)
     {
         currentElementMaskValue=HIDConvertElementTypeToMask(currentElement->type);  
@@ -665,6 +833,7 @@ int PsychHIDFindCollectionElements(pRecElement collectionRecord, HIDElementTypeM
             ++numElements;
         }
     }
+    #endif
     return(numElements);
 }
 	

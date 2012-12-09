@@ -604,6 +604,10 @@ static mxArray *mxCreateDoubleMatrix3D(psych_int64 m, psych_int64 n, psych_int64
 EXP void mexFunction(int nlhs, mxArray *plhs[], int nrhs, CONSTmxArray *prhs[]);
 #endif
 
+// firstTime: This flag defines if this is the first invocation of the module
+// since it was (re-)loaded:
+static psych_bool firstTime = TRUE;
+
 #if PSYCH_LANGUAGE == PSYCH_OCTAVE
 PsychError PsychExitOctaveGlue(void);
 static psych_bool jettisoned = FALSE;
@@ -650,7 +654,6 @@ EXP void mexFunction(int nlhs, mxArray *plhs[], int nrhs, CONSTmxArray *prhs[])
 EXP octave_value_list octFunction(const octave_value_list& prhs, const int nlhs)
 #endif
 {
-	static psych_bool firstTime = TRUE;
 	psych_bool errorcondition = FALSE;
 	psych_bool isArgThere[2], isArgEmptyMat[2], isArgText[2], isArgFunction[2];
 	PsychFunctionPtr fArg[2], baseFunction;
@@ -1104,8 +1107,19 @@ PsychError PsychExitOctaveGlue(void)
 */
 void PsychExitGlue(void)
 {
+    // Reset firstTime flag, so reloading the module leads to a full init cycle.
+    // This is especially important on Octave, as it doesn't fully unload/reload
+    // mex file modules at "clear" time, so the static firstTime variable won't
+    // get automatically reset to its inital load default of TRUE:
+    // firstTime = TRUE;
+    
+    // Perform platform independent shutdown:
 	PsychErrorExitMsg(PsychExit(),NULL);
-}	
+    
+    // And we are dead! Now the runtime will flush us from process memory,
+    // at least on Matlab. In any case no further invocation will happen
+    // until reload.
+}
 
 
 /*
@@ -1462,7 +1476,7 @@ PsychError PsychSetReceivedArgDescriptor(int argNum, psych_bool allow64BitSizes,
 		mxPtr = PsychGetInArgMxPtr(argNum);
 		d.isThere = (mxPtr && !PsychIsDefaultMat(mxPtr)) ? kPsychArgPresent : kPsychArgAbsent; 
 		if(d.isThere == kPsychArgPresent){ //the argument is there so fill in the rest of the description
-			d.numDims = mxGetNumberOfDimensions(mxPtr);
+			d.numDims = (int) mxGetNumberOfDimensions(mxPtr);
 
 			// If the calling function doesn't allow 64 bit sized input argument dimensions, then we check if
 			// the input has a size within the positive signed integer range, i.e., at most INT_MAX elements
@@ -2142,7 +2156,7 @@ psych_bool PsychAllocOutFloatMatArg(int position, PsychArgRequirementType isRequ
 	putOut=PsychAcceptOutputArgumentDecider(isRequired, matchError);
 	if(putOut){
 		mxpp = PsychGetOutArgMxPtr(position);
-		*mxpp = mxCreateFloatMatrix3D(m,n,p);
+		*mxpp = mxCreateFloatMatrix3D((size_t) m, (size_t) n, (size_t) p);
 		*array = (float*) mxGetData(*mxpp);
 	}else
 		*array = (float*) mxMalloc(sizeof(float) * (size_t) m * (size_t) n * (size_t) maxInt(1,p));
@@ -2221,7 +2235,7 @@ psych_bool PsychAllocOutBooleanMatArg(int position, PsychArgRequirementType isRe
 	putOut=PsychAcceptOutputArgumentDecider(isRequired, matchError);
 	if(putOut){
 		mxpp = PsychGetOutArgMxPtr(position);
-		*mxpp = mxCreateNativeBooleanMatrix3D(m,n,p);
+		*mxpp = mxCreateNativeBooleanMatrix3D((size_t) m, (size_t) n, (size_t) p);
 		*array = (PsychNativeBooleanType *)mxGetLogicals(*mxpp);
 	}else{
 		*array= (PsychNativeBooleanType *) mxMalloc(sizeof(PsychNativeBooleanType) * (size_t) m * (size_t) n * (size_t) maxInt(1,p));
@@ -2237,7 +2251,7 @@ psych_bool PsychAllocOutBooleanMatArg(int position, PsychArgRequirementType isRe
     
     Like PsychAllocOutDoubleMatArg() execept for unsigned bytes instead of doubles.  
 */
-psych_bool PsychAllocOutUnsignedByteMatArg(int position, PsychArgRequirementType isRequired, psych_int64 m, psych_int64 n, psych_int64 p, ubyte **array)
+psych_bool PsychAllocOutUnsignedByteMatArg(int position, PsychArgRequirementType isRequired, psych_int64 m, psych_int64 n, psych_int64 p, psych_uint8 **array)
 {
 	mxArray			**mxpp;
 	PsychError		matchError;
@@ -2249,10 +2263,10 @@ psych_bool PsychAllocOutUnsignedByteMatArg(int position, PsychArgRequirementType
 	putOut=PsychAcceptOutputArgumentDecider(isRequired, matchError);
 	if(putOut){
 		mxpp = PsychGetOutArgMxPtr(position);
-		*mxpp = mxCreateByteMatrix3D(m,n,p);
-		*array = (ubyte *)mxGetData(*mxpp);
+		*mxpp = mxCreateByteMatrix3D((size_t) m, (size_t) n, (size_t) p);
+		*array = (psych_uint8 *)mxGetData(*mxpp);
 	}else{
-		*array= (ubyte *) mxMalloc(sizeof(ubyte) * (size_t) m * (size_t) n * (size_t) maxInt(1,p));
+		*array= (psych_uint8 *) mxMalloc(sizeof(psych_uint8) * (size_t) m * (size_t) n * (size_t) maxInt(1,p));
 	}
 	return(putOut);
 }
@@ -2735,7 +2749,7 @@ psych_bool PsychAllocInFlagArgVector(int position,  PsychArgRequirementType isRe
 			return(FALSE);
 		}
 		
-		*numElements = mxGetM(mxPtr) * mxGetN(mxPtr);
+		*numElements = (int) (mxGetM(mxPtr) * mxGetN(mxPtr));
 		//unlike other PsychAllocIn* functions, here we allocate new memory and copy the input to it rather than simply returning a pointer into the received array.
 		//That's because we want the booleans returned to the caller by PsychAllocInFlagArgVector() to alwyas be 8-bit booleans, yet we accept as flags either 64-bit double, char, 
 		//or logical type.  Restricting to logical type would be a nuisance in the MATLAB environment and does not solve the problem because on some platforms MATLAB
@@ -3068,12 +3082,7 @@ psych_bool PsychCopyOutPointerArg(int position, PsychArgRequirementType isRequir
 int PsychRuntimePutVariable(const char* workspace, const char* variable, PsychGenericScriptType* pcontent)
 {
 	#if PSYCH_LANGUAGE == PSYCH_MATLAB
-		#ifndef MATLAB_R11
-			// Post R11 Matlab or Octave 3.2.x: New method for putting variables...
-			return(mexPutVariable(workspace, variable, pcontent));
-		#else
-			return(1);
-		#endif
+		return(mexPutVariable(workspace, variable, pcontent));
 	#else
 		PsychErrorExitMsg(PsychError_unimplemented, "Function PsychRuntimePutVariable() not yet supported for this runtime system!");
 	#endif
@@ -3105,10 +3114,7 @@ psych_bool PsychRuntimeGetVariable(const char* workspace, const char* variable, 
 	*pcontent = NULL;
 
 	#if PSYCH_LANGUAGE == PSYCH_MATLAB
-		#ifndef MATLAB_R11
-			// Post R11 Matlab or Octave 3.2.x: New method for putting variables...
-			*pcontent = mexGetVariable(workspace, variable);
-		#endif
+		*pcontent = mexGetVariable(workspace, variable);
 
 		// Return true on success, false on failure:
 		return((*pcontent) ? TRUE : FALSE);
@@ -3144,10 +3150,7 @@ psych_bool PsychRuntimeGetVariablePtr(const char* workspace, const char* variabl
 	*pcontent = NULL;
 
 	#if PSYCH_LANGUAGE == PSYCH_MATLAB
-		#ifndef MATLAB_R11
-			// Post R11 Matlab or Octave 3.2.x: New method for putting variables...
-			*pcontent = (PsychGenericScriptType*) mexGetVariablePtr(workspace, variable);
-		#endif
+		*pcontent = (PsychGenericScriptType*) mexGetVariablePtr(workspace, variable);
 
 		// Return true on success, false on failure:
 		return((*pcontent) ? TRUE : FALSE);

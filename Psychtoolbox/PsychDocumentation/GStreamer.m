@@ -1,21 +1,25 @@
 % GStreamer - Installation instructions for the GStreamer media framework.
 %
-% Psychtoolbox in all versions for GNU/Linux, and in (future) 64 bit
-% versions for Mac OS/X and MS-Windows uses the GStreamer multi-media
-% framework for all multi-media related operations.
+% Psychtoolbox for all versions of GNU/Linux and MS-Windows, as well as
+% 64 bit versions of Mac OS/X uses the GStreamer multi-media framework for
+% all multi-media related operations. For 32 bit versions of Matlab on
+% OS/X, use of GStreamer is still optional, Apple Quicktime is the default
+% on such setups, but Quicktime is a deprecated technology in Psychtoolbox,
+% so we encourage you to use GStreamer on all system configurations.
 %
 % All movie playback, movie creation, video capture and video recording
 % operations are based on GStreamer. These functions won't work without a
 % working GStreamer installation on your system.
 %
 % You will need at least version 0.10.24 of GStreamer, but we recommend to
-% use the latest available versions, as not all Psychtoolbox features are
-% fully supported by version 0.10.24. Especially video capture, video
-% recording and movie creation may be limited in functionality or
-% performance if you don't use a recent version of GStreamer.
+% use the latest available versions of the 0.10.x series, as not all
+% Psychtoolbox features are fully supported by version 0.10.24. Especially
+% video capture, video recording and movie creation may be limited in
+% functionality or performance if you don't use a recent version of
+% GStreamer.
 %
-% By default, the 32-bit versions of Psychtoolbox for Windows and MacOS/X
-% use Apple's Quicktime for those operations, so GStreamer isn't strictly
+% Currently, the 32-bit version of Psychtoolbox for MacOS/X uses Apple's
+% Quicktime for those operations by default, so GStreamer is not strictly
 % needed there. You can however use GStreamer (once installed) instead of
 % Quicktime if you add the following command to the top of your experiment
 % script, before any other Screen() command:
@@ -52,21 +56,18 @@
 % also Android) based tablets and Smartphones. It is also used on many 
 % Linux based embedded devices.
 %
-% GStreamer itself is very high performance, mature and stable.
-% Psychtoolbox's support however is in its early stage, so don't be
-% surprised if you find bugs or limitations. Report them on the forum
-% instead, so we can fix them.
-%
 % Installation instructions:
 %
 % GNU/Linux: Any half-way recent Linux distribution will include support
 % for GStreamer in its package management system, so you can easily install
 % it via the software management tool of your system.
 %
-% You will need at least the core GStreamer runtime and the gstreamer-base set
-% of plugins. Modern desktop distros usually already ship with these. A simple
-% way to make sure GStreamer is available is to install the "totem" multimedia
-% player. This will pull in the needed GStreamer packages as a dependency.
+% You will need at least the core GStreamer runtime and the gstreamer-base
+% set of plugins, but we recommend all available plugins for full
+% functionality and performance. Modern desktop distros usually already
+% ship with these. A simple way to make sure GStreamer is available is to
+% install the "totem" or "rhythmbox" multimedia player. This will pull in
+% the needed GStreamer packages as a dependency.
 %
 % E.g. via 
 %
@@ -88,18 +89,17 @@
 %
 % MS-Windows:
 %
-% We currently provide GStreamer support on Windows with 32-bit Matlab V7.4
-% (R2007a) and later, as well as on Octave. In fact, a fully working GStreamer
-% installation is mandatory for Psychtoolbox to work on Octave for Windows,
-% otherwise the Screen() function will fail to work at all, regardless if
-% you use multi-media functions or not. For Matlab, GStreamer is still
-% optional. We don't intend to ever provide GStreamer support for Matlab
-% versions older than Version 7.4.
+% We currently provide GStreamer support on Windows for 32-bit/64-bit Matlab.
 %
-% The current Windows implementation is a sneak-preview for people interested in
-% testing and giving feedback, not neccessarily for the average user.
+% In fact, a fully working GStreamer installation is mandatory for
+% Psychtoolbox to work on 64-Bit Matlab for Windows, otherwise the Screen()
+% function will fail to work at all, regardless if you use multi-media
+% functions or not. For 32-Bit Matlab, GStreamer is optional, as long as
+% you don't need to use any movie playback/writing or video
+% capture/recording.
 %
-% You can download and run a standard MS-Windows setup.exe installer from:
+% For 32-Bit Matlab on Windows, you can download and run a standard
+% MS-Windows setup.exe installer from:
 %
 % web: http://code.google.com/p/ossbuild/
 %
@@ -109,26 +109,59 @@
 %
 % <http://ossbuild.googlecode.com/files/GStreamer-WinBuilds-GPL-x86-Beta04-0.10.7.msi>
 %
-% If you are a fan of stable versions, we recommend this one:
-% "GStreamer WinBuilds v0.10.6, LGPL (x86)"
+% If you are a fan of stable versions with more limited functionality, we
+% recommend this one: "GStreamer WinBuilds v0.10.6, LGPL (x86)"
 %
 % However, some features may be disabled or limited with such an older
-% version.
+% version, e.g., playback performance may be reduced, certain common video
+% file formats may not play at all, etc.
 %
-% IMPORTANT: Users of Octave under Windows must not only install GStreamer
-% on their system. They must also delete (or rename) the file iconv.dll
-% that comes with Octave. This file is incompatible with a iconv.dll of the
-% same name provided by GStreamer. On Octave 3.2.4 you'd delete, rename or
-% move away the following file:
+% For 64-Bit Matlab on Windows, install the 64-Bit GStreamer runtime from
+% <http://www.gstreamer.com>. This runtime has higher performance for movie
+% playback, but does lack support for video capture/recording as of
+% September 2012.
 %
-% C:\Octave\3.2.4_gcc-4.4.0\bin\iconv.dll
+% In any case, if the installer gives you the choice of components to
+% install, go for a "full installation" or select all components manually
+% in a checklist, if you want support for all video formats and all
+% functionality. Without this, many popular video formats like H264 video
+% may not play at all, or video recording / video capture and similar
+% functions may not work.
 %
-% For example, you could rename it into
-%
-% C:\Octave\3.2.4_gcc-4.4.0\bin\iconv_DISABLED.dll
-%
+% Video capture/recording is not yet supported by PTB for 64-Bit Matlab on
+% Windows.
 %
 % Mac OS/X:
 %
-% No support for GStreamer yet. Stay tuned!
+% For versions of Mac OS/X 10.6 "Snow Leopard" and later, you can download
+% and install GStreamer via an easy to use installer from here:
+%
+% <http://www.gstreamer.com>
+%
+% This is the most convenient installation method and provides
+% high-performance support for movie playback and movie writing (although
+% with some limitations on available codecs for movie writing).
+%
+% In any case, if the installer gives you the choice of components to
+% install, go for a "full installation" or select all components manually
+% in a checklist, if you want support for all video formats and all
+% functionality. Without this, many popular video formats like H264 video
+% may not play at all, or video recording / video capture and similar
+% functions may not work.
+%
+% If you also need to capture or record live video from cameras or other
+% live video sources, you will need to install GStreamer via the Homebrew
+% package manager instead:
+%
+% Get Homebrew at ...
+%
+% http://mxcl.github.com/homebrew
+%
+% ... then install all components via:
+%
+% brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-ffmpeg
+%
+% After a couple minutes of download and compile time, you'll have a fully
+% functional GStreamer compiled from source - assuming everything goes
+% well, that is.
 %

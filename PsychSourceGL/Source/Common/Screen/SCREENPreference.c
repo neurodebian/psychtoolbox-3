@@ -1,13 +1,14 @@
 /*
 	SCREENPreference.c		
-  
-	AUTHORS:
 
-		Allen.Ingling@nyu.edu		awi 
+    AUTHORS:
+
+    Allen.Ingling@nyu.edu           awi
+    mario.kleiner@tuebingen.mpg.de  mk
   
-	PLATFORMS:
+	PLATFORMS:	
 	
-		Mac OS X MATLAB only.
+		All.
     
 	HISTORY:
   
@@ -17,7 +18,7 @@
 		5/30/05		mk		New preference setting screenSkipSyncTests -- allow skipping/shortening of some internal tests.
 		5/30/05		mk		New preference setting screenVisualDebugLevel.
 		3/07/05		awi		New preference SuppressAllWarnings.
-                11/15/06        mk              New preference vbl & flip timestamping mode.
+        11/15/06    mk      New preference vbl & flip timestamping mode.
  
 	DESCRIPTION:
   
@@ -126,7 +127,7 @@ static char synopsisString[] =
 	"\noldMode = Screen('Preference', 'VBLTimestampingMode', [newmode]);"
 	"\noldVTOTAL = Screen('Preference', 'VBLEndlineOverride' [, newVTOTAL]);"
 	"\noldMode = Screen('Preference', 'DefaultVideocaptureEngine', [newmode (0=Quicktime-SequenceGrabbers, 1=LibDC1394-Firewire, 2=LibARVideo, 3=GStreamer)]);"
-	"\noldMode = Screen('Preference', 'OverrideMultimediaEngine', [newmode (0=System default, 1=GStreamer)]);"
+	"\noldMode = Screen('Preference', 'OverrideMultimediaEngine', [newmode (0=Legacy-Quicktime, 1=GStreamer)]);"
 	"\noldLevel = Screen('Preference', 'WindowShieldingLevel', [newLevel (0 = Behind all other windows - 2000 = In front of all other windows, the default)]);"
 	"\nresiduals = Screen('Preference', 'SynchronizeDisplays', syncMethod [, screenId]);"
 	"\noldMappings = Screen('Preference', 'ScreenToHead', screenId [, newHeadId, newCrtcId][, rank=0]);"

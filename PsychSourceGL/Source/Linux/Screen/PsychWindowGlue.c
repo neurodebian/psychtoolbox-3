@@ -41,7 +41,7 @@
 static psych_bool usePerWindowXConnections = FALSE;
 
 // Use GLX version 1.3 setup code? Enabled INTEL_SWAP_EVENTS and other goodies...
-static psych_bool useGLX13;
+static psych_bool useGLX13 = FALSE;
 
 // Event base for GLX extension:
 static int glx_error_base, glx_event_base;
@@ -51,7 +51,8 @@ static int x11_windowcount = 0;
 
 // Typedef and fcn-pointer for optional Mesa get swap interval call:
 typedef int (*PFNGLXGETSWAPINTERVALMESAPROC)(void);
-PFNGLXGETSWAPINTERVALMESAPROC glXGetSwapIntervalMESA = NULL;
+PFNGLXGETSWAPINTERVALMESAPROC __glXGetSwapIntervalMESA = NULL;
+#define glXGetSwapIntervalMESA __glXGetSwapIntervalMESA
 
 #ifndef GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK
 #define GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK	0x04000000
@@ -174,15 +175,16 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
   GLXFBConfig *fbconfig = NULL;
   GLXWindow glxwindow;
   XVisualInfo *visinfo = NULL;
-  int i, x, y, width, height, nrdummy;
+  int i, x, y, width, height, nrconfigs, buffdepth;
   GLenum glerr;
-  psych_bool fullscreen = FALSE;
   int attrib[41];
   int attribcount=0;
   int stereoenableattrib=0;
   int depth, bpc;
   int windowLevel;
   int major, minor;
+  int xfixes_event_base1, xfixes_event_base2;
+  psych_bool xfixes_available = FALSE;
 
   // Retrieve windowLevel, an indicator of where non-fullscreen windows should
   // be located wrt. to other windows. 0 = Behind everything else, occluded by
@@ -250,12 +252,18 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     }
   }
 
+  // XFixes extension version 2.0 or later available and initialized?
+  if (XFixesQueryExtension(dpy, &xfixes_event_base1, &xfixes_event_base2) &&
+      XFixesQueryVersion(dpy, &major, &minor) && (major >= 2)) xfixes_available = TRUE;
+  major = minor = 0;
+
   // Init GLX extension, get its version, determine if at least V1.3 supported:
   useGLX13 = (glXQueryExtension(dpy, &glx_error_base, &glx_event_base) &&
               glXQueryVersion(dpy, &major, &minor) && ((major > 1) || ((major == 1) && (minor >= 3))));
 
   // Initialze GLX-1.3 protocol support. Use if possible:
   glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC) glXGetProcAddressARB("glXChooseFBConfig");
+  glXGetFBConfigAttrib = (PFNGLXGETFBCONFIGATTRIBPROC) glXGetProcAddressARB("glXGetFBConfigAttrib");
   glXGetVisualFromFBConfig = (PFNGLXGETVISUALFROMFBCONFIGPROC) glXGetProcAddressARB("glXGetVisualFromFBConfig");
   glXCreateWindow = (PFNGLXCREATEWINDOWPROC) glXGetProcAddressARB("glXCreateWindow");
   glXCreateNewContext = (PFNGLXCREATENEWCONTEXTPROC) glXGetProcAddressARB("glXCreateNewContext");
@@ -265,7 +273,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 
   // Check if everything we need from GLX-1.3 is supported:
   if (!useGLX13 || !glXChooseFBConfig || !glXGetVisualFromFBConfig || !glXCreateWindow || !glXCreateNewContext ||
-      !glXDestroyWindow || !glXSelectEvent || !glXGetSelectedEvent) {
+      !glXDestroyWindow || !glXSelectEvent || !glXGetSelectedEvent || !glXGetFBConfigAttrib) {
     useGLX13 = FALSE;
     printf("PTB-INFO: Not using GLX-1.3 extension. Unsupported? Some features may be disabled.\n");
   } else {
@@ -283,16 +291,13 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     width=PsychGetWidthFromRect(screenrect);
     height=PsychGetHeightFromRect(screenrect);      
     
-    // Switch system to fullscreen-mode without changing any settings:
-    fullscreen = TRUE;
+    // Mark this window as fullscreen window:
+    windowRecord->specialflags |= kPsychIsFullscreenWindow;
 
-	// Mark this window as fullscreen window:
-	windowRecord->specialflags |= kPsychIsFullscreenWindow;
-	
-	// Copy absolute screen location and area of window to 'globalrect',
-	// so functions like Screen('GlobalRect') can still query the real
-	// bounding gox of a window onscreen:
-	PsychGetGlobalScreenRect(screenSettings->screenNumber, windowRecord->globalrect);
+    // Copy absolute screen location and area of window to 'globalrect',
+    // so functions like Screen('GlobalRect') can still query the real
+    // bounding gox of a window onscreen:
+    PsychGetGlobalScreenRect(screenSettings->screenNumber, windowRecord->globalrect);
   }
   else {
     // Window size different from current screen size:
@@ -302,11 +307,10 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     y=windowRecord->rect[kPsychTop];
     width=PsychGetWidthFromRect(windowRecord->rect);
     height=PsychGetHeightFromRect(windowRecord->rect);
-    fullscreen = FALSE;
 	
-	// Copy absolute screen location and area of window to 'globalrect',
-	// so functions like Screen('GlobalRect') can still query the real
-	// bounding gox of a window onscreen:
+    // Copy absolute screen location and area of window to 'globalrect',
+    // so functions like Screen('GlobalRect') can still query the real
+    // bounding gox of a window onscreen:
     PsychCopyRect(windowRecord->globalrect, windowRecord->rect);
   }
 
@@ -410,7 +414,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 
   // Select matching visual for our pixelformat:
   if (useGLX13) {
-    fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+    fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
   } else {
     visinfo = glXChooseVisual(dpy, scrnum, attrib );
   }
@@ -423,7 +427,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 
 	// Retry:
 	if (useGLX13) {
-		fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+		fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 	} else {
 		visinfo = glXChooseVisual(dpy, scrnum, attrib );
 	}
@@ -444,7 +448,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 		  
 		  // Retry:
 		  if (useGLX13) {
-			  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+			  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 		  } else {
 			  visinfo = glXChooseVisual(dpy, scrnum, attrib );
 		  }
@@ -462,7 +466,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 			  windowRecord->multiSample--;
 
 			  if (useGLX13) {
-				  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+				  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 			  } else {
 				  visinfo = glXChooseVisual(dpy, scrnum, attrib );
 			  }
@@ -477,7 +481,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 			  attrib[i+1]=0;
 
 			  if (useGLX13) {
-				  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+				  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 			  } else {
 				  visinfo = glXChooseVisual(dpy, scrnum, attrib );
 			  }
@@ -498,7 +502,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
       
       // Retry...
       if (useGLX13) {
-	      fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+	      fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
       } else {
 	      visinfo = glXChooseVisual(dpy, scrnum, attrib );
       }
@@ -511,7 +515,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 	fflush(NULL);
 	
 	if (useGLX13) {
-		fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+		fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 	} else {
 		visinfo = glXChooseVisual(dpy, scrnum, attrib );
 	}
@@ -522,7 +526,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 	  for (i=0; i<attribcount && attrib[i]!=GLX_STENCIL_SIZE; i++);
 	  if (attrib[i]==GLX_STENCIL_SIZE && i<attribcount) attrib[i+1]=0;
 	  if (useGLX13) {
-		  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrdummy);
+		  fbconfig = glXChooseFBConfig(dpy, scrnum, attrib, &nrconfigs);
 	  } else {
 		  visinfo = glXChooseVisual(dpy, scrnum, attrib );
 	  }
@@ -536,29 +540,40 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     return(FALSE);
   }
 
+  if (fbconfig && (windowLevel >=1000 && windowLevel < 2000)) {
+    // Transparent window requested and fbconfig's found. Iterate over them
+    // and try to find one with 32 bit color depths:
+    for (i = 0; i < nrconfigs; i++) {
+      buffdepth = 0;
+      if ((Success == glXGetFBConfigAttrib(dpy, fbconfig[i], GLX_BUFFER_SIZE, &buffdepth)) && (buffdepth >= 32) &&
+	  (visinfo = glXGetVisualFromFBConfig(dpy, fbconfig[i])) && (visinfo->depth >= 32)) {
+	fbconfig[0] = fbconfig[i];
+	if (PsychPrefStateGet_Verbosity() > 3) printf("PTB-INFO: Choosing GLX framebuffer config %i for transparent window.\n", i);
+	break;
+      }
+      else if (PsychPrefStateGet_Verbosity() > 4) {
+	printf("PTB-INFO: Trying GLX framebuffer config %i for transparent window: Depths %i bpp.\n", i, buffdepth);
+      }
+    }
+  }
+
   // If this setup is fbconfig based, get associated visual:
   if (fbconfig) visinfo = glXGetVisualFromFBConfig(dpy, fbconfig[0]);
-
-  // Set window to non-fullscreen mode if it is a transparent or otherwise special window.
-  // This will prevent setting the override_redirect attribute, which would lock out the
-  // desktop window compositor:
-  if (windowLevel < 2000) fullscreen = FALSE;
-
-  // Also disable fullscreen mode for GUI-like windows:
-  if (windowRecord->specialflags & kPsychGUIWindow) fullscreen = FALSE;  
 
   // Setup window attributes:
   attr.background_pixel = 0;  // Background color defaults to black.
   attr.border_pixel = 0;      // Border color as well.
   attr.colormap = XCreateColormap( dpy, root, visinfo->visual, AllocNone);  // Dummy colormap assignment.
   attr.event_mask = KeyPressMask | StructureNotifyMask; // | ExposureMask;  // We're only interested in keypress events for GetChar() and StructureNotify to wait for Windows to be mapped.
-  attr.override_redirect = (fullscreen) ? 1 : 0;                            // Lock out window manager if fullscreen window requested.
+  attr.override_redirect = (windowRecord->specialflags & kPsychGUIWindow) ? 0 : 1; // Lock out window manager, unless it is a GUI window.
   mask = CWOverrideRedirect | CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
 
   // Create our onscreen window:
   win = XCreateWindow( dpy, root, x, y, width, height,
 		       0, visinfo->depth, InputOutput,
 		       visinfo->visual, mask, &attr );
+
+  if (PsychPrefStateGet_Verbosity() > 4) printf("PTB-INFO: GLX Visual info depths is %i bits\n", visinfo->depth);
 
   // Set hints and properties:
   {
@@ -573,8 +588,31 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 			   None, (char **)NULL, 0, &sizehints);
   }
 
+  // Setup window transparency for user input (keyboard and mouse events):
+  if (xfixes_available && (windowLevel < 1500)) {
+    // Define region as an empty input region:
+    XserverRegion region = XFixesCreateRegion(dpy, NULL, 0);
+ 
+    // Assign as region in which window receives input events, thereby
+    // setting the input region to empty, so the window is transparent
+    // to any input events like key presses or mouse clicks:
+    XFixesSetWindowShapeRegion(dpy, win, ShapeInput, 0, 0, region);
+
+    // Destroy region after assignment:
+    XFixesDestroyRegion(dpy, region);
+  }
+
+  // Create corresponding glx window:
   if (fbconfig) {
 	glxwindow = glXCreateWindow(dpy, fbconfig[0], win, NULL);
+  }
+
+  // Make sure a potential slaveWindow of us resides on the same X-Screen == has same screenNumber as us,
+  // otherwise trying to perform OpenGL context resource sharing would end badly:
+  if ((windowRecord->slaveWindow) && (windowRecord->slaveWindow->screenNumber != screenSettings->screenNumber)) {
+      // Ohoh! Let's abort with some more helpful error message than a simple hard application crash:
+      printf("\nPTB-ERROR:[glXCreateContext() resource sharing] Our peer window resides on a different X-Screen, which is forbidden. Aborting.\n\n");
+      return(FALSE);
   }
 
   // Create associated GLX OpenGL rendering context: We use ressource
@@ -657,8 +695,60 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 	  XChangeProperty(dpy, win, atom_window_opacity, XA_CARDINAL, 32, PropModeReplace, (unsigned char *) &opacity, 1);
   }
 
-  // Show our new window:
-  XMapWindow(dpy, win);
+  // If this window is a GUI window then enable all window decorations and
+  // manipulations, except for the window close button, which would wreak havoc:
+  if (windowRecord->specialflags & kPsychGUIWindow) {
+    // For some reason we need to use unsigned long and long here instead of
+    // int32_t etc., despite the fact that on a 64-Bit build, a long is 64-Bit
+    // and on a 32-Bit build, a long is 32-Bit, whereas the XChangeProperty()
+    // request says a single unit is 32-Bits? Anyway, it works correctly on a
+    // 64-Bit build, so this seems to be magically ok.
+    struct MwmHints {
+        unsigned long flags;
+        unsigned long functions;
+        unsigned long decorations;
+        long          input_mode;
+        unsigned long status;
+    };
+
+    enum {
+        MWM_HINTS_FUNCTIONS = (1L << 0),
+        MWM_HINTS_DECORATIONS =  (1L << 1),
+        
+        MWM_FUNC_ALL = (1L << 0),
+        MWM_FUNC_RESIZE = (1L << 1),
+        MWM_FUNC_MOVE = (1L << 2),
+        MWM_FUNC_MINIMIZE = (1L << 3),
+        MWM_FUNC_MAXIMIZE = (1L << 4),
+        MWM_FUNC_CLOSE = (1L << 5)
+    };
+
+    Atom mwmHintsProperty = XInternAtom(dpy, "_MOTIF_WM_HINTS", False);
+
+    struct MwmHints hints;
+    memset(&hints, 0, sizeof(hints));
+
+    hints.flags       = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
+    hints.decorations = MWM_FUNC_ALL;
+    hints.functions   = MWM_FUNC_RESIZE | MWM_FUNC_MOVE | MWM_FUNC_MINIMIZE | MWM_FUNC_MAXIMIZE;
+
+    XChangeProperty(dpy, win, mwmHintsProperty, mwmHintsProperty, 32, PropModeReplace, (unsigned char *) &hints, sizeof(hints) / sizeof(long));
+
+    // For windowLevels of at least 500, tell window manager to try to keep
+    // our window above most other windows, by setting the state to WM_STATE_ABOVE:
+    if (windowLevel >= 500) {
+      Atom stateAbove = XInternAtom(dpy, "_NET_WM_STATE_ABOVE", False);
+      XChangeProperty(dpy, win, XInternAtom(dpy, "_NET_WM_STATE", False), XA_ATOM, 32, PropModeReplace, (unsigned char *) &stateAbove, 1);
+    }
+  }
+
+  // Show our new window: Also raise it to the top for
+  // non-zero window levels:
+  if (windowLevel > 0) {
+    XMapRaised(dpy, win);
+  } else {
+    XMapWindow(dpy, win);
+  }
 
   // Spin-Wait for it to be really mapped:
   while (1) {
@@ -670,6 +760,9 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
       PsychYieldIntervalSeconds(0.001);
   }
   
+  // If windowLevel is zero, lower it to the bottom of the stack of windows:
+  if (windowLevel <= 0) XLowerWindow(dpy, win);
+
   // Setup window transparency for user input (keyboard and mouse events):
   if (windowLevel < 1500) {
 	// Need to try to be transparent for keyboard events and mouse clicks:
@@ -704,11 +797,11 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     XForceScreenSaver(dpy, ScreenSaverReset);
   }
 
-  // Some info for the user regarding non-fullscreen and ATI hw:
-  if (!(windowRecord->specialflags & kPsychIsFullscreenWindow) && (strstr(glGetString(GL_VENDOR), "ATI"))) {
-    printf("PTB-INFO: Some ATI graphics cards may not support proper syncing to vertical retrace when\n");
-    printf("PTB-INFO: running in windowed mode (non-fullscreen). If PTB aborts with 'Synchronization failure'\n");
-    printf("PTB-INFO: you can disable the sync test via call to Screen('Preference', 'SkipSyncTests', 1); .\n");
+  // Some info for the user regarding non-fullscreen mode and sync problems:
+  if (!(windowRecord->specialflags & kPsychIsFullscreenWindow) && (PsychPrefStateGet_Verbosity() > 2)) {
+    printf("PTB-INFO: Many graphics cards do not support proper timing and timestamping of visual stimulus onset\n");
+    printf("PTB-INFO: when running in windowed mode (non-fullscreen). If PTB aborts with 'Synchronization failure'\n");
+    printf("PTB-INFO: you can disable the sync test via call to Screen('Preference', 'SkipSyncTests', 2); .\n");
     printf("PTB-INFO: You won't get proper stimulus onset timestamps though, so windowed mode may be of limited use.\n");
   }
   fflush(NULL);
@@ -737,7 +830,7 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
   // Special case: Buggy ATI driver: Supports the VSync extension and glXSwapIntervalSGI, but provides the
   // wrong extension namestring "WGL_EXT_swap_control" (from MS-Windows!), so GLEW doesn't auto-detect and
   // bind the extension. If this special case is present, we do it here manually ourselves:
-  if ( (glXSwapIntervalSGI == NULL) && (strstr(glGetString(GL_EXTENSIONS), "WGL_EXT_swap_control") != NULL) ) {
+  if ((glXSwapIntervalSGI == NULL) && (strstr(glGetString(GL_EXTENSIONS), "WGL_EXT_swap_control") != NULL)) {
 	// Looks so: Bind manually...
 	glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC) glXGetProcAddressARB("glXSwapIntervalSGI");
   }
@@ -794,6 +887,11 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     XRRFreeCrtcInfo(crtc_info);
   }
   
+  // Try to enable swap event delivery to us:
+  if (PsychOSSwapCompletionLogging(windowRecord, 2, 0) && (PsychPrefStateGet_Verbosity() > 3)) {
+      printf("PTB-INFO: INTEL_swap_event support for additional swap completion correctness checks enabled.\n");
+  }
+
   // Well Done!
   return(TRUE);
 }
@@ -1064,7 +1162,7 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
 	// Check for valid return values: A zero ust or msc means failure, except for results from nouveau,
 	// because there it is "expected" to get a constant zero return value for msc, at least when running
 	// on top of a pre Linux-3.2 kernel:
-	if ((ust == 0) || ((msc == 0) && !strstr((char*) glGetString(GL_VENDOR), "nouveau"))) {
+	if ((windowRecord->vSynced) && ((ust == 0) || ((msc == 0) && !strstr((char*) glGetString(GL_VENDOR), "nouveau")))) {
 		// Ohoh:
 		if (PsychPrefStateGet_Verbosity() > 1) {
 			printf("PTB-DEBUG:PsychOSGetSwapCompletionTimestamp: Invalid return values ust = %lld, msc = %lld from call with success return code (sbc = %lld)! Failing with rc = -2.\n", ust, msc, sbc);
@@ -1075,8 +1173,63 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
 		return(-2);
 	}
 
-	// Success. Translate ust into system time in seconds:
+	// Success at least for timestamping. Translate ust into system time in seconds:
 	if (tSwap) *tSwap = PsychOSMonotonicToRefTime(((double) ust) / PsychGetKernelTimebaseFrequencyHz());
+
+    // Another consistency check: This one is meant to catch the totally broken glXSwapBuffersMscOML()
+    // implementation of the Intel-DDX from June 2011 to October 2012.
+    //
+    // That driver completely ignores the provided targetMSC for fullscreen page-flips!!! It just swaps
+    // at next vblank. Iow, the real msc of swap completion can be much lower than the requested targetMSC,
+    // killing any kind of stimulus onset timing.
+    //
+    // Check for this: If the swapcompletion msc is at least 2000 counts, we assume it didn't just wrap
+    // around by chance, but is a valid target for concsistency checks. 2000 vblanks ~ 10-33 secs with typical
+    // refresh rates. This means a blind spot of about 10-30 seconds every ~ 8 months of system uptime, so
+    // at most a dozen trials could get screwed unnoticed if somebody is really really unlucky.
+    //
+    // If the check is executed, the msc of swap completion should always be >= targetMSC, otherwise something
+    // is deeply broken in the driver:
+    if ((windowRecord->vSynced) && (msc > 2000) && (windowRecord->lastSwaptarget_msc > 2000) && (msc < windowRecord->lastSwaptarget_msc)) {
+        // Utterly broken OML swap scheduling! Disable it, so we can use our old fallback path. Warn user once
+        // about broken driver:
+        
+        // First detected failure? Skip it on successive failures, as the fallback path will have taken
+        // care of it -- One would hope at least.
+        if (windowRecord->gfxcaps & kPsychGfxCapSupportsOpenML) {
+            // Disable OpenML swap scheduling, we will use the classic wait + glXSwapBuffers path, but
+            // still keep glXWaitForSBC() timestamping functional:
+            windowRecord->gfxcaps &= ~kPsychGfxCapSupportsOpenML;
+
+            if (PsychPrefStateGet_Verbosity() > 1) {
+                printf("\nPTB-WARNING: The flip stimulus onset completed at vblank count %lld before the requested target vblank count %lld !!\n", msc, windowRecord->lastSwaptarget_msc);
+                printf("PTB-WARNING: This likely means a serious graphics driver bug or malfunction in the drivers swap scheduling mechanism!\n");
+                printf("PTB-WARNING: I will now switch to a fallback / backup method for the remainder of this session, trying to work around this bug.\n");
+                printf("PTB-WARNING: All Intel graphics drivers released between June 2011 and at least October 2012 are known to have this bug.\n");
+                printf("PTB-WARNING: If you use such a graphics card or driver, please try to update your graphics driver as soon as possible for reliable operation.\n\n");
+            }
+        }
+        else {
+            // Failure detected again, *after* our workaround was activated! This must be another independent bug!
+            // Note: So far no driver ever exposed this bug, but some of the work the Intel developers are currently
+            // doing on their driver has some potential to introduce such a bug, so we are better safe than sorry.
+            // Specifically: If the kms pageflip completion handler in the intel-kms driver should return a stale
+            // msc and ust from previous vblank, because our special workaround and safety code was removed in Oct. 2012.
+            // In theory, the driver has been fixed for all current Intel gpu's, but in practice you never know what
+            // kind of hardware bugs may show up or hide in future and current gpus. Better safe than sorry...
+            
+            // Disable OpenML completely, in the hope that our old "classic" path can somehow deal with the problem,
+            // or perform further diagnostics at least:
+            windowRecord->specialflags |= kPsychOpenMLDefective;
+            if (PsychPrefStateGet_Verbosity() > 0) {
+                printf("\nPTB-ERROR: The flip stimulus onset completed at vblank count %lld before the requested target vblank count %lld !!\n", msc, windowRecord->lastSwaptarget_msc);
+                printf("PTB-ERROR: This likely means a serious graphics driver bug or malfunction in the drivers swap scheduling or timestamping mechanism!\n");
+                printf("PTB-ERROR: I will now switch to a fallback / backup method for the remainder of this session, trying to work around this bug.\n");
+                printf("PTB-ERROR: There are no guarantees though. Your system should be considered *not trustwhorthy* for timing sensitive tasks\n");
+                printf("PTB-ERROR: until the problem is properly diagnosed and fixed. Please report this failure to the Psychtoolbox user forum.\n\n");
+            }
+        }
+    }
 
 	// If we are running on a slightly incomplete nouveau-kms driver which always returns a zero msc,
 	// we need to get good ust,msc,sbc values for later use as reference and as return value via an
@@ -1101,6 +1254,25 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
 	windowRecord->reference_sbc = sbc;
 
 	if (PsychPrefStateGet_Verbosity() > 11) printf("PTB-DEBUG:PsychOSGetSwapCompletionTimestamp: Success! refust = %lld, refmsc = %lld, refsbc = %lld.\n", ust, msc, sbc);
+    
+    // Try to get corresponding INTEL_swap_event for cross-checking:
+    if (PsychOSSwapCompletionLogging(windowRecord, 4, (int) sbc)) {
+        // Got it. We are only interested in one thing: Was this a fullscreen window bufferswap with a non page-flipped swap?
+        // For non-fullscreen windows, all bets are off wrt. stimulus onset timing or timestamping, and the user knows this,
+        // as we've told so at window creation time.
+        //
+        // For fullscreen windows however, the user can expect pageflip swaps for best precision. If this doesn't work out,
+        // it hints to some configuration problem on the system and we better warn the user about unreliable timing:
+        if ((windowRecord->vSynced) && (windowRecord->specialflags & kPsychIsFullscreenWindow) && (PsychPrefStateGet_SkipSyncTests() < 2) && (windowRecord->swapcompletiontype > 1)) {
+            // Ohoh: Non-pageflipped fullscreen window swap:
+            if (PsychPrefStateGet_Verbosity() > 1) {
+                printf("\nPTB-WARNING: Flip for window %i didn't use pageflipping for flip. Visual presentation timing and timestamps are likely unreliable!\n", windowRecord->windowIndex);
+                printf("PTB-WARNING: Something is misconfigured on your system, otherwise pageflipping would have been used by the graphics driver for reliable timing.\n");
+                printf("PTB-WARNING: Read the Linux specific section of 'help SyncTrouble' for some common causes and fixes for this problem.\n");
+            }
+        }
+    }
+    
 	#endif
 	
 	// Return msc of swap completion:
@@ -1201,6 +1373,23 @@ void PsychOSInitializeOpenML(PsychWindowRecordType *windowRecord)
 			printf("PTB-INFO: OpenML OML_sync_control implementation with problematic glXGetSyncValuesOML() function detected. Enabling workaround for ok performance.\n");
 		}
 	}
+    
+    if (glXGetSyncValuesOML(windowRecord->targetSpecific.privDpy, windowRecord->targetSpecific.windowHandle, &ust, &msc, &sbc)) {
+        // Check swap scheduling for reliable operation. Intel ddx drivers from June 2011 to at least October 2012 are known
+        // to be seriously buggy here. Schedule a swap a few vblanks in the future, wait for its completion and timestamp it.
+        // This will run a consistency check inside PsychOSGetSwapCompletionTimestamp() which would trigger warnings and fallbacks
+        // if it detects problems of the driver with sticking to the schedule:
+        PsychOSScheduleFlipWindowBuffers(windowRecord, 0.0, msc + 5, 0, 0, 0);
+        
+        // Just a dummy call to wait for completion and to trigger consistency checks and workarounds if needed:
+        PsychOSGetSwapCompletionTimestamp(windowRecord, 0, NULL);
+    }
+    else {
+		if (PsychPrefStateGet_Verbosity() > 1) {
+			printf("PTB-WARNING: Spurious failure of glXGetSyncValuesOML(). Could not perform some correctness tests. Something may be broken in your systems timestamping!\n");
+		}
+    }
+    
 	#else
 		// Disable extension:
 		windowRecord->gfxcaps &= ~kPsychGfxCapSupportsOpenML;	
@@ -1606,55 +1795,125 @@ psych_bool PsychOSSwapCompletionLogging(PsychWindowRecordType *windowRecord, int
 	unsigned long glxmask = 0;
 	XEvent evt;
 	int scrnum;
+    int event_type;
+    
+    // Invalidate stored swap completion type for this window:
+    windowRecord->swapcompletiontype = 0;
 
-	if (cmd == 0 || cmd == 1) {
+	if (cmd == 0 || cmd == 1 || cmd == 2) {
 		// Check if GLX_INTEL_swap_event extension is supported. Enable/Disable swap completion event
 		// delivery for our window, if so:
+        // We enable if override env var "PSYCH_FORCE_INTEL_swap_event" is set, or if the extension is
+        // in the glXQueryExtensionsString() or it is in both the server- and client-extension string.
 		scrnum = PsychGetXScreenIdForScreen(windowRecord->screenNumber);
-		if (useGLX13 && strstr(glXQueryExtensionsString(windowRecord->targetSpecific.deviceContext, scrnum), "GLX_INTEL_swap_event")) {
-			glXSelectEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.windowHandle, (unsigned long) ((cmd == 1) ? GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK : 0));
-			return(TRUE);
+		if (useGLX13 && (strstr(glXQueryExtensionsString(windowRecord->targetSpecific.deviceContext, scrnum), "GLX_INTEL_swap_event") || getenv("PSYCH_FORCE_INTEL_swap_event") ||
+                         (strstr(glXGetClientString(windowRecord->targetSpecific.deviceContext, GLX_EXTENSIONS), "GLX_INTEL_swap_event") &&
+                          strstr(glXQueryServerString(windowRecord->targetSpecific.deviceContext, scrnum, GLX_EXTENSIONS), "GLX_INTEL_swap_event")))) {
+            // Always enable the swap event delivery, either to us or to user code:
+			glXSelectEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.windowHandle, (unsigned long) GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK);
+                             
+            // Logical enable state: Usercode has precedence. If it enables it goes to it. If it disabled,
+            // it gets directed to us:
+            if (cmd == 0 || cmd == 1) windowRecord->swapevents_enabled = (cmd == 1) ? 1 : 2;
+
+            // If we want the data and usercode doesn't have exclusive access to it already, then redirect to us:
+            if (cmd == 2 && (windowRecord->swapevents_enabled != 1)) windowRecord->swapevents_enabled = 2;
+
+            return(TRUE);
 		} else {
+            // Failed to enable swap events, possibly because they're unsupported:
+            windowRecord->swapevents_enabled = 0;
 			return(FALSE);
 		}
 	}
 
-	if (cmd == 2) {
-		// Experimental support for INTEL_swap_event extension enabled? Process swap events if so:
+	if (cmd == 3 || 4) {
+		// Support for INTEL_swap_event extension enabled? Process swap events if so:
 		if (useGLX13) {
 			glXGetSelectedEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.windowHandle, &glxmask);
 			if (glxmask & GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK) {
-				// INTEL_swap_event delivery enabled and requested. Try to fetch all pending ones for this window:			
-				if (XCheckTypedWindowEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.xwindowHandle, glx_event_base + GLX_BufferSwapComplete, &evt)) {
-					// Cast to proper event type:
-					GLXBufferSwapComplete *sce = (GLXBufferSwapComplete*) &evt;
-					if (PsychPrefStateGet_Verbosity() > 5) {
-						printf("SWAPEVENT: OurWin=%i ust = %lld, msc = %lld, sbc = %lld, type %s.\n", (int) (sce->drawable == windowRecord->targetSpecific.xwindowHandle),
-						       sce->ust, sce->msc, sce->sbc, (sce->event_type == GLX_FLIP_COMPLETE_INTEL) ? "PAGEFLIP" : "BLIT/EXCHANGE");
-					}
+				// INTEL_swap_event delivery enabled and requested.
+                
+                // Delivery to user-code?
+                if (cmd == 3 && windowRecord->swapevents_enabled == 1) {
+                    // Try to fetch oldest pending one for this window:			
+                    if (XCheckTypedWindowEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.xwindowHandle, glx_event_base + GLX_BufferSwapComplete, &evt)) {
+                        // Cast to proper event type:
+                        GLXBufferSwapComplete *sce = (GLXBufferSwapComplete*) &evt;
+                        if (PsychPrefStateGet_Verbosity() > 5) {
+                            printf("SWAPEVENT: OurWin=%i ust = %lld, msc = %lld, sbc = %lld, type %s.\n", (int) (sce->drawable == windowRecord->targetSpecific.xwindowHandle),
+                                   sce->ust, sce->msc, sce->sbc, (sce->event_type == GLX_FLIP_COMPLETE_INTEL) ? "PAGEFLIP" : "BLIT/EXCHANGE");
+                        }
 
-					PsychAllocOutStructArray(aux1, FALSE, 1, fieldCount, FieldNames, &s);
-					PsychSetStructArrayDoubleElement("OnsetTime", 0, PsychOSMonotonicToRefTime(((double) sce->ust) / PsychGetKernelTimebaseFrequencyHz()), s);
-					PsychSetStructArrayDoubleElement("OnsetVBLCount", 0, (double) sce->msc, s);
-					PsychSetStructArrayDoubleElement("SwapbuffersCount", 0, (double) sce->sbc, s);
-					switch (sce->event_type) {
-						case GLX_FLIP_COMPLETE_INTEL:
-							PsychSetStructArrayStringElement("SwapType", 0, "Pageflip", s);
-						break;
+                        PsychAllocOutStructArray(aux1, FALSE, 1, fieldCount, FieldNames, &s);
+                        PsychSetStructArrayDoubleElement("OnsetTime", 0, PsychOSMonotonicToRefTime(((double) sce->ust) / PsychGetKernelTimebaseFrequencyHz()), s);
+                        PsychSetStructArrayDoubleElement("OnsetVBLCount", 0, (double) sce->msc, s);
+                        PsychSetStructArrayDoubleElement("SwapbuffersCount", 0, (double) sce->sbc, s);
+                        switch (sce->event_type) {
+                            case GLX_FLIP_COMPLETE_INTEL:
+                                PsychSetStructArrayStringElement("SwapType", 0, "Pageflip", s);
+                            break;
 
-						case GLX_EXCHANGE_COMPLETE_INTEL:
-							PsychSetStructArrayStringElement("SwapType", 0, "Exchange", s);
-						break;
+                            case GLX_EXCHANGE_COMPLETE_INTEL:
+                                PsychSetStructArrayStringElement("SwapType", 0, "Exchange", s);
+                            break;
 
-						case GLX_COPY_COMPLETE_INTEL:
-							PsychSetStructArrayStringElement("SwapType", 0, "Copy", s);
-						break;
+                            case GLX_COPY_COMPLETE_INTEL:
+                                PsychSetStructArrayStringElement("SwapType", 0, "Copy", s);
+                            break;
 
-						default:
-							PsychSetStructArrayStringElement("SwapType", 0, "Unknown", s);
-					}
-				}
+                            default:
+                                PsychSetStructArrayStringElement("SwapType", 0, "Unknown", s);
+                        }
+                        
+                        return(TRUE);
+                    }                    
+                }
+                
+                // Delivery to internal code "us"?
+                if (cmd == 4 && windowRecord->swapevents_enabled == 2) {
+                    // Get the most recent event in the queue, old ones are not interesting to us atm.:
+                    event_type = 0; // Init to "undefined"
+                    
+                    // Fetch until exhausted:
+                    while (XCheckTypedWindowEvent(windowRecord->targetSpecific.deviceContext, windowRecord->targetSpecific.xwindowHandle, glx_event_base + GLX_BufferSwapComplete, &evt)) {
+                        // Cast to proper event type:
+                        GLXBufferSwapComplete *sce = (GLXBufferSwapComplete*) &evt;
+                        if (PsychPrefStateGet_Verbosity() > 10) {
+                            printf("SWAPEVENT: OurWin=%i ust = %lld, msc = %lld, sbc = %lld, type %s.\n", (int) (sce->drawable == windowRecord->targetSpecific.xwindowHandle),
+                                   sce->ust, sce->msc, sce->sbc, (sce->event_type == GLX_FLIP_COMPLETE_INTEL) ? "PAGEFLIP" : "BLIT/EXCHANGE");
+                        }
+                        
+                        // Assign the one that matches our last 'sbc' for swap completion on our windowRecord:
+                        if ((sce->drawable == windowRecord->targetSpecific.xwindowHandle) && (((int) sce->sbc) == aux1)) event_type = sce->event_type;
+                    }
+                    
+                    // event_type is either zero if nothing fetched, or the swap type of the most
+                    // recent bufferswap:
+                    switch (event_type) {
+                        case GLX_FLIP_COMPLETE_INTEL:
+                            windowRecord->swapcompletiontype = 1;
+                            break;
+                            
+                        case GLX_EXCHANGE_COMPLETE_INTEL:
+                            windowRecord->swapcompletiontype = 2;
+                            break;
+                            
+                        case GLX_COPY_COMPLETE_INTEL:
+                            windowRecord->swapcompletiontype = 3;
+                            break;
+                            
+                        default:
+                            windowRecord->swapcompletiontype = 0;
+                            return(FALSE);
+                    }
+
+                    return(TRUE);
+                }
 			}
 		}
 	}
+    
+    // Invalid cmd or failed cmd:
+    return(FALSE);
 }

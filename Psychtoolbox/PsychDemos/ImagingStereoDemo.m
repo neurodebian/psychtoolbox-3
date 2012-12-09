@@ -187,8 +187,6 @@ end
 % Screen('OpenWindow'):
 [windowPtr, windowRect]=PsychImaging('OpenWindow', scrnNum, 0, [], [], [], stereoMode);
 
-% Oldstyle:   [windowPtr, windowRect]=Screen('OpenWindow', scrnNum, 0, [], [], [], stereoMode);
-
 if stereoMode == 10
     % In dual-window, dual-display mode, we open the slave window on
     % the secondary screen. Please note that, after opening this window
@@ -281,9 +279,15 @@ nmax = 100000;
 % with video frames of size 512 x 512 pixels at a framerate of 60fps.
 if writeMovie
     if writeMovie > 1
-        % Add a sound track to the movie: 2 channel stereo, 48 kHz:
-        movie = Screen('CreateMovie', windowPtr, ['MyTestMovie.mov'], 512, 512, 30, ':CodecSettings=AddAudioTrack=2@48000');
-
+        if ~IsOSX(1)
+            % Add a sound track to the movie: 2 channel stereo, 48 kHz:
+            % We raise video quality to 50% for decent looking movies.
+            movie = Screen('CreateMovie', windowPtr, ['MyTestMovie.mov'], 512, 512, 30, ':CodecSettings=AddAudioTrack=2@48000 Videoquality=0.5');
+        else
+            % Same, but for 64-Bit OSX, where the default codec does not
+            % work due to too old GStreamer version. Use XVid instead:
+            movie = Screen('CreateMovie', windowPtr, ['MyTestMovie.avi'], 512, 512, 30, ':CodecSettings=AddAudioTrack=2@48000:CodecType=VideoCodec=xvidenc profile=244 max-key-interval=10 bitrate=9708400 quant-type=1');
+        end
         % Create a sequence of 10 tones, each of 1 second duration, each 100 Hz higher
         % than its predecessor. Each of the two stereo channels gets a slightly different sound:
         for freq=100:100:1000
@@ -292,7 +296,8 @@ if writeMovie
         nmax = 300;
     else
         % Only video, no sound:
-        movie = Screen('CreateMovie', windowPtr, ['MyTestMovie.mov'], 512, 512, 30);
+        % We raise video quality to 50% for decent looking movies.
+        movie = Screen('CreateMovie', windowPtr, ['MyTestMovie.mov'], 512, 512, 30, ':CodecSettings=Videoquality=0.5');
     end
 
     % Other examples of codec settings:
@@ -368,7 +373,12 @@ while length(t) < nmax
 
     % Add a screenshot of the center 512 x 512 pixels as a new video frame to the movie file, if any:
     if writeMovie
-        Screen('AddFrameToMovie', windowPtr, CenterRect([0 0 512 512], Screen('Rect', scrnNum)), 'backBuffer');
+        % It would be better to capture the image from the 'backBuffer', but
+        % we capture the 'frontBuffer' to work around a bug in the VirtualBox
+        % Virtual Machine software when running a Windows-7 VM. This exotic
+        % setup is used for testing of PTB, you should not need this
+        % workaround on your system.
+        Screen('AddFrameToMovie', windowPtr, CenterRect([0 0 512 512], Screen('Rect', scrnNum)), 'frontBuffer');
     end
 
     % Flip stim to display and take timestamp of stimulus-onset after

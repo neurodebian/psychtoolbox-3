@@ -37,14 +37,12 @@
 
 #include "Screen.h"
 
-#if PSYCH_SYSTEM != PSYCH_LINUX
-#if !defined(__LP64__) && !defined(_M_IA64)
-#define PSYCHQTAVAIL 1
+#ifdef PSYCHQTAVAIL
 #include "PsychMovieSupportQuickTime.h"
 #endif
-#endif
 
-#if defined(__LP64__) || defined(_M_IA64)
+// Detect if this is a 64-Bit build system:
+#if defined(__LP64__) || defined(_M_IA64) || defined(_WIN64)
 #define PSYCHOTHER64BIT 1
 #else
 #define PSYCHOTHER64BIT 0
@@ -71,20 +69,23 @@ static psych_bool usegs(void) {
 		doUsegs = FALSE;
 
 		// We always use GStreamer if we are running on
-		// Linux, or 64-Bit builds on OS/X or Windows, as
+		// Linux, Windows, or 64-Bit builds on OS/X, as
 		// these systems only support GStreamer, but they
 		// support it consistently:
-		if ((PSYCH_SYSTEM == PSYCH_LINUX) || PSYCHOTHER64BIT) {
+		if ((PSYCH_SYSTEM == PSYCH_LINUX) || (PSYCH_SYSTEM == PSYCH_WINDOWS) || PSYCHOTHER64BIT) {
 			// Yep: Unconditionally use GStreamer:
 			doUsegs = TRUE;
 		} else {
-			// This is a 32-bit build on Windows or OS/X.
+			// This is a 32-bit build on OS/X.
 			// We use GStreamer if it is supported and usercode
 			// wants to use it, according to preference setting:
 			if (USE_GSTREAMER && (PsychPrefStateGet_UseGStreamer()==1)) {
 				doUsegs = TRUE;
 			}
 		}
+        
+        // Signal use of GStreamer to userspace via preference setting:
+        if (doUsegs) PsychPrefStateSet_UseGStreamer(1);
 	}
 
 	// Return cached engine use flag:
@@ -125,7 +126,6 @@ int PsychGetMovieCount(void)
 	#endif
 	}
 
-	PsychErrorExitMsg(PsychError_unimplemented, "Sorry, Movie playback support not supported on your configuration.");
 	return(0);
 }
 
@@ -158,7 +158,7 @@ void* PsychAsyncCreateMovie(void* inmovieinfo)
     }
     
     // Execute our normal OpenMovie function: This does the hard work:
-    PsychCreateMovie(&(movieinfo->windowRecord), movieinfo->moviename, movieinfo->preloadSecs, &mymoviehandle, movieinfo->asyncFlag, movieinfo->specialFlags1);
+    PsychCreateMovie(&(movieinfo->windowRecord), movieinfo->moviename, movieinfo->preloadSecs, &mymoviehandle, movieinfo->asyncFlag, movieinfo->specialFlags1, movieinfo->pixelFormat, movieinfo->maxNumberThreads);
 	
     // Ok, either we have a moviehandle to a valid movie, or we failed, which would
     // be signalled to the calling function via some negative moviehandle:
@@ -179,21 +179,21 @@ void* PsychAsyncCreateMovie(void* inmovieinfo)
  *      moviename = char* with the name of the moviefile.
  *      moviehandle = handle to the new movie.
  */
-void PsychCreateMovie(PsychWindowRecordType *win, const char* moviename, double preloadSecs, int* moviehandle, int asyncFlag, int specialFlags1)
+void PsychCreateMovie(PsychWindowRecordType *win, const char* moviename, double preloadSecs, int* moviehandle, int asyncFlag, int specialFlags1, int pixelFormat, int maxNumberThreads)
 {
-	if (usegs()) {
-	#ifdef PTB_USE_GSTREAMER
-	PsychGSCreateMovie(win, moviename, preloadSecs, moviehandle, asyncFlag, specialFlags1);
-	return;
-	#endif
-	} else {
-	#ifdef PSYCHQTAVAIL
-	PsychQTCreateMovie(win, moviename, preloadSecs, moviehandle, specialFlags1);
-	return;
-	#endif
-	}
+    if (usegs()) {
+        #ifdef PTB_USE_GSTREAMER
+        PsychGSCreateMovie(win, moviename, preloadSecs, moviehandle, asyncFlag, specialFlags1, pixelFormat, maxNumberThreads);
+        return;
+        #endif
+    } else {
+        #ifdef PSYCHQTAVAIL
+        PsychQTCreateMovie(win, moviename, preloadSecs, moviehandle, specialFlags1);
+        return;
+        #endif
+    }
 
-	PsychErrorExitMsg(PsychError_unimplemented, "Sorry, Movie playback support not supported on your configuration.");
+    PsychErrorExitMsg(PsychError_unimplemented, "Sorry, Movie playback support not supported on your configuration.");
 }
 
 /*
@@ -315,8 +315,6 @@ void PsychFreeMovieTexture(PsychWindowRecordType *win)
 	return;
 	#endif
 	}
-
-	PsychErrorExitMsg(PsychError_unimplemented, "Sorry, Movie playback support not supported on your configuration.");
 }
 
 /*
