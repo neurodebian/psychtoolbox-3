@@ -1,3 +1,13 @@
+psychtoolbox-3 (3.0.10.20121111.dfsg1-1) unstable; urgency=low
+
+  * Long over-due fresh always-beta snapshot release of 3.0.10
+    - upstream switched entirely over to GIT, packaging repository
+      is rebased on top of that GIT repository
+    - debian/dfsg-upstream adjusted for new archives/binary blobs to
+      be removed
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 09 Dec 2012 10:54:02 -0500
+
 psychtoolbox-3 (3.0.9+svn2579.dfsg1-1) unstable; urgency=low
 
   * Fresh always-beta always 3.0.9 release

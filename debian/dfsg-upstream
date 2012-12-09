@@ -11,10 +11,15 @@ FINDREGEX="find -regextype posix-egrep -regex"
 $FINDREGEX '.*((|Mac)OSX|Octave3OSXFiles|Windows|.bundle|.FBCLockFolder)' -print0| xargs -0 --no-run-if-empty $RM -rf
 # more of non-Linux OS specifics
 $RM -rf PsychSourceGL/Cohorts/libusb1-win32
-$RM -rf PsychSourceGL/Cohorts/{PsychtoolboxOSXKernelDriver,HID\ Utilities\ Source,IOWarrior}
+# HID_Utilities_64Bit
+# Seems to be used only for OSX ATM
+# Copy of them is shipped within pd-hid package (recent)
+# So, for now removing for Debian builds
+$RM -rf PsychSourceGL/Cohorts/{PsychtoolboxOSXKernelDriver,HID?Utilities*,IOWarrior}
 $RM -rf Psychtoolbox/PsychContributed/WinTab
-$RM -rf Psychtoolbox/PsychAlpha/PsychtoolboxKernelDriver.kext*
-$RM -rf Psychtoolbox/PsychAlpha/PsychtoolboxKernelDriverUserClientTool
+# Some binary kernels/tools for OSX
+$RM -rf Psychtoolbox/*/PsychtoolboxKernelDriver*.kext*
+$RM -rf Psychtoolbox/*/PsychtoolboxKernelDriverUserClientTool*
 
 # Test and its data (input? output?)
 $RM -f Psychtoolbox/PsychTests/StandaloneTimingProgram Psychtoolbox/.FBCIndex
@@ -64,13 +69,18 @@ $RM -rf ./PsychSourceGL/Cohorts/libDC1394 # libdc1394-22-dev -- check content
 $RM -f ./Psychtoolbox/PsychOpenGL/MOGL/source/*gl*ew.*
 $RM -f ./PsychSourceGL/Source/Common/Screen/gl*ew*.*
 
+$RM -f ./PsychSourceGL/Cohorts/freeglut-MSVC-2.8.0-1.mp.zip
+
 # TODO:
 # portaudio has to be patched - keep original pristine tarball and patched sources
 # remove the rest
 $RM -f ./PsychSourceGL/Cohorts/PortAudio/libportaudio.a # anyway alien arch
 $RM -f ./PsychSourceGL/Cohorts/PortAudio/portaudio_unpatched_except4OSX.zip # we will use pristine source tarball
+$RM -f ./PsychSourceGL/Cohorts/PortAudio/Portaudio_OSX_64Bit.zip
+$RM -f ./PsychSourceGL/Cohorts/PortAudio/portaudio_msvc2010_buildconfig.zip
+$RM -f ./PsychSourceGL/Cohorts/PortAudio/*.lib
+$RM -f ./PsychSourceGL/Cohorts/PortAudio/*.a
 $RM -rf ./PsychSourceGL/Source/Common/PsychSound/StaticOpenALLib # libopenal-dev -- check
-
 
 # artoolkit (RFP - #452233) -- needed only on OSX/Windows
 $RM -rf PsychSourceGL/Cohorts/ARToolkit
