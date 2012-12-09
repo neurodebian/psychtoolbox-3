@@ -1,8 +1,6 @@
-diff --git a/PsychSourceGL/Source/striplibsfrommexfile.m b/PsychSourceGL/Source/striplibsfrommexfile.m
-index ba08d66..674522d 100644
 --- a/PsychSourceGL/Source/striplibsfrommexfile.m
 +++ b/PsychSourceGL/Source/striplibsfrommexfile.m
-@@ -52,7 +52,8 @@ if exist(filename, 'file')
+@@ -54,7 +54,8 @@ if exist(filename, 'file')
  
      fprintf('MEX file %s stripped from superfluous libraries.\n', filename);
  else
