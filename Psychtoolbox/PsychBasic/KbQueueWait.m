@@ -128,9 +128,15 @@ function secs=KbQueueWait(deviceIndex)
 
 % 8/19/07    rpw  Wrote it.
 % 8/23/07    rpw  Modifications to add KbQueueFlush
+% 5/14/12    mk   Small fixes: Use 1 msec wait interval.
 
 if nargin < 1
 	deviceIndex = [];
+end
+
+% Try to check if keyboard queue for 'deviceIndex' is reserved for our exclusive use:
+if ~KbQueueReserve(3, 2, deviceIndex) && KbQueueReserve(3, 1, deviceIndex)
+    error('Keyboard queue for device %i already in use by GetChar() et al. Use of GetChar and keyboard queues is mutually exclusive!', deviceIndex);
 end
 
 % It is implicit in invoking this function that the queue should be running
@@ -143,9 +149,11 @@ while(1)
 		break;
 	end
 
-	% Wait for 5 msecs to prevent system overload
-	WaitSecs('Yieldsecs', 0.005);
+	% Wait for 1 msec to prevent system overload:
+	WaitSecs('Yieldsecs', 0.001);
 end
 
 presses=find(firstPress);
-secs=min(firstPress(presses));
+secs=min(firstPress(presses)); %#ok<FNDSB>
+
+return;

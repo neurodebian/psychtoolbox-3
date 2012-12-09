@@ -64,6 +64,11 @@
 #include <mach/mach.h>
 #include <string.h>
 
+#ifdef __LP64__
+typedef IOHIDDeviceRef pRecDevice;
+typedef IOHIDElementRef pRecElement;
+#endif
+
 #else
 // Non OS/X:
 
@@ -211,8 +216,10 @@ PsychError PSYCHHIDGiveMeReports(void);				// PsychHIDGiveMeReports.c
 PsychError PSYCHHIDOpenUSBDevice(void);				// PSYCHHIDOpenUSBDevice.c
 PsychError PSYCHHIDCloseUSBDevice(void);			// PSYCHHIDCloseUSBDevice.c
 PsychError PSYCHHIDUSBControlTransfer(void);		// PSYCHHIDUSBControlTransfer.c
+PsychError PSYCHHIDKeyboardHelper(void);            // PSYCHHIDKeyboardHelper.c
 
 //internal function protototypes
+void ConsoleInputHelper(int ccode); // PsychHIDKeyboardHelper.c -- Called from kbqueue handling thread.
 PsychError  PsychHIDReceiveReportsCleanup(void); // PsychHIDReceiveReports.c
 PsychError  ReceiveReports(int deviceIndex); // PsychHIDReceiveReports.c
 PsychError  GiveMeReport(int deviceIndex, psych_bool *reportAvailablePtr, unsigned char *reportBuffer, psych_uint32 *reportBytesPtr, double *reportTimePtr); // PsychHIDReceiveReports.c
@@ -227,7 +234,6 @@ pRecDevice 	PsychHIDGetDeviceRecordPtrFromIndex(int deviceIndex);								// Psyc
 int 		PsychHIDGetIndexFromRecord(pRecDevice deviceRecord, pRecElement elementRecord, HIDElementTypeMask typeMask);	// PsychHIDHelpers.c 
 //psych_bool 	PsychHIDCheckOpenDeviceInterfaceFromDeviceIndex(int deviceIndex);						// PsychHIDHelpers.c 
 //psych_bool 	PsychHIDCheckOpenDeviceInterfaceFromDeviceRecordPtr(pRecDevice deviceRecord);					// PsychHIDHelpers.c 
-void 		PsychHIDVerifyOpenDeviceInterfaceFromDeviceRecordPtr(pRecDevice deviceRecord);					// PsychHIDHelpers.c 
 void 		PsychHIDGetTypeMaskStringFromTypeMask(HIDElementTypeMask maskValue, char **pStr);				// PsychHIDHelpers.c
 pRecElement 	PsychHIDGetElementRecordFromDeviceRecordAndElementIndex(pRecDevice deviceRecord, int elementIndex);		// PsychHIDHelpers.c
 pRecElement 	PsychHIDGetCollectionRecordFromDeviceRecordAndCollectionIndex(pRecDevice deviceRecord, int elementIndex);	// PsychHIDHelpers.c
@@ -236,8 +242,10 @@ int 		PsychHIDFindCollectionElements(pRecElement collectionRecord, HIDElementTyp
 void 		PsychHIDGetDeviceListByUsage(long usagePage, long usage, int *numDeviceIndices, int *deviceIndices, pRecDevice *deviceRecords);  //// PsychHIDHelpers.c
 void 		PsychHIDGetDeviceListByUsages(int numUsages, long *usagePages, long *usages, int *numDeviceIndices, int *deviceIndices, pRecDevice *deviceRecords);  //// PsychHIDHelpers.c
 psych_bool PsychHIDQueryOpenDeviceInterfaceFromDeviceIndex(int deviceIndex);	// PsychHIDHelpers.c
-psych_bool PsychHIDQueryOpenDeviceInterfaceFromDeviceRecordPtr(pRecDevice deviceRecord);	// PsychHIDHelpers.c
-// void PsychHIDVerifyOpenDeviceInterfaceFromDeviceIndex(int deviceIndex);	// PsychHIDHelpers.c
+void PsychHIDVerifyOpenDeviceInterfaceFromDeviceIndex(int deviceIndex);
+IOHIDDeviceInterface122** PsychHIDGetDeviceInterfacePtrFromIndex(int deviceIndex);
+void HIDGetUsageName (const long valueUsagePage, const long valueUsage, char * cstrName);
+HIDElementTypeMask HIDConvertElementTypeToMask (const long type);
 #endif
 
 void InitializeSynopsis();
@@ -281,7 +289,7 @@ void PsychHIDOSKbTriggerWait(int deviceIndex, int numScankeys, int* scanKeys);
 psych_bool PsychHIDCreateEventBuffer(int deviceIndex);
 psych_bool PsychHIDDeleteEventBuffer(int deviceIndex);
 psych_bool PsychHIDFlushEventBuffer(int deviceIndex);
-unsigned int PsychHIDAvailEventBuffer(int deviceIndex);
+unsigned int PsychHIDAvailEventBuffer(int deviceIndex, unsigned int flags);
 int PsychHIDReturnEventFromEventBuffer(int deviceIndex, int outArgIndex, double maxWaitTimeSecs);
 int PsychHIDAddEventToEventBuffer(int deviceIndex, PsychHIDEventRecord* evt);
 

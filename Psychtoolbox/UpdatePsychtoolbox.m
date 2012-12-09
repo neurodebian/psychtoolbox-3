@@ -47,6 +47,11 @@ function UpdatePsychtoolbox(targetdirectory, targetRevision)
 % 10/05/09 mk  Strip trailing fileseperator from targetDirectory, as
 %              suggested by Erik Flister to avoid trouble with new svn
 %              clients.
+% 05/27/12 mk  Strip backwards compatibility support to pre-R2007a.
+%              Remove PowerPC support.
+%
+% 09/14/12 mk  Drop support for Octave on MS-Windows.
+% 09/14/12 mk  Drop support for 32-Bit Octave on OSX.
 
 % Flush all MEX files: This is needed at least on M$-Windows for SVN to
 % work if Screen et al. are still loaded.
@@ -80,31 +85,48 @@ if any(isspace(targetdirectory))
     fprintf('The targetdirectory spec contains white-space. This should work, but has not been tested extensively.\n');
 end
 
-% Check if this is a 64-bit Matlab, which we don't support at all:
-if strcmp(computer,'PCWIN64') | strcmp(computer,'MACI64') | ...
-  (~isempty(findstr(computer, '_64')) & isempty(findstr(computer, 'linux'))) %#ok<OR2>
-    fprintf('Psychtoolbox does not work on a 64 bit version of Matlab or Octave on MS-Windows or Apple-OSX.\n');
-    fprintf('You need to install a 32 bit Matlab or Octave to install and use Psychtoolbox.\n');
-    fprintf('Use with 64 bit Matlab or Octave is fully supported on GNU/Linux.\n');
-    fprintf('ERROR: See also http://psychtoolbox.org/wikka.php?wakka=Faq64BitSupport.\n');
-    error('Tried to update on a 64 bit version of Matlab or Octave, which is not supported on this operating system.');
+% Check if this is 32-Bit Octave on OSX, which we don't support anymore:
+if ~isempty(strfind(computer, 'apple-darwin')) && isempty(strfind(computer, '64'))
+    fprintf('Psychtoolbox 3.0.10 and later does no longer work with 32-Bit GNU/Octave on OSX.\n');
+    fprintf('You need to upgrade to a 64-Bit version of Octave on OSX, which is fully supported.\n');
+    fprintf('You can also use the alternate download function DownloadLegacyPsychtoolbox() to download\n');
+    fprintf('an old legacy copy of Psychtoolbox-3.0.9, which did support 32-Bit Octave 3.2 on OSX.\n');
+    error('Tried to setup on 32-Bit Octave, which is no longer supported on OSX.');
+end
+
+% Check if this is Octave on Windows, which we don't support at all:
+if strcmp(computer, 'i686-pc-mingw32')
+    fprintf('Psychtoolbox 3.0.10 and later does no longer work with GNU/Octave on MS-Windows.\n');
+    fprintf('You need to use MacOS/X or GNU/Linux if you want to use Psychtoolbox with Octave.\n');
+    fprintf('You can also use the alternate download function DownloadLegacyPsychtoolbox() to download\n');
+    fprintf('an old legacy copy of Psychtoolbox-3.0.9 which did support 32-Bit Octave 3.2 on Windows.\n');
+    error('Tried to setup on Octave, which is no longer supported on MS-Windows.');
+end
+
+if strcmp(computer,'MAC')
+    fprintf('This version of Psychtoolbox is no longer supported under MacOSX on the Apple PowerPC hardware platform.\n');
+    fprintf('You can get modern versions of Psychtoolbox-3 for Linux if you choose to install GNU/Linux on your PowerPC\n');
+    fprintf('machine. These are available from the GNU/Debian project and a future Ubuntu 12.10 release\n.');
+    fprintf('Alternatively you can download old - totally unsupported - releases of Psychtoolbox version 3.0.9\n');
+    fprintf('from GoogleCode by use of the alternate download function DownloadLegacyPsychtoolbox().\n\n');
+    error('Apple MacOSX on Apple PowerPC computers is no longer supported by this Psychtoolbox version.');
 end
 
 % Check OS
-isWin=strcmp(computer,'PCWIN') | strcmp(computer,'PCWIN64') | strcmp(computer, 'i686-pc-mingw32');
-isOSX=strcmp(computer,'MAC') | strcmp(computer,'MACI') | ~isempty(findstr(computer, 'apple-darwin'));
-isLinux=strcmp(computer,'GLNX86') | strcmp(computer,'GLNXA64') | ~isempty(findstr(computer, 'linux-gnu'));
+IsWin = ~isempty(strfind(computer, 'PCWIN')) || strcmp(computer, 'i686-pc-mingw32');
+IsOSX = ~isempty(strfind(computer, 'MAC')) || ~isempty(strfind(computer, 'apple-darwin'));
+IsLinux = strcmp(computer,'GLNX86') || strcmp(computer,'GLNXA64') || ~isempty(strfind(computer, 'linux-gnu'));
 
-if ~isWin & ~isOSX & ~isLinux %#ok<AND2>
-    os=computer;
+if ~IsWin && ~IsOSX && ~IsLinux
+    os = computer;
     if strcmp(os,'MAC2')
-        os='Mac OS9';
+        os = 'Mac OS9';
     end
-    fprintf('Sorry, this updater doesn''t support your operating system: %s.\n',os);
+    fprintf('Sorry, this updater doesn''t support your operating system: %s.\n', os);
     fprintf([mfilename ' can only install the new (OSX, Linux and Windows) \n'...
-        'OpenGL-based versions of the Psychtoolbox. To install the older (OS9 and Windows) \n'...
-        'versions (not based on OpenGL) please go to the psychtoolbox website: \n'...
-        'web http://psychtoolbox.org/download.html\n']);
+        'OpenGL-based versions of the Psychtoolbox-3. To install the older (OS9 and Windows) \n'...
+        'versions (not based on OpenGL, aka PTB-2) please go to the legacy Psychtoolbox website: \n'...
+        'web http://psychtoolbox.org/PTB-2/index.html\n']);
     error(['Your operating system is not supported by ' mfilename '.']);
 end
 
@@ -119,7 +141,7 @@ svnpath = GetSubversionPath;
 
 % Check that subversion client is installed.
 % Currently, we only know how to check this for Mac OSX.
-if isOSX & isempty(svnpath) %#ok<AND2>
+if IsOSX && isempty(svnpath)
     fprintf('The Subversion client "svn" is not in its expected\n');
     fprintf('location "/usr/local/bin/svn" on your disk. Please \n');
     fprintf('download and install the most recent Subversion client from:\n');
@@ -128,14 +150,16 @@ if isOSX & isempty(svnpath) %#ok<AND2>
     error('Subversion client is missing.');
 end
 
-fprintf('About to update your working copy of the OpenGL-based Psychtoolbox.\n');
+fprintf('About to update your working copy of the OpenGL-based Psychtoolbox-3.\n');
 updatecommand=[svnpath 'svn update '  targetRevision ' ' strcat('"',targetdirectory,'"') ];
 fprintf('Will execute the following update command:\n');
 fprintf('%s\n', updatecommand);
-if isOSX | isLinux %#ok<OR2>
+if IsOSX || IsLinux
     err=system(updatecommand);
     result = 'For reason, see output above.';
 else
+    % MK: TODO: Check if this is still needed on >= R2007a on Windows?
+    % I think it was only for R11 on Windows.
     [err, result]=dos(updatecommand, '-echo');
 end
 
@@ -172,6 +196,7 @@ fprintf('Your MATLAB/OCTAVE path has been updated. Now trying to save the new MA
 if exist('savepath') %#ok<EXIST>
    err=savepath;
 else
+   % MK: TODO: Still needed for R2007a and Octave 3+ ?
    err=path2rc;
 end
 
@@ -182,7 +207,7 @@ if err
         fprintf(['Sorry, SAVEPATH failed. Probably the pathdef.m file lacks write permission. \n'...
             'Please ask a user with administrator privileges to enable \n'...
             'write by everyone for the file:\n\n''%s''\n\n'],p);
-    catch
+    catch %#ok<CTCH>
         % Probably on Octave:
         fprintf(['Sorry, SAVEPATH failed. Probably your ~/.octaverc file lacks write permission. \n'...
             'Please ask a user with administrator privileges to enable \n'...
@@ -199,6 +224,6 @@ if exist('PsychtoolboxPostInstallRoutine.m', 'file')
    % post-install routine...
    clear PsychtoolboxPostInstallRoutine;
    PsychtoolboxPostInstallRoutine(1);
-end;
+end
 
 return

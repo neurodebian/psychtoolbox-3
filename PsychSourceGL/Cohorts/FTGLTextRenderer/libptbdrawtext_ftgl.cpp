@@ -38,10 +38,13 @@
  * 
  * g++ -g -DHAVE_OPENGL_DIR -DGLU_TESS_CALLBACK_TRIPLEDOT -I.  -I/opt/local/include/ -I/opt/local/include/freetype2/ -L/opt/local/lib/ -framework OpenGL -l fontconfig -l freetype -dynamiclib -o libptbdrawtext_ftgl.dylib libptbdrawtext_ftgl.cpp qstringqcharemulation.cpp OGLFT.cpp
  *
+ * The alternative OS/X 64-Bit build on 10.7 Lion assumes the default install locations for libfontconfig and libfreetype in /usr/X11R6/include and /usr/X11R6/lib:
+ *
+ * g++ -g -DHAVE_OPENGL_DIR -I.  -I/usr/X11R6/include/ -I/usr/X11R6/include/freetype2/ -L/usr/X11R6/lib/ -framework OpenGL -l fontconfig -l freetype -dynamiclib -o libptbdrawtext_ftgl64.dylib libptbdrawtext_ftgl.cpp qstringqcharemulation.cpp OGLFT.cpp
  *
  * Building for Linux:
  * 
- * g++ -g -fPIC -I. -I/usr/include/ -I/usr/include/freetype2/ -L/usr/lib -l GL -l GLU -l fontconfig -l freetype -pie -shared -o libptbdrawtext_ftgl.so.1 libptbdrawtext_ftgl.cpp qstringqcharemulation.cpp OGLFT.cpp
+ * g++ -g -fPIC -I. -I/usr/include/ -I/usr/include/freetype2/ -L/usr/lib -l GL -l GLU -l fontconfig -l freetype -pie -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions -Wl,--version-script=linuxexportlist.txt -o libptbdrawtext_ftgl.so.1 libptbdrawtext_ftgl.cpp qstringqcharemulation.cpp OGLFT.cpp
  *
  * libptbdrawtext_ftgl is copyright (c) 2010 by Mario Kleiner.
  * It is licensed to you under the LGPL license as follows:

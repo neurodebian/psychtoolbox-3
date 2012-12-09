@@ -14,20 +14,27 @@ function InitializePsychSound(reallyneedlowlatency)
 %
 % On Microsoft Windows, things are more complicated and painful as always:
 %
-% By default PsychPortAudio on Windows will use the "portaudio_x86.dll"
-% low-level sound driver included in the Psychtoolbox/PsychSound/
-% subfolder. This driver supports the Windows MME (MultiMediaExtensions)
-% and DirectSound sound systems. Apart from being buggy on some systems,
-% these sound systems only have a mildly accurate timing and a fairly high
-% inherent latency, typically over 30 milliseconds. On 150$ class sound
-% hardware we were able to achieve a trial-to-trial sound onset variability
-% with a standard deviation of about 1 millisecond, which is still good
-% enough for many purposes.
+% PsychPortAudio on Windows supports three different Windows sound systems,
+% MME, DirectSound and ASIO. Only ASIO is suitable for research grade
+% auditory stimulation with support for multi-channel sound cards and for
+% high-precision and low-latency sound timing and time-stamping. If you
+% want reliable timing and time-stamping with latencies and accuracy better
+% than 500 msecs, you *must* have a decent ASIO sound card with proper
+% vendor supplied ASIO drivers installed in your computer. A regular card,
+% for example built-in sound chips of your computer, will not suffice and
+% we will not guarantee any reasonable timing precision at all!
 %
-% The driver also supports the ASIO sound system provided by professional
-% class sound cards. If you need really low latency or high precision sound
-% on Windows, ASIO is what you want to use: Some (usually more expensive >
-% 150$) professional class sound cards ship with ASIO enabled sound
+% The Windows MME (MultiMediaExtensions) sound system has typical latencies
+% and inaccuracies in excess of 500 msecs, and the slightly better
+% DirectSound sound system still has a typical latency of over 30
+% milliseconds. Both systems are known to be buggy and unreliable wrt.
+% timing on many systems.
+%
+% The ASIO sound system provided by professional class sound cards usually
+% has excellent timing precision and latencies below 15 msecs, often as low
+% as 5 msecs for pro hardware. If you need really low latency or high
+% precision sound on Windows, ASIO is what you must use: Some (usually more
+% expensive) professional class sound cards ship with ASIO enabled sound
 % drivers, or at least there's such a driver available from the support
 % area of the website of your sound card vendor.
 %
@@ -38,22 +45,28 @@ function InitializePsychSound(reallyneedlowlatency)
 % downloadable from http://asio4all.com, which may or may not work well on
 % your specific sound card - The driver emulates the ASIO interface on top
 % of the WDM-KS (Windows Driver Model Kernel Streaming) API from Microsoft,
-% so the quality depends on the underlying WDM driver. If you manage to get
-% such an ASIO enabled sound driver working on your sound hardware, and
-% your ASIO enabled driver and sound card are of sufficiently high quality,
-% you can enjoy latencies as low as 5 msecs and a sound onset accuracy with
-% a standard deviation from the mean of less than 0.1 milliseconds on
-% MS-Windows - We measured around 20 microseconds on some setups, e.g., the
-% M-Audio Delta 1010-LT soundcard under Windows-XP SP2.
+% so the quality depends on the underlying WDM driver. For research grade
+% use, please do yourself a favor and invest in a real ASIO card.
+%
+% If you manage to get such an ASIO enabled sound driver working on your
+% sound hardware, and your ASIO enabled driver and sound card are of
+% sufficiently high quality, you can enjoy latencies as low as 5 msecs and
+% a sound onset accuracy with a standard deviation from the mean of less
+% than 0.1 milliseconds on MS-Windows - We measured around 20 microseconds
+% on some setups, e.g., the M-Audio Delta 1010-LT soundcard under
+% Windows-XP SP2.
 %
 % Using OS/X or Linux will usually get you comparably good or better
-% results with standard sound hardware.
+% results with most standard sound hardware, due to the technically
+% superior sound systems of these operating systems.
+%
 
 % History:
 % 6/6/2007    Written (MK).
 % 10/20/2011  Update: We always use ASIO enabled plugin on Windows by
 %             default, as the PTB V3.0.9 MIT style license allows bundling
 %             of an ASIO enabled proprietary dll with Psychtoolbox. (MK)
+% 09/11/2012  Add support for 64-Bit portaudio_x64.dll for Windows. (MK)
 
 if nargin < 1
     reallyneedlowlatency = [];
@@ -66,7 +79,7 @@ end
 % The usual tricks for MS-Windows:
 if IsWin
     % Special ASIO enabled low-latency driver installed?
-    if exist([PsychtoolboxRoot 'portaudio_x86.dll']) >= 2 %#ok<EXIST>
+    if exist([PsychtoolboxRoot 'portaudio_x86.dll'], 'file') || exist([PsychtoolboxRoot 'portaudio_x64.dll'], 'file')
         % Yes! Use it:
         fprintf('Detected optional PortAudio override driver plugin in Psychtoolbox root folder. Will use that.\n');
         driverloadpath = PsychtoolboxRoot;
@@ -107,7 +120,7 @@ if IsWin
             fprintf('PTB-Warning: system for properly installed and configured drivers and retry.\n');
             fprintf('PTB-Warning: Read "help InitializePsychSound" for more info about ASIO et al.\n');
         end
-    catch
+    catch %#ok<*CTCH>
         cd(olddir);
         error('Failed to load PsychPortAudio driver for unknown reason! Dependency problem?!?');
     end

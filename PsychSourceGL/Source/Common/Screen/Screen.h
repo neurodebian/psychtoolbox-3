@@ -52,17 +52,20 @@
 #include <pthread.h>
 #endif
 
-#if PSYCH_SYSTEM == PSYCH_OSX
+#if PSYCH_SYSTEM == PSYCH_OSX && defined(PSYCHQTAVAIL)
 	#include <Quicktime/Movies.h>
 #endif
 
-#if PSYCH_SYSTEM == PSYCH_WINDOWS
+#if PSYCH_SYSTEM == PSYCH_WINDOWS && defined(PSYCHQTAVAIL)
 #ifndef QUICKTIME_IS_INCLUDED
 #define QUICKTIME_IS_INCLUDED
 	#include <Movies.h>
     #include <GXMath.h>
 #endif
 #endif
+
+// Include specifications of the GPU registers:
+#include "PsychGraphicsCardRegisterSpecs.h"
 
 #include "PsychVideoGlue.h"
 #include "PsychScreenGlue.h"

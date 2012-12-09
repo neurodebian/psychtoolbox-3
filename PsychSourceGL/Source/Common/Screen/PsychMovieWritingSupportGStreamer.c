@@ -27,8 +27,10 @@
 
 #include "Screen.h"
 
-// GStreamer support enabled? If so, we use GStreamer based movie writing.
-#ifdef PTB_USE_GSTREAMER
+// GStreamer support enabled and no Quicktime support? If so, we use GStreamer based movie writing.
+// The only system config left with QT support is 32-Bit OSX. This guarantees we use QT on that
+// config:
+#if defined(PTB_USE_GSTREAMER) && !defined(PSYCHQTAVAIL)
 
 // GStreamer includes:
 #include <gst/gst.h>
@@ -629,6 +631,14 @@ int PsychCreateNewMovieFile(char* moviefile, int width, int height, double frame
 	
 	if (PsychPrefStateGet_Verbosity() > 3) printf("PTB-INFO: Moviehandle %i successfully opened for movie writing into file '%s'.\n", moviehandle, moviefile);
 
+    // Should we dump the whole encoding pipeline graph to a file for visualization
+    // with GraphViz? This can be controlled via PsychTweak('GStreamerDumpFilterGraph' dirname);
+    if (getenv("GST_DEBUG_DUMP_DOT_DIR")) {
+        // Dump complete encoding filter graph to a .dot file for later visualization with GraphViz:
+        printf("PTB-DEBUG: Dumping movie encoder graph for movie %s to directory %s.\n", moviefile, getenv("GST_DEBUG_DUMP_DOT_DIR"));
+        GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS(GST_BIN(pwriterRec->Movie), GST_DEBUG_GRAPH_SHOW_ALL, "PsychMovieWritingGraph");
+    }
+
 	// Return new handle:
 	return(moviehandle);
 
@@ -719,35 +729,4 @@ int PsychFinalizeNewMovieFile(int movieHandle)
 }
 
 // End of GStreamer routines.
-
-#else
-
-// GStreamer support disabled at compile time.
-#if PSYCH_SYSTEM == PSYCH_LINUX
-
-// This is Linux, but without GStreamer support compiled in: Implement dummy functions:
-void PsychMovieWritingInit(void) { return; }
-void PsychExitMovieWriting(void) { return; }
-void PsychDeleteAllMovieWriters(void) { return; }
-unsigned char*	PsychGetVideoFrameForMoviePtr(int moviehandle, unsigned int* twidth, unsigned int* theight) { return(NULL); }
-int PsychAddVideoFrameToMovie(int moviehandle, int frameDurationUnits, psych_bool isUpsideDown) { return(0); }
-psych_bool PsychAddAudioBufferToMovie(int moviehandle, unsigned int nrChannels, unsigned int nrSamples, double* buffer)
-{
-    PsychErrorExitMsg(PsychError_unimplemented, "Sorry, movie writing and editing support disabled at compile-time for Linux.");
-    return(0);
-}
-
-int PsychCreateNewMovieFile(char* moviefile, int width, int height, double framerate, char* movieoptions)
-{
-	PsychErrorExitMsg(PsychError_unimplemented, "Sorry, movie writing and editing support disabled at compile-time for Linux.");
-    return(0);
-}
-
-int PsychFinalizeNewMovieFile(int movieHandle)
-{
-	PsychErrorExitMsg(PsychError_unimplemented, "Sorry, movie writing and editing support disabled at compile-time for Linux.");
-    return(0);
-}
-
-#endif
 #endif
