@@ -1,0 +1,20 @@
+Format: http://dep.debian.net/deps/dep5
+Upstream-Name: psychtoolbox-3
+Source: http://psychtoolbox.org
+
+Files: **/Datapixx.*
+Copyright: 2009-2011 VPixx Technologies Inc
+               -2012 Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+License: Binary build of GPL-licensed code (ay yay yay)
+
+Files: **/Eyelink.*
+Copyright:    -2012 Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+License: GPL-licensed code built/linked against proprietary libeyelink_core
+
+Files: Psychtoolbox/PsychBasic/*.mex*
+Copyright:   -2012 Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+License: Binary build of GPL-licensed code linked against Matlab core (ay yay yay)
+
+Files: debian/*
+Copyright: 2012 Yaroslav Halchenko <debian@onerussian.com>
+License: yet-to-be-decided

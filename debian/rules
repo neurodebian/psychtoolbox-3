@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+arch=$(shell dpkg --print-architecture )
+arch64=$(shell [ $(arch) = amd64 ] && echo '64' || echo '') # directory suffix for octave
+mexext=$(shell [ $(arch) = amd64 ] && echo 'a64' || echo 'glx') # matlab extensions
+
+%:
+	dh $@ 
+
+override_dh_install:
+	dh_install -poctave-psychtoolbox-3-nonfree \
+		Psychtoolbox/PsychBasic/Octave3LinuxFiles$(arch64)/*.mex usr/lib/psychtoolbox-3/PsychtoolboxAddons/
+	dh_install -pmatlab-psychtoolbox-3-nonfree \
+		Psychtoolbox/PsychBasic/*.mex$(mexext) usr/lib/matlab/site/psychtoolbox-3/
+	# fix permissions
+	find debian/*psychtoolbox* -name *.mex* | xargs chmod a-x
+	find debian/*psychtoolbox* -name *.mex* -ls
+	dh_install

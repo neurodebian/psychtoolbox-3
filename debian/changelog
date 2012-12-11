@@ -1,0 +1,5 @@
+psychtoolbox-3-nonfree (3.0.10.20121111-1) neurodebian; urgency=low
+
+  * Initial release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 10 Dec 2012 16:20:09 -0500
