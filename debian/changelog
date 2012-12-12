@@ -5,8 +5,11 @@ psychtoolbox-3 (3.0.10.20121111.dfsg1-1) unstable; urgency=low
       is rebased on top of that GIT repository
     - debian/dfsg-upstream adjusted for new archives/binary blobs to
       be removed
+  * debian/control
+    - boost glew build-depends to 1.9 (soversioned backport -dev packages
+      provided by NeuroDebian)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 09 Dec 2012 10:54:02 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 11 Dec 2012 13:08:23 -0500
 
 psychtoolbox-3 (3.0.9+svn2579.dfsg1-1) unstable; urgency=low
 
