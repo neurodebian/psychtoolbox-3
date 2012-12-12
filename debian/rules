@@ -12,7 +12,7 @@ uver = $(shell echo $(debver) | cut -d '-' -f 1,1 )
 uver_nondfsg = $(shell echo $(uver) | sed -e 's,.dfsg[0-9]*$$,,g')
 
 # Directories which are created/populated/cleanedup
-BDIRS=PsychSourceGL/Projects/Linux/build/ Psychtoolbox/PsychBasic/Octave3LinuxFiles Psychtoolbox/PsychBasic/PsychPlugins
+BDIRS=Psychtoolbox/PsychBasic/Octave3LinuxFiles Psychtoolbox/PsychBasic/PsychPlugins
 OCT_SHAREDDIR=debian/psychtoolbox-3-common/usr/share/psychtoolbox-3
 OCT_LIBDIR=debian/octave-psychtoolbox-3/usr/lib/psychtoolbox-3
 
