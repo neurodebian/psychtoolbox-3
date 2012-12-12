@@ -8,6 +8,7 @@ psychtoolbox-3 (3.0.10.20121111.dfsg1-1) experimental; urgency=low
   * debian/control
     - boost glew build-depends to 1.9 (soversioned backport -dev packages
       provided by NeuroDebian)
+    - build-depend on libxfixes-dev
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 11 Dec 2012 13:08:23 -0500
 
