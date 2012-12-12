@@ -1,4 +1,4 @@
-psychtoolbox-3 (3.0.10.20121111.dfsg1-1) unstable; urgency=low
+psychtoolbox-3 (3.0.10.20121111.dfsg1-1) experimental; urgency=low
 
   * Long over-due fresh always-beta snapshot release of 3.0.10
     - upstream switched entirely over to GIT, packaging repository
