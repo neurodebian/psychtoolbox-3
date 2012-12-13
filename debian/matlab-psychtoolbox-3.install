@@ -1,0 +1,2 @@
+debian/matlab.sh  /etc/ptb3/
+debian/ptb3-matlab /usr/bin/

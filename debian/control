@@ -3,7 +3,7 @@ Section: non-free/science
 Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 8.0.0), octave-psychtoolbox-3
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
@@ -12,6 +12,8 @@ Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychtoolbox-3.git
 Package: octave-psychtoolbox-3-nonfree
 Architecture: i386 amd64
 Depends: ${misc:Depends},
+		 psychtoolbox-3-common (>> ${source:Version}.dfsg),
+Conflicts: psychtoolbox-3-common (<< ${source:Version}.dfsg.1),
 Description: toolbox for vision research -- Octave binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
@@ -33,7 +35,9 @@ Description: toolbox for vision research -- Octave binary blobs
 
 Package: matlab-psychtoolbox-3-nonfree
 Architecture: i386 amd64
-Depends: ${misc:Depends}
+Depends: ${misc:Depends},
+		 psychtoolbox-3-common (>> ${source:Version}.dfsg),
+Conflicts: psychtoolbox-3-common (<< ${source:Version}.dfsg.1),
 Description: toolbox for vision research -- Matlab binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to

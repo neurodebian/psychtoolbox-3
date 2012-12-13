@@ -9,14 +9,44 @@ arch64=$(shell [ $(arch) = amd64 ] && echo '64' || echo '') # directory suffix f
 mexext=$(shell [ $(arch) = amd64 ] && echo 'a64' || echo 'glx') # matlab extensions
 
 %:
-	dh $@ 
+	dh $@
 
+# 		echo "D: for $$fname mfile is $$mfile";
 override_dh_install:
 	dh_install -poctave-psychtoolbox-3-nonfree \
-		Psychtoolbox/PsychBasic/Octave3LinuxFiles$(arch64)/*.mex usr/lib/psychtoolbox-3/PsychtoolboxAddons/
+		Psychtoolbox/PsychBasic/Octave3LinuxFiles$(arch64)/*.mex \
+		usr/lib/psychtoolbox-3/PsychtoolboxAddons/
 	dh_install -pmatlab-psychtoolbox-3-nonfree \
-		Psychtoolbox/PsychBasic/*.mex$(mexext) usr/lib/matlab/site/psychtoolbox-3/
-	# fix permissions
+		Psychtoolbox/PsychBasic/*.mex$(mexext) \
+		Psychtoolbox/PsychHardware/iViewXToolbox/tcp_udp_ip/pnet.mex$(mexext) \
+		usr/lib/matlab/site/psychtoolbox-3/
+	: # fix permissions
 	find debian/*psychtoolbox* -name *.mex* | xargs chmod a-x
 	find debian/*psychtoolbox* -name *.mex* -ls
 	dh_install
+
+# we need to add links as well into corresponding subdirectories under
+# /usr/share/psychtoolbox-3 -- locate by the location of .m file and symlink nearby
+# That is why build-depends on octave-psychtoolbox-3
+override_dh_link:
+	: # Octave pieces
+	link_exts() { \
+	  pkg=$$1; ext=$$2; \
+	  rm -f debian/$$pkg.links; \
+	  set -e; /usr/bin/find debian/$$pkd -name *.$$ext | \
+	  while read f; do \
+		fname=$$(basename $$f); \
+		mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.m); \
+		[ ! -z "$$mfile" ] || mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.mex); \
+		[ ! -z "$$mfile" ] && mdir=$$(dirname $$mfile) || exit 1; \
+		echo "/usr/lib$${f#*usr/lib}	$$mdir/$$fname" >> debian/$$pkg.links; \
+	  done; };  \
+	link_exts octave-psychtoolbox-3-nonfree mex; \
+	link_exts matlab-psychtoolbox-3-nonfree mex$(mexext)
+	dh_link
+
+override_dh_clean:
+	dh_clean
+	: # Prune some Debian generated files
+	-rm debian/*-nonfree.links
+

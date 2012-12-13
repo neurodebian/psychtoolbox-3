@@ -1,0 +1,12 @@
+#!/bin/sh
+#emacs: -*- mode: shell-script; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: t -*- 
+#ex: set sts=4 ts=4 sw=4 noet:
+
+#
+# Helps to start matlab setting up the enviroment correctly to have
+# functionality accessible in the Matlab
+#
+
+PTB_CFGFILE=/etc/ptb3/matlab.sh
+[ -e $PTB_CFGFILE ] && . $PTB_CFGFILE
+matlab "$@"
