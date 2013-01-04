@@ -6,7 +6,7 @@
      Psychtoolbox.version.point=cvv(3);
 -    
 +
-+    if PsychtoolboxRoot == '/usr/share/octave/site/m/psychtoolbox-3/'
++    if any(strcmp(PsychtoolboxRoot, {'/usr/share/octave/site/m/psychtoolbox-3/', '/usr/share/matlab/site/m/psychtoolbox-3/'}))
 +        % It is a Debian version of the package
 +        Psychtoolbox.version.flavor = 'Debian package';
 +        [status, result] = system('zcat /usr/share/doc/psychtoolbox-3-common/changelog.Debian.gz| head -1 | sed -e "s/).*/)/g"');
