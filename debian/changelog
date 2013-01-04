@@ -1,4 +1,10 @@
-psychtoolbox-3-nonfree (3.0.10.20121111-1) neurodebian; urgency=low
+psychtoolbox-3-nonfree (3.0.10.20121111+git93-g5eab830-1) neurodebian-devel; urgency=low
+
+  * Snapshot of binaries for upcoming  release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 04 Jan 2013 00:14:54 -0500
+
+psychtoolbox-3-nonfree (3.0.10.20121111-1) neurodebian-devel; urgency=low
 
   * Initial release
 
