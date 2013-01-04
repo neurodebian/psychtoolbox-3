@@ -77,6 +77,8 @@ Description: toolbox for vision research -- Matlab bindings
  needs like color space transformations and the QUEST threshold
  seeking algorithm.
  .
- This package exposes PTB-3 within Matlab environment.
+ This package exposes PTB-3 within Matlab environment.  It also provides
+ a convenience script ptb3-matlab to simplify running psychtoolbox in matlab.
+ .
  For now it relies on -nonfree package providing binary builds of all
  PTB-3 bindings for Matlab.
