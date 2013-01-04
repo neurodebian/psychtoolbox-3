@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.10.20121111.dfsg1+git93-g5eab830-1) UNRELEASED; urgency=low
+
+  * Upcoming PTB-3 release -- test build
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 03 Jan 2013 23:45:24 -0500
+
 psychtoolbox-3 (3.0.10.20121111.dfsg1-1) experimental; urgency=low
 
   * Long over-due fresh always-beta snapshot release of 3.0.10
