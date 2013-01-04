@@ -1,6 +1,9 @@
 psychtoolbox-3-nonfree (3.0.10.20121111+git93-g5eab830-1) neurodebian-devel; urgency=low
 
   * Snapshot of binaries for upcoming  release
+  * debian/rules:
+    - use make conditionals instead of fragile shell sed calls
+    - dh_install first, sort later
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 04 Jan 2013 00:14:54 -0500
 

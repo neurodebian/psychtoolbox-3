@@ -5,14 +5,22 @@
 export DH_OPTIONS
 
 arch=$(shell dpkg --print-architecture )
-arch64=$(shell [ $(arch) = amd64 ] && echo '64' || echo '') # directory suffix for octave
-mexext=$(shell [ $(arch) = amd64 ] && echo 'a64' || echo 'glx') # matlab extensions
+ifeq ($(arch), amd64)
+ # directory suffix for octave
+ arch64=64
+ # matlab extensions
+ mexext=a64
+else
+ arch64=
+ mexext=glx
+endif
 
 %:
 	dh $@
 
 # 		echo "D: for $$fname mfile is $$mfile";
 override_dh_install:
+	dh_install
 	dh_install -poctave-psychtoolbox-3-nonfree \
 		Psychtoolbox/PsychBasic/Octave3LinuxFiles$(arch64)/*.mex \
 		usr/lib/psychtoolbox-3/PsychtoolboxAddons/
@@ -23,7 +31,6 @@ override_dh_install:
 	: # fix permissions
 	find debian/*psychtoolbox* -name *.mex* | xargs chmod a-x
 	find debian/*psychtoolbox* -name *.mex* -ls
-	dh_install
 
 # we need to add links as well into corresponding subdirectories under
 # /usr/share/psychtoolbox-3 -- locate by the location of .m file and symlink nearby
