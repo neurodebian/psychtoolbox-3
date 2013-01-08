@@ -7,25 +7,14 @@
 > for those targets. That would remove the high-performance firewire
 > video capture support, but should impose no other restrictions.
 
-
 * DownloadAdditions
 ** TODO Target directory must exist
-** TODO Depends: subversion
-** TODO Certificate must be accepted (p)ermanently or (t)emporarily ??
-
-  for http is probably not needed but worth adding
-  --non-interactive --trust-server-cert
-  ?
 ** TODO calls savepath?
-** TODO Extract license clause message agreement and handle with debconf
-* DFSG/License/Copyright 											  :legal:
-** TODO Canonical reference into debian/upstream from debian/copyright
 * Installation
-** under Matlab sets permissions for writable for all users... what is :matlab:
-   the reason?
-
-** TODO Octave package
-* Dependencies
+** TODO "Proper" "contrib" Matlab package
+** TODO ptb3-matlab (and others) manpage
+** TODO .desktop file
+** TODO "Fancy" custom initial banner with NeuroDebian
 * TODO Portaudio -- upstream yet to forward them pa-upstream
 
  portaudio_unpatched_except4OSX.zip contained originals
