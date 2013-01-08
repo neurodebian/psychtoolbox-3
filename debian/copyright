@@ -2,14 +2,6 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Psychtoolbox-3
 Upstream-Contact: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
 Source: http://psychtoolbox-3.googlecode.com/svn
-Note:
-  If you want to acknowledge use of this software when you publish your
-  research, you might say something like this, "We wrote our experiments
-  in Octave (or Matlab), using the Psychophysics Toolbox extensions
-  (Brainard, 1997;  Pelli, 1997)."
-  Brainard, D.H. (1997) The Psychophysics Toolbox, Spatial Vision 10:443-446.
-  Pelli, D.G. (1997) The VideoToolbox software for visual psychophysics:
-            Transforming numbers into movies, Spatial Vision 10:437-442.
 
 Files: *
 Copyright:

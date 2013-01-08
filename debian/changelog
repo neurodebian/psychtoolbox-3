@@ -5,6 +5,8 @@ psychtoolbox-3 (3.0.10.20121111.dfsg1+git93-g5eab830-1) UNRELEASED; urgency=low
     - deb_use_system_GLEW -- refreshed
     - deb_psychtoolboxversion -- fixed to compare correctly for paths of both
       Octave and Matlab
+  * debian/upstream
+    - provides references and other information
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 03 Jan 2013 23:45:24 -0500
 
