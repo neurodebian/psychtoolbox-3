@@ -1,3 +1,10 @@
+psychtoolbox-3-nonfree (3.0.10.20130114-1) neurodebian; urgency=low
+
+  * Boosting upstream version -- no actual changes in binary files
+  * Removing conflicts enforcing identical upstream version
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 15 Jan 2013 22:16:33 -0500
+
 psychtoolbox-3-nonfree (3.0.10.20130108-1) neurodebian-devel; urgency=low
 
   * Fresh upstream release

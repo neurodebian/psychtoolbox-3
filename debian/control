@@ -13,7 +13,6 @@ Package: octave-psychtoolbox-3-nonfree
 Architecture: i386 amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-common (>> ${source:Version}.dfsg),
-Conflicts: psychtoolbox-3-common (<< ${source:Version}.dfsg.1),
 Description: toolbox for vision research -- Octave binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
@@ -37,7 +36,6 @@ Package: matlab-psychtoolbox-3-nonfree
 Architecture: i386 amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-common (>> ${source:Version}.dfsg),
-Conflicts: psychtoolbox-3-common (<< ${source:Version}.dfsg.1),
 Description: toolbox for vision research -- Matlab binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
