@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.10.20130114.dfsg1-1) experimental; urgency=low
+
+  * New upstream bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 15 Jan 2013 22:13:23 -0500
+
 psychtoolbox-3 (3.0.10.20130108.dfsg1-1) experimental; urgency=low
 
   * Fresh upstream release
