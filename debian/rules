@@ -52,6 +52,13 @@ override_dh_link:
 	link_exts matlab-psychtoolbox-3-nonfree mex$(mexext)
 	dh_link
 
+# failed to figure out how to please dh_shlibdeps
+override_dh_shlibdeps:
+	dh_shlibdeps
+	for p in matlab-psychtoolbox-3-nonfree octave-psychtoolbox-3-nonfree; do \
+		find debian/$$p -type f -name \*.mex\* \
+		| xargs dpkg-shlibdeps --ignore-missing-info -Tdebian/$$p.substvars debian/$$p; done
+
 override_dh_clean:
 	dh_clean
 	: # Prune some Debian generated files
