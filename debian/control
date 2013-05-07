@@ -26,6 +26,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libfreetype6-dev,
                libasound2-dev,
                libopenal-dev,
+Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1)
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
