@@ -15,6 +15,8 @@
 ** TODO ptb3-matlab (and others) manpage
 ** TODO .desktop file
 ** TODO "Fancy" custom initial banner with NeuroDebian
+* libwaffle
+** for some reason git archive even fails to include it if there is other stuff as well... bizzare -- no time ATM
 * TODO Portaudio -- upstream yet to forward them pa-upstream
 
  portaudio_unpatched_except4OSX.zip contained originals
