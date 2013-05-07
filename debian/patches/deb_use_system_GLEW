@@ -1,28 +1,3 @@
---- a/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
-+++ b/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
-@@ -42,11 +42,11 @@ if mode==0
-         %
-         % This will disable backwards compatibility with old Linux distros,
-         % so only use for testing, not for production releases!
--        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTB_USE_GSTENCODINGPROFILES -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/opt/gstreamer-sdk/include/gstreamer-0.10 -I/opt/gstreamer-sdk/include/glib-2.0 -I/opt/gstreamer-sdk/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/opt/gstreamer-sdk/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib -L/opt/gstreamer-sdk/lib Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgstpbutils-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lXi -lXrandr -lXfixes
-+        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTB_USE_GSTENCODINGPROFILES -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/opt/gstreamer-sdk/include/gstreamer-0.10 -I/opt/gstreamer-sdk/include/glib-2.0 -I/opt/gstreamer-sdk/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/opt/gstreamer-sdk/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib -L/opt/gstreamer-sdk/lib Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgstpbutils-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lGLEW -lXi -lXrandr -lXfixes
-     else
-         % Build against system installed GStreamer, backwards compatible to
-         % old Linux distros. This is the default for production builds:
--        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lXi -lXrandr -lXfixes
-+        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lGLEW -lXi -lXrandr -lXfixes
-     end
-     
-     unix(['mv ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
-@@ -93,7 +93,7 @@ if mode==6
-     curdir = pwd;
-     cd('../../Psychtoolbox/PsychOpenGL/MOGL/source/')
-     try
--       mex -v -g --output moglcore.mex -DLINUX -DGLEW_STATIC -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut moglcore.c gl_auto.c gl_manual.c glew.c mogl_rebinder.c
-+       mex -v -g --output moglcore.mex -DLINUX -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut -lGLEW moglcore.c gl_auto.c gl_manual.c mogl_rebinder.c
-     catch
-     end
-     unix(['mv moglcore.mex ' PsychtoolboxRoot target]);
 --- a/PsychSourceGL/Source/Common/Base/PsychIncludes.h
 +++ b/PsychSourceGL/Source/Common/Base/PsychIncludes.h
 @@ -47,7 +47,7 @@ typedef __CHAR16_TYPE__ char16_t;
@@ -34,15 +9,15 @@
  #endif
  
  //platform dependent includes stage 1
-@@ -62,7 +62,7 @@ typedef __CHAR16_TYPE__ char16_t;
-     #endif
+@@ -63,7 +63,7 @@ typedef __CHAR16_TYPE__ char16_t;
  
      // This is the new glew include for GLX extension support:
+ #if defined(PTBMODULE_Screen)
 -    #include "../Screen/glxew.h"
 +    #include <GL/glxew.h>
+ #endif
  
      #include <X11/Xlib.h>
-     #include <X11/keysym.h>
 --- a/Psychtoolbox/PsychOpenGL/MOGL/source/mogltypes.h
 +++ b/Psychtoolbox/PsychOpenGL/MOGL/source/mogltypes.h
 @@ -32,7 +32,7 @@
@@ -74,3 +49,23 @@
  
  // Dynamic extension rebinding: This is in an extra file mogl_rebinder.c and defined
  // with explicit C linkage. Reason: For the Octave version, we need to compile all
+--- a/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
++++ b/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
+@@ -51,7 +51,7 @@ if mode==0
+     else
+         % Build against system installed GStreamer, backwards compatible to
+         % old Linux distros. This is the default for production builds:
+-        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lXi -lXrandr -lXfixes
++        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lGLEW -lXi -lXrandr -lXfixes
+     end
+     
+     unix(['mv ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
+@@ -116,7 +116,7 @@ if mode==6
+     curdir = pwd;
+     cd('../../Psychtoolbox/PsychOpenGL/MOGL/source/')
+     try
+-       mex -v -g --output moglcore.mex -DLINUX -DGLEW_STATIC -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut moglcore.c gl_auto.c gl_manual.c glew.c mogl_rebinder.c ftglesGlue.c
++       mex -v -g --output moglcore.mex -DLINUX -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut -lGLEW moglcore.c gl_auto.c gl_manual.c mogl_rebinder.c ftglesGlue.c
+     catch
+     end
+     unix(['mv moglcore.mex ' PsychtoolboxRoot target]);

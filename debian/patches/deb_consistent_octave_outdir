@@ -12,5 +12,5 @@
 -end
 +target = 'PsychBasic/Octave3LinuxFiles/';
  
- if mode==0
-     % Build Screen.mex:
+ % Special folder for ARM binaries:
+ if ~isempty(findstr(computer, 'arm'))
