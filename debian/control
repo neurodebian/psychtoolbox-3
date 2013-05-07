@@ -12,7 +12,9 @@ Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychtoolbox-3.git
 Package: octave-psychtoolbox-3-nonfree
 Architecture: i386 amd64
 Depends: ${misc:Depends},
-         psychtoolbox-3-common (>> ${source:Version}.dfsg),
+         ${shlibs:Depends},
+         octave-psychtoolbox-3 (>= ${source:Version}.dfsg),
+         psychtoolbox-3-common (>= ${source:Version}.dfsg),
 Description: toolbox for vision research -- Octave binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
@@ -35,7 +37,9 @@ Description: toolbox for vision research -- Octave binary blobs
 Package: matlab-psychtoolbox-3-nonfree
 Architecture: i386 amd64
 Depends: ${misc:Depends},
-         psychtoolbox-3-common (>> ${source:Version}.dfsg),
+         ${shlibs:Depends},
+         psychtoolbox-3-lib (>= ${source:Version}.dfsg),
+         psychtoolbox-3-common (>= ${source:Version}.dfsg),
 Description: toolbox for vision research -- Matlab binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to

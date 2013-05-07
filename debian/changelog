@@ -1,3 +1,12 @@
+psychtoolbox-3-nonfree (3.0.10.20130420-1) neurodebian; urgency=low
+
+  * Fresh upstream release
+  * Adding depends on -lib and adding shlibs:Depends to the -nonfree
+    packages to mitigate missing dependencies (primarily for matlab-
+    packages)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 07 May 2013 10:34:48 -0400
+
 psychtoolbox-3-nonfree (3.0.10.20130114-1) neurodebian; urgency=low
 
   * Boosting upstream version -- no actual changes in binary files
