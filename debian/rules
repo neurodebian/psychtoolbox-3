@@ -53,7 +53,7 @@ override_dh_link:
 	dh_link
 
 # failed to figure out how to please dh_shlibdeps
-override_dh_shlibdeps:
+disable_override_dh_shlibdeps:
 	dh_shlibdeps
 	for p in matlab-psychtoolbox-3-nonfree octave-psychtoolbox-3-nonfree; do \
 		echo "D: harvesting shlibs for $$p"; \
