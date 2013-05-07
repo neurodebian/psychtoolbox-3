@@ -56,7 +56,9 @@ override_dh_link:
 override_dh_shlibdeps:
 	dh_shlibdeps
 	for p in matlab-psychtoolbox-3-nonfree octave-psychtoolbox-3-nonfree; do \
+		echo "D: harvesting shlibs for $$p"; \
 		find debian/$$p -type f -name \*.mex\* \
+		| grep -v 'Eyelink\.mex' \
 		| xargs dpkg-shlibdeps --ignore-missing-info -Tdebian/$$p.substvars debian/$$p; done
 
 override_dh_clean:
