@@ -32,7 +32,11 @@ $RM -f ./PsychSourceGL/Cohorts/Kinect-* \
 
 # Binary built against ATI/AMD SDK with questionable
 # redistributability
-$RM -f Psychtoolbox/PsychContributed/ATIRadeonperf_Linux
+$RM -f Psychtoolbox/PsychContributed/ATIRadeonperf_Linux*
+
+# libwaffle -- for now only in binary form -- will ship in octave.*-nonfree for now
+$RM -f ./Psychtoolbox/PsychContributed/ArmArch/libwaffle*_glxegl \
+	   ./PsychSourceGL/Cohorts/libwaffle/libwaffle*_*
 
 # __TODO:
 # http://docs.psychtoolbox.org/DrawTextPlugin
@@ -43,8 +47,8 @@ $RM -f Psychtoolbox/PsychContributed/ATIRadeonperf_Linux
 # ia32-libs, lib32gcc1, lib32z1, libc6-i386, zlib1g
 $RM -f ./Psychtoolbox/PsychBasic/PsychPlugins/libptbdrawtext_ftgl*.*
 
-# TODO: build
-# $RM -rf ./PsychSourceGL/Cohorts/FTGLTextRenderer # libftgl-dev -- check ver
+$RM -rf ./PsychSourceGL/Cohorts/FTGLTextRenderer/libftgles_*.a # libftgl-dev -- check ver
+
 # BDepends: libfontconfig1-dev, libfreetype6-dev
 # g++ -g -I. -I/usr/include/ -I/usr/include/freetype2/ -L/usr/lib -l GL -l GLU -l fontconfig -l freetype -pie -shared -fPIC -o libptbdrawtext_ftgl.so.1 libptbdrawtext_ftgl.cpp qstringqcharemulation.cpp OGLFT.cpp
 

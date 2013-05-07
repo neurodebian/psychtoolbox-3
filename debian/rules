@@ -162,6 +162,7 @@ get-orig-source-nonfree:
 	echo "I: Exporting non-free portion of `git describe $$beta_merge_base`"; \
 	git archive --format=tar --prefix=$(srcpkg)-nonfree-$(uver_nondfsg)/ $$beta_merge_base -- \
 		./Psychtoolbox/PsychBasic/*.mex{a64,glx} \
+		./PsychSourceGL/Cohorts/libwaffle/libwaffle*_glxegl \
 		./Psychtoolbox/PsychBasic/Octave3LinuxFiles{,64}/{Eyelink,Datapixx}.mex \
         ./Psychtoolbox/PsychHardware/iViewXToolbox/tcp_udp_ip/pnet.mex{a64,glx} \
 	| gzip -9 > $(srcpkg)-nonfree_$(uver_nondfsg).orig.tar.gz

@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.10.20130420.dfsg1-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/rules, debian/dfsg-upstream
+    - adjusted for new binary blobs (libwaffle etc)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 07 May 2013 09:30:06 -0400
+
 psychtoolbox-3 (3.0.10.20130114.dfsg1-1) experimental; urgency=low
 
   * New upstream bugfix release
