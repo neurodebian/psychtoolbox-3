@@ -1,8 +1,10 @@
-psychtoolbox-3 (3.0.10.20130513.dfsg1-1) experimental; urgency=low
+psychtoolbox-3 (3.0.10.20130513+r2.dfsg1-1) neurodebian; urgency=low
 
   * New upstream release
+    - upload only to NeuroDebian due to unresolved #705485
+      (liboctave-dev & GCC 4.8)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 13 May 2013 09:01:42 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 13 May 2013 16:12:05 -0400
 
 psychtoolbox-3 (3.0.10.20130420.dfsg1-1) UNRELEASED; urgency=low
 
