@@ -184,7 +184,7 @@ override_dh_installchangelogs:
 
 override_dh_clean:
 	dh_clean
-	rm -f build-stamp build
+	rm -rf build-stamp build
 	: # Manually remove  additional trash
 	find Psych* -regextype posix-egrep -regex '.*\.(o|mex|so(|\..*))' -delete
 	-rmdir $(BDIRS)
