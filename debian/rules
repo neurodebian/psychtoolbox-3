@@ -193,7 +193,7 @@ override_dh_clean:
 	$(MAKE) -C PsychSourceGL/Cohorts/PortAudio clean
 
 debian/changelog.upstream:
-	git log remotes/branches/beta >| $@
+	git log --merges remotes/origin/beta >| $@
 
 get-orig-source: debian/changelog.upstream
 	@echo "I: Exporting free portion of `git describe dfsg`"; \
