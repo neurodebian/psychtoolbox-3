@@ -41,38 +41,71 @@
 #-----------------\____________________________________/------------------
 
 set -u
-out=tests_output_`date +"20%y%m%d%H%M%S"`
-timelimit=15
-timeescape=$(($timelimit - 5))
-timelimitkill=$(($timelimit + 5))
+
+verbose=1
+
+out=build/tests_output_`date +"20%y%m%d%H%M%S"`
+mkdir -p "$out"
+echo "I: Storing logs and output under $out"
+
+basedir=$PWD
+out=$PWD/$out					# make it full path
+
 
 XVFB_OPTS="-screen 0 1024x768x24 -ac +extension GLX +render -noreset"
+PATH_CMDS="addpath (genpath ('$PWD/Psychtoolbox')); addpath('$PWD/Psychtoolbox/PsychBasic/Octave3LinuxFiles/');"
 
+failed=
 {
 	for f in "$@"; do
-		echo -n "TEST $f: ";
-		outlog="$out/${f%.*}.log"
-		mkdir -p $(dirname "$outlog")
-		# TODO: reincarnate within xvfb-run call?
-		#( sleep $timeescape; xdotool key Escape; ) &
+		# Set time limit depending on either it is a test or a demo
+		[[ $f =~ PsychTests ]] && timelimit=30 || timelimit=15
+
+		timeescape=$(($timelimit - 5))
+		timelimitkill=$(($timelimit + 5))
+
+		echo -n "I: $f: ";
+		fbase=$(basename $f)
+		fdir=$(dirname $f)
+		outlog="$out/${fbase%.*}.log"
+
 		# if it is a function -- eval it, otherwise run the script
-		if grep -v '^[% ]*$' $f | head -1 | grep -q -e '^ *function'; then
+		if true; then # grep -v '^[% ]*$' $f | head -1 | grep -q -e '^ *function'; then
+			test="${fbase%.m}"
+			# cd to the test's directory since it might needs some of
+			# local files there
+			cd $fdir
 			xvfb-run --auto-servernum --server-num=20 -s "$XVFB_OPTS" \
-			timeout --kill-after=$timelimitkill $timelimit \
-				octave -q --eval "PsychTweak('PrepareForVirtualMachine'); ${f%.m}" >| $outlog 2>&1
+			bash -c "( sleep $timeescape; xdotool key Escape; ) & \
+				timeout --kill-after=$timelimitkill $timelimit \
+				octave -q --eval \"$PATH_CMDS; PsychTweak('PrepareForVirtualMachine'); $test\" >| $outlog 2>&1"
+			rv=$?
+			cd "$basedir"
 		else
 			# just run it then
 			# XXX -- TODO
 			#timeout --kill-after=$timelimitkill $timelimit \
 			#	octave -q $f >| $outlog 2>&1
-			:
+			echo -n "I: Skipping since it is not a function "
+			rv=123
 		fi
-		rv=$?
 		# time to kill our xdotool
-		kill %1 &>/dev/null || :
-		if [ $rv = 124 ]; then st='TIMEOUT';
-		elif [ $rv = 0 ]; then st='OK';
-		else fout="`grep -v octave-core $outlog | tail -1`"; st="FAILED $fout"; fi
+		#kill %1 &>/dev/null || :
+		if   [ $rv = 124 ]; then st='TIMEOUT';
+		elif [ $rv = 123 ]; then st='SKIPPED';
+		elif [ $rv = 0 ];   then st='OK';
+		else
+			fout="`grep -v octave-core $outlog | tail -1`"; st="E: FAILED $fout";
+			[ x"$verbose" = x ] || { echo; sed -e 's,^,  D: ,g' $outlog; }
+			echo $f >> $out/failed.log
+		fi
 		echo $st
 	done;
 } | tee $out.log
+
+if [ -e $out/failed.log ]; then
+	echo "I: We are failing since following tests failed:"
+	cat $out/failed.log
+	echo "I: see full log at $out.log"
+	exit 1
+fi

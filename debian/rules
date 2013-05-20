@@ -65,6 +65,50 @@ build-stamp:
 	   Psychtoolbox/PsychBasic/PsychPlugins
 	touch $@
 
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	: # Smoke test some Demos and Tests -- some are excluded for various reasons
+	: # image would be needed for one of the demos
+	cd Psychtoolbox/PsychDemos/PsychTutorials/; ln -sf ../konijntjes1024x768*.jpg .
+	cd Psychtoolbox/PsychTests/; ln -sf ../PsychDemos/konijntjes1024x768*.jpg .
+
+	find Psychtoolbox/PsychDemos Psychtoolbox/PsychTests -type f -iname *.m \
+	| grep -v -e "FAILURES DUE TO ABSENT FUNCTIONALITY IN TEST ENVIRONMENT" \
+      -e Contents -e Stereo -e Serial -e PsychCV \
+      -e Cedrus -e BitsPlus -e Kinect -e GPGPU -e DualHeads \
+      -e Matlab -e FitCumNormYNTest -e OSAUCSTest -e FitGammaPow -e FitGammaDemo \
+      -e DirectInputMonitoringTest \
+	  -e OldNewReco -e AlphaImageDemo/[^A] \
+      -e ClutAnimDemo -e MinimumMotionExp -e AdditiveBlendingForLinearSuperpositionTutorial \
+      -e ImagingVideoCaptureDemo -e KbQueueDemo -e AudioTunnel3DDemo \
+      -e DetectionRTInVideoDemo \
+      -e VideoRecordingDemo -e PlayMoviesDemo -e PlayInterlacedMovieDemo \
+      -e ErrorCatchDemo -e MovieDemo\.m -e VideoTextureExtractionDemo \
+      -e VideoCapture \
+      -e DatarecordingFromISCANDemo -e PsychRTBoxDemo \
+      -e BlurredMipmapDemo \
+      -e Tests.*Timing -e HIDIntervalTest \
+      -e HighPrecisionLuminanceOutputDrivers -e HIDTest \
+      -e SyncedCLUTUpdateTest -e GetSecsTest -e ConvolutionKernelTest \
+      -e OSSchedulingAccuracyTest -e PTBAndVSETColorimetryTest \
+    | grep -v -e "REQUIRE SOUND I/O (more in above list)" \
+      -e Sound \
+    | grep -v -e "REQUIRE USER INPUT (more in the first list (TODO))" \
+      -e RenderDemo -e CalDemo \
+    | grep -v -e "KNOWN FAILURES TO BE FIXED (more in the first list (TODO))" \
+      -e PlayMoviesWithoutGapDemo1 \
+      -e FitWeibull.*Test -e DeinterlacerTest -e FitConeFundamentalsTest \
+      -e AlphaMultiplicationTest -e MinExpEntStairDemo \
+	| xargs debian/run_tests
+
+#      -e MovieDemos \
+	: # Cleanup
+	find -iname MLIexpSubj11.txt -delete
+else
+	: # Skip unittests due to nocheck
+endif
+
+
 override_dh_auto_install:
 	dh_auto_install
 	: # to guarantee -common existance for arch-dep builds only:
@@ -140,7 +184,7 @@ override_dh_installchangelogs:
 
 override_dh_clean:
 	dh_clean
-	rm -f build-stamp
+	rm -f build-stamp build
 	: # Manually remove  additional trash
 	find Psych* -regextype posix-egrep -regex '.*\.(o|mex|so(|\..*))' -delete
 	-rmdir $(BDIRS)
