@@ -26,7 +26,8 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libfreetype6-dev,
                libasound2-dev,
                libopenal-dev,
-               xvfb, xauth, libgl1-mesa-dri,
+               xvfb, xauth, libgl1-mesa-dri, xdotool,
+               pulseaudio-utils, octave-image,
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1)
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org

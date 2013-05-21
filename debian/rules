@@ -75,7 +75,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	find Psychtoolbox/PsychDemos Psychtoolbox/PsychTests -type f -iname *.m \
 	| grep -v -e "FAILURES DUE TO ABSENT FUNCTIONALITY IN TEST ENVIRONMENT" \
       -e Contents -e Stereo -e Serial -e PsychCV \
-      -e Cedrus -e BitsPlus -e Kinect -e GPGPU -e DualHeads \
+      -e Cedrus -e BitsPlus -e Kinect -e GPGPU -e DualHeads -e DaqTest \
       -e Matlab -e FitCumNormYNTest -e OSAUCSTest -e FitGammaPow -e FitGammaDemo \
       -e DirectInputMonitoringTest \
 	  -e OldNewReco -e AlphaImageDemo/[^A] \
@@ -91,8 +91,10 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
       -e HighPrecisionLuminanceOutputDrivers -e HIDTest \
       -e SyncedCLUTUpdateTest -e GetSecsTest -e ConvolutionKernelTest \
       -e OSSchedulingAccuracyTest -e PTBAndVSETColorimetryTest \
+      -e LoadGenerator \
     | grep -v -e "REQUIRE SOUND I/O (more in above list)" \
-      -e Sound \
+      -e Sound -e Audio -e BasicAMAndMixScheduleDemo -e SimpleVoiceTriggerDemo \
+      -e KeyboardLatencyTest \
     | grep -v -e "REQUIRE USER INPUT (more in the first list (TODO))" \
       -e RenderDemo -e CalDemo \
     | grep -v -e "KNOWN FAILURES TO BE FIXED (more in the first list (TODO))" \

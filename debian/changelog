@@ -5,7 +5,7 @@ psychtoolbox-3 (3.0.10.20130520.dfsg1-1) experimental; urgency=low
       (liboctave-dev & GCC 4.8)
   * debian/rules
     - run selected collection of Demos and Tests at build-time to validate
-      correct operation (xvfb, xauth to B-D)
+      correct operation (xvfb, xauth, xdotool to B-D)
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 20 May 2013 15:27:35 -0400
 
