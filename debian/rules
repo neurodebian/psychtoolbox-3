@@ -98,6 +98,8 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
       -e LoadMovieIntoTexturesDemo -e PlayMoviesWithoutGapDemo2 \
     | grep -v -e "REQUIRE USER INPUT (more in the first list (TODO))" \
       -e RenderDemo -e CalDemo -e KbDemo -e KbQueueDemo \
+    | grep -v -e "REQUIRE TOO LONG TO COMPLETE (and otherwise doesn't exit)" \
+      -e QuestTest \
     | grep -v -e "KNOWN FAILURES TO BE FIXED (more in the first list (TODO))" \
       -e PlayMoviesWithoutGapDemo1 \
       -e FitWeibull.*Test -e DeinterlacerTest -e FitConeFundamentalsTest \
