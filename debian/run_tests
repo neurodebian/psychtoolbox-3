@@ -72,11 +72,19 @@ failed=
 		# if it is a function -- eval it, otherwise run the script
 		if true; then # grep -v '^[% ]*$' $f | head -1 | grep -q -e '^ *function'; then
 			test="${fbase%.m}"
+			# Some tests/demos might like to have initial kick to
+			# start them, so let's press Enter if script contains
+			# KbStrokeWait anywhere
+			if grep -q KbStrokeWait $f; then
+				keypress="( sleep 2; xdotool key Return ) &"
+			else
+				keypress=
+			fi
 			# cd to the test's directory since it might needs some of
 			# local files there
 			cd $fdir
 			xvfb-run --auto-servernum --server-num=20 -s "$XVFB_OPTS" \
-			bash -c "( sleep $timeescape; xdotool key Escape; ) & \
+			bash -c "$keypress ( sleep $timeescape; xdotool key Escape Escape Escape Escape Escape Escape Escape 2>/dev/null 1>&2; ) & \
 				timeout --kill-after=$timelimitkill $timelimit \
 				octave -q --eval \"$PATH_CMDS; PsychTweak('PrepareForVirtualMachine'); $test\" >| $outlog 2>&1"
 			rv=$?
