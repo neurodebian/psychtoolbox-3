@@ -28,6 +28,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libopenal-dev,
                xvfb, xauth, libgl1-mesa-dri, xdotool,
                pulseaudio-utils, octave-image,
+               gstreamer0.10-plugins-base, gstreamer0.10-plugins-good,
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1)
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org
