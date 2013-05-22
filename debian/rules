@@ -80,7 +80,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
       -e DirectInputMonitoringTest \
 	  -e OldNewReco -e AlphaImageDemo/[^A] \
       -e ClutAnimDemo -e MinimumMotionExp -e AdditiveBlendingForLinearSuperpositionTutorial \
-      -e ImagingVideoCaptureDemo -e KbQueueDemo -e AudioTunnel3DDemo \
+      -e ImagingVideoCaptureDemo -e AudioTunnel3DDemo \
       -e DetectionRTInVideoDemo \
       -e VideoRecordingDemo -e PlayMoviesDemo -e PlayInterlacedMovieDemo \
       -e ErrorCatchDemo -e MovieDemo\.m -e VideoTextureExtractionDemo \
@@ -95,8 +95,9 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
     | grep -v -e "REQUIRE SOUND I/O (more in above list)" \
       -e Sound -e Audio -e BasicAMAndMixScheduleDemo -e SimpleVoiceTriggerDemo \
       -e KeyboardLatencyTest \
+      -e LoadMovieIntoTexturesDemo -e PlayMoviesWithoutGapDemo2 \
     | grep -v -e "REQUIRE USER INPUT (more in the first list (TODO))" \
-      -e RenderDemo -e CalDemo \
+      -e RenderDemo -e CalDemo -e KbDemo -e KbQueueDemo \
     | grep -v -e "KNOWN FAILURES TO BE FIXED (more in the first list (TODO))" \
       -e PlayMoviesWithoutGapDemo1 \
       -e FitWeibull.*Test -e DeinterlacerTest -e FitConeFundamentalsTest \
