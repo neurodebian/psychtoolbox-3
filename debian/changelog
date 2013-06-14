@@ -1,8 +1,8 @@
-psychtoolbox-3 (3.0.10.20130522.dfsg1-2) unstable; urgency=low
+psychtoolbox-3 (3.0.10.20130612.dfsg1-1) unstable; urgency=low
 
   * New upstream snapshot release
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 14 Jun 2013 11:26:05 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 14 Jun 2013 12:03:25 -0400
 
 psychtoolbox-3 (3.0.10.20130522.dfsg1-1) UNRELEASED; urgency=low
 
