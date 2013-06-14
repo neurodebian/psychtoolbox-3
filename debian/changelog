@@ -1,4 +1,10 @@
-psychtoolbox-3-nonfree (3.0.10.20130508-1) neurodebian; urgency=low
+psychtoolbox-3-nonfree (3.0.10.20130612-1) neurodebian; urgency=low
+
+  * New upstream snapshot release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 14 Jun 2013 12:03:22 -0400
+
+psychtoolbox-3-nonfree (3.0.10.20130508-1) UNRELEASED; urgency=low
 
   * Fresh upstream release
   * Adding "installation" of GetCharJava.class file for Matlab nonfree
