@@ -1,0 +1,30 @@
+Bugs: https://github.com/Psychtoolbox-3/Psychtoolbox-3/issues
+Contact: http://psychtoolbox.org/PsychtoolboxForum
+FAQ: http://psychtoolbox.org/PsychtoolboxFaq
+Repository: git://github.com/Psychtoolbox-3/Psychtoolbox-3.git
+Repository-Browse: https://github.com/Psychtoolbox-3/Psychtoolbox-3
+Reference:
+- Author: David H. Brainard
+  Title: The Psychophysics Toolbox
+  Journal: Spatial Vision
+  Volume: 10
+  Number: 4
+  Pages: 443-446
+  Year: 1997
+  DOI: 10.1163/156856897X00357
+- Author: D.G. Pelli
+  Title: "The VideoToolbox software for visual psychophysics: Transforming numbers into movies"
+  Journal: Spatial Vision
+  Volume: 10
+  Number: 4
+  Pages: 437-442
+  Year: 1997
+  DOI: 10.1163/156856897X00366
+  PMID: 9176953
+Acknowledgment:
+  If you want to acknowledge use of this software when you publish your
+  research, you might say something like this, "We wrote our experiments
+  in Octave (or Matlab), using the Psychophysics Toolbox extensions
+  (Brainard, 1997;  Pelli, 1997)."
+Tags:
+  - field::neuroscience:psychophysics
