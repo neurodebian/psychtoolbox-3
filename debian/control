@@ -108,6 +108,9 @@ Description: toolbox for vision research -- Octave bindings
  needs like color space transformations and the QUEST threshold
  seeking algorithm.
  .
+ See also http://www.psychtoolbox.org/UsingPsychtoolboxOnUbuntu for
+ additional information about systems tune-up and initial configuration.
+ .
  This package contains bindings for Octave.
 
 Package: psychtoolbox-3-dbg
