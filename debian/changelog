@@ -1,3 +1,10 @@
+psychtoolbox-3-nonfree (3.0.10.20130612-2) UNRELEASED; urgency=low
+
+  * Adding libxmu6, libxpm4 to matlab-*-nonfree package to mitigate absent
+    libraries needed by Matlab.  See #655471
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 24 Jun 2013 11:15:01 -0400
+
 psychtoolbox-3-nonfree (3.0.10.20130612-1) neurodebian; urgency=low
 
   * New upstream snapshot release
