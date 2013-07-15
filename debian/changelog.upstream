@@ -1,3 +1,251 @@
+commit 33137e5d18e0e9e2eff174fe7b15d28d618d447a
+Merge: 57deff9 ef3a282
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 13 00:18:40 2013 -0700
+
+    Merge pull request #155 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Blue skies and empty brains" - SP1
+    Fix broken 64-Bit Windows support.
+
+commit ef3a28287cafcd83facf88ccb95a1d300113e15b
+Merge: abe3ec8 181c2e0
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 13 00:16:55 2013 -0700
+
+    Merge pull request #154 from kleinerm/master
+    
+    PTB BETA RELEASE "Blue skies and empty brains" - SP1
+    
+    Fix broken 64-Bit Windows support.
+
+commit 91e967595a0fb4f573e2b7b1248e3d421fdd599e
+Merge: 90f15cf e49ca02
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Thu Jul 11 21:33:50 2013 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit 7fa70c96965fad10de7fc3f5bc46f7cae21209a4
+Merge: 56c8e8b e49ca02
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Jul 11 10:56:18 2013 -0700
+
+    Merge pull request #36 from Psychtoolbox-3/master
+    
+    Pull to resync with PTB 3.0.11 master aka "Blue skies and empty brains".
+
+commit 57deff9937e0cd9c38df8fd0998eed9fd9e8106c
+Merge: aa7e65d e49ca02
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Jul 11 10:33:48 2013 -0700
+
+    Merge pull request #152 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Blue skies and empty brains"
+    
+    Start of the 3.0.11 series:
+    
+    * Removal of support for 32-Bit OSX and OSX 10.4/10.5.
+    * GStreamer robustness and functionality improvements, esp. on OSX and Windows with Gstreamer SDK.
+    * Workarounds for Matlab's broken Java AWT memory leaks.
+    * Linux video refresh calibration precision improvement on FOSS drivers by fixing some mishandled corner case.
+    * Compile fix for gcc-4.8 + Octave, as found by Debian project.
+    * Eyelink and Snd() fixes by Andreas Widmann.
+    * SphereProjectionShader corner-case fix by Ingmar Schneider.
+    * Minor other tweaks and fixes.
+
+commit e49ca0230be3a7e716ef3cecb2ef1722c8b00a51
+Merge: 898216a 56c8e8b
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Jul 11 10:26:54 2013 -0700
+
+    Merge pull request #151 from kleinerm/master
+    
+    PTB BETA RELEASE "Blue skies and empty brains"
+    
+    * Removal of support for 32-Bit OSX and OSX 10.4/10.5.
+    * GStreamer robustness and functionality improvements, esp. on OSX and Windows with Gstreamer SDK.
+    * Workarounds for Matlab's broken Java AWT memory leaks.
+    * Linux video refresh calibration precision improvement on FOSS drivers by fixing some mishandled corner case.
+    * Compile fix for gcc-4.8 + Octave, as found by Debian project.
+    * Eyelink and Snd() fixes by Andreas Widmann.
+    * SphereProjectionShader corner-case fix by Ingmar Schneider.
+
+commit 530bc408f0c9fac05252fc46f4726178a2682583
+Merge: 81d7a4d 8ad3303
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jul 10 13:26:41 2013 -0700
+
+    Merge pull request #34 from widmann/feedbackbeep
+    
+    Add option to disable feedback beep
+
+commit 81d7a4db6ab7207bdda0d37419f9a4c79539262c
+Merge: 2d88e00 a198be6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jul 10 13:03:05 2013 -0700
+
+    Merge pull request #33 from widmann/keycode
+    
+    Check for keycode vectors in el structure
+
+commit 2d88e00c66df21645bccf7b732db63705346527a
+Merge: f5780ca 7d34a95
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jul 10 12:44:59 2013 -0700
+
+    Merge pull request #35 from widmann/heuristicfilter
+    
+    Disable hardcoded setting of heuristic filter in old code path
+
+commit aa7e65ddf4b9c6f160a8cc5f68ada87cd8d1fdad
+Merge: 8d2a589 e69c68a
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Tue Jul 2 20:25:26 2013 -0700
+
+    Merge pull request #150 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP12
+    
+        Make drawtext plugin on Linux and OSX more robust against weird fonts (non 8bpp fonts).
+        Improve window focus handling for GUI windows on Linux. Don't steal window focus.
+        Enable camerabin2 video capture and recording with GStreamer SDK.
+        Enabe movie writing with GStreamer SDK 2013.6.
+        Enable delay loading of GStreamer SDK dll's on 64-Bit Matlab on Windows to make installation optional.
+        Fix regression in BubbleDemo.
+        Allow sending arbitrary data types in NetStation().
+        Performance improvements for DaqAInScan et al.
+        Fix GLU toolkit NURBS functions regression, so they can be actually used.
+        Movie demo cleanups for pure GStreamer operation and no more Quicktime.
+        Improvements to radiometric functions by David Brainard.
+
+commit e69c68ae70d4f96afa0b6c023352c94d189d4026
+Merge: 29d520f f49c0b0
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Tue Jul 2 20:20:30 2013 -0700
+
+    Merge pull request #149 from kleinerm/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP12
+    
+        Make drawtext plugin on Linux and OSX more robust against weird fonts (non 8bpp fonts).
+        Improve window focus handling for GUI windows on Linux. Don't steal window focus.
+        Enable camerabin2 video capture and recording with GStreamer SDK.
+        Enabe movie writing with GStreamer SDK 2013.6.
+        Enable delay loading of GStreamer SDK dll's on 64-Bit Matlab on Windows to make installation optional.
+        Fix regression in BubbleDemo.
+        Allow sending arbitrary data types in NetStation().
+        Performance improvements for DaqAInScan et al.
+        Fix GLU toolkit NURBS functions regression, so they can be actually used.
+
+commit f49c0b0ade5909c64c2848ebb9583c582d7c50bd
+Merge: c137c06 cd1bc2e
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Tue Jul 2 10:52:55 2013 -0700
+
+    Merge pull request #32 from db87/master
+    
+    USB-1208FS excessive memory usage fix
+
+commit 8d2a589f7eb11f0e17dd44e462ad706f58344a2c
+Merge: 684b5d8 0da43f6
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Mon Jun 17 09:16:52 2013 -0700
+
+    Merge pull request #147 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP11
+    
+    * DrawFormattedText: Add sx = 'right' option for right justified text.
+    * Fix regression in DrawFormattedTextDemo which makes it fail on Matlab.
+
+commit 0da43f6a144c78a150032724ed4aee49acf1971e
+Merge: f38edf8 cdb9a0d
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Mon Jun 17 09:15:37 2013 -0700
+
+    Merge pull request #146 from kleinerm/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP11
+    
+    * DrawFormattedText: Add sx = 'right' option for right justified text.
+    * Fix regression in DrawFormattedTextDemo which makes it fail on Matlab.
+
+commit 66ff9d8b6aa920d429f2ba4f2e93516ecd25d169
+Merge: 4c54d56 b9140b1
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Fri Jun 14 07:10:31 2013 -0700
+
+    Merge pull request #29 from kotowicz/master
+    
+    added 'do not use unity' message to PsychtoolboxPostInstallRoutine.m file
+
+commit 684b5d86a4961a3766a64f47d4271b2703cd840b
+Merge: a3168d4 f38edf8
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Wed Jun 12 12:56:44 2013 -0700
+
+    Merge pull request #144 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP10
+    
+    * Fix DaqAIn() which contained race-conditions that could lead to failure on fast machines.
+    * Fix MSAA 3d rendering with imaging pipeline on old GPU's by adding a fallback path for older gpu's, e.g., on OSX 10.5.8 - Only fix Screen() for 32-Bit Matlab on OSX for now.
+    * Improvements to svn path removal by Ben Heasley and David Brainard.
+    * Improvements to color calibration routines by David Brainard.
+
+commit f38edf84a0a205666a3aecac512e6831d466398e
+Merge: 98a5e78 4c54d56
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Wed Jun 12 12:52:30 2013 -0700
+
+    Merge pull request #143 from kleinerm/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP10
+    
+    * Fix DaqAIn() which contained race-conditions.
+    * Fix MSAA rendering with imaging pipeline on old GPU's - for 32-Bit Matlab on OSX.
+
+commit 4c54d5693434185145f0f021b115b8980ad27082
+Merge: f9ea59e 5aa6627
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Fri Jun 7 08:19:08 2013 -0700
+
+    Merge pull request #28 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit a3168d4b15fdb0b81b090913b6f1cab742ef9384
+Merge: dbe4cf7 1f9ae98
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Wed May 22 00:08:49 2013 -0700
+
+    Merge pull request #140 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP9
+    Fix regression in imaging pipeline + multisample depth renderbuffer setup.
+
+commit 1f9ae98706b6951ea9c15cade9da5609fc710f6b
+Merge: 3b44b33 9b362b5
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Wed May 22 00:07:25 2013 -0700
+
+    Merge pull request #139 from kleinerm/master
+    
+    PTB BETA RELEASE "Rainbows, Droids & Compute Hippies!" SP9
+    Fix regression in imaging pipeline + multisample depth renderbuffer setup.
+
+commit 3b44b338678d8f886a2034f7196e8153c9c90fda
+Merge: cb6e6d1 dbe4cf7
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Mon May 20 02:53:12 2013 -0700
+
+    Merge pull request #132 from Psychtoolbox-3/beta
+    
+    Merge pull request #131 from Psychtoolbox-3/master
+    Resync with 3.0.10 final beta update.
+
 commit dbe4cf7f5a13daa4371bc31e1d61ded91e63de42
 Merge: 637dc8b cb6e6d1
 Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
