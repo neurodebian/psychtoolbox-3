@@ -1,4 +1,4 @@
-psychtoolbox-3 (3.0.11.20130711.dfsg1-1) unstable; urgency=low
+psychtoolbox-3 (3.0.11.20130711.dfsg1-1) experimental; urgency=low
 
   * New upstream release
     - resolves FTBFS with gcc-4.8 (Closes: #701342)
