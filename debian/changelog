@@ -2,6 +2,9 @@ psychtoolbox-3 (3.0.11.20130711.dfsg1-1) unstable; urgency=low
 
   * New upstream release
     - resolves FTBFS with gcc-4.8 (Closes: #701342)
+  * debian/control
+    - moved all gst-plugins collecttions to Recommends per upstream
+      recommendation
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 15 Jul 2013 11:28:09 -0400
 
