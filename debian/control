@@ -38,13 +38,13 @@ Architecture: i386 amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-lib (>= ${source:Version}.dfsg),
          psychtoolbox-3-common (>= ${source:Version}.dfsg),
-Recommends: freeglut3, libasound2, libdc1394-22, libfreenect0.1,
-            libgl1-mesa-glx, libglib2.0-0, libglu1-mesa,
+         libx11-6, libxext6, libxfixes3, libxi6, freeglut3, libglew1.9,
+         libgl1-mesa-glx, libxmu6, libxpm4,
+Recommends: libasound2, libdc1394-22, libfreenect0.1,
+            libglib2.0-0, libglu1-mesa,
             libgstreamer-plugins-base0.10-0, libgstreamer0.10-0,
             libopenal1, libpciaccess0,
-            libusb-1.0-0, libx11-6, libxext6, libxfixes3, libxi6,
-            libxml2, libxrandr2, libxxf86vm1,
-            libxmu6, libxpm4,
+            libusb-1.0-0, libxml2, libxrandr2, libxxf86vm1,
 Description: toolbox for vision research -- Matlab binary blobs
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
