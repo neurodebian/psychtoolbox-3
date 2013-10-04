@@ -55,19 +55,19 @@ static psych_bool drawtext_plugin_firstcall = TRUE;
 
 // Function prototypes for functions exported by drawtext plugins: Will be dynamically bound & linked:
 int (*PsychPluginInitText)(void) = NULL;
-int (*PsychPluginShutdownText)(void) = NULL;
-int (*PsychPluginRebuiltFont)(void) = NULL;
-int (*PsychPluginSetTextFont)(const char* fontName) = NULL;
-int (*PsychPluginSetTextStyle)(unsigned int fontStyle) = NULL;
-int (*PsychPluginSetTextSize)(double fontSize) = NULL;
-void (*PsychPluginSetTextFGColor)(double* color) = NULL;
-void (*PsychPluginSetTextBGColor)(double* color) = NULL;
+int (*PsychPluginShutdownText)(int context) = NULL;
+int (*PsychPluginSetTextFont)(int context, const char* fontName) = NULL;
+const char* (*PsychPluginGetTextFont)(int context) = NULL;
+int (*PsychPluginSetTextStyle)(int context, unsigned int fontStyle) = NULL;
+int (*PsychPluginSetTextSize)(int context, double fontSize) = NULL;
+void (*PsychPluginSetTextFGColor)(int context, double* color) = NULL;
+void (*PsychPluginSetTextBGColor)(int context, double* color) = NULL;
 void (*PsychPluginSetTextUseFontmapper)(unsigned int useMapper, unsigned int mapperFlags) = NULL;
-void (*PsychPluginSetTextViewPort)(double xs, double ys, double w, double h) = NULL;
-int (*PsychPluginDrawText)(double xStart, double yStart, int textLen, double* text) = NULL;
-int (*PsychPluginMeasureText)(int textLen, double* text, float* xmin, float* ymin, float* xmax, float* ymax) = NULL;
+void (*PsychPluginSetTextViewPort)(int context, double xs, double ys, double w, double h) = NULL;
+int (*PsychPluginDrawText)(int context, double xStart, double yStart, int textLen, double* text) = NULL;
+int (*PsychPluginMeasureText)(int context, int textLen, double* text, float* xmin, float* ymin, float* xmax, float* ymax) = NULL;
 void (*PsychPluginSetTextVerbosity)(unsigned int verbosity) = NULL;
-void (*PsychPluginSetTextAntiAliasing)(int antiAliasing) = NULL;
+void (*PsychPluginSetTextAntiAliasing)(int context, int antiAliasing) = NULL;
 
 // External renderplugins not yet supported on MS-Windows:
 #if PSYCH_SYSTEM != PSYCH_WINDOWS
@@ -174,7 +174,8 @@ PsychError	PsychOSDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* 
     OSStatus		callError;
     ATSUStyle		atsuStyle;
     ATSUTextLayout	textLayout;
-    Rect			textBoundsQRect;
+    Rect			atsuRect;
+    ATSUTextMeasurement mleft, mright, mtop, mbottom;
     double			textBoundsPRect[4], textBoundsPRectOrigin[4], textureRect[4];
     double			textureWidth, textureHeight, textHeight, textWidth, textureTextFractionY, textureTextFractionXLeft,textureTextFractionXRight, textHeightToBaseline;
     double			quadLeft, quadRight, quadTop, quadBottom;
@@ -216,7 +217,6 @@ PsychError	PsychOSDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* 
 		// baseline of text, i.e. the textheight excluding descenders of letters.
 
 		// Need to compute offset via ATSU:
-		ATSUTextMeasurement mleft, mright, mtop, mbottom;
         callError=ATSUGetUnjustifiedBounds(textLayout, kATSUFromTextBeginning, kATSUToTextEnd, &mleft, &mright, &mbottom, &mtop);
 		if (callError) {
 			PsychErrorExitMsg(PsychError_internal, "Failed to compute unjustified text height to baseline in call to ATSUGetUnjustifiedBounds().\n");    
@@ -233,26 +233,55 @@ PsychError	PsychOSDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* 
 		textHeightToBaseline = 0;
 	}
 
-    // Get the bounds for our text and create a texture of sufficient size to contain it. 
-    ATSTrapezoid trapezoid;
-    ItemCount oActualNumberOfBounds = 0;
-    callError=ATSUGetGlyphBounds(textLayout, 0, 0, kATSUFromTextBeginning, kATSUToTextEnd, kATSUseDeviceOrigins, 0, NULL, &oActualNumberOfBounds);
-    if (callError || oActualNumberOfBounds!=1) {
-        PsychErrorExitMsg(PsychError_internal, "Failed to compute bounding box in call 1 to ATSUGetGlyphBounds() (nrbounds!=1)\n");    
+    // Both text renderer 0 and 1 select the OSX ATSU text renderer, but different settings select
+    // a different bounding box computation strategy here: 1 == Classic, 0 = New-Style.
+    if (PsychPrefStateGet_TextRenderer() == 0) {
+        // New-Style method: Use the deprecated function ATSUMeasureTextImage(), which should not even be
+        // available on 64-Bit builds, but mysteriously is, at least when building against 10.6 SDK on 10.7.5
+        // with macosx-min-version=10.5 set (haven't tested any other build settings yet, so this may not be exclusive).
+        // This function is supposed to compute the text bounding box post final layout and also handles unusual fonts,
+        // e.g., "Kuenstler Script LT", much better than the old-style method:
+        callError = ATSUMeasureTextImage(textLayout, kATSUFromTextBeginning, kATSUToTextEnd, 0, 0, &atsuRect);
+        if (callError) PsychErrorExitMsg(PsychError_internal, "Failed to compute text bounding box via ATSUMeasureTextImage()");
+        
+        // Extend bounding box in each direction by one pixel to account for inclusive borders:
+        textBoundsPRect[kPsychLeft]   = atsuRect.left - 1;
+        textBoundsPRect[kPsychRight]  = atsuRect.right + 1;
+        textBoundsPRect[kPsychTop]    = atsuRect.top - 1;
+        textBoundsPRect[kPsychBottom] = atsuRect.bottom + 1;
     }
-	
-    callError=ATSUGetGlyphBounds(textLayout, 0, 0, kATSUFromTextBeginning, kATSUToTextEnd, kATSUseDeviceOrigins, 1, &trapezoid, &oActualNumberOfBounds);
-    if (callError || oActualNumberOfBounds!=1) {
-        PsychErrorExitMsg(PsychError_internal, "Failed to retrieve bounding box in call 2 to ATSUGetGlyphBounds() (nrbounds!=1)\n");    
+    else {
+        // Old-Style method:
+        // Get the bounds for our text and create a texture of sufficient size to contain it. 
+        ATSTrapezoid trapezoid;
+        ItemCount oActualNumberOfBounds = 0;
+        callError=ATSUGetGlyphBounds(textLayout, 0, 0, kATSUFromTextBeginning, kATSUToTextEnd, kATSUseDeviceOrigins, 0, NULL, &oActualNumberOfBounds);
+        if (callError || oActualNumberOfBounds!=1) {
+            PsychErrorExitMsg(PsychError_internal, "Failed to compute bounding box in call 1 to ATSUGetGlyphBounds() (nrbounds!=1)\n");    
+        }
+        
+        callError=ATSUGetGlyphBounds(textLayout, 0, 0, kATSUFromTextBeginning, kATSUToTextEnd, kATSUseDeviceOrigins, 1, &trapezoid, &oActualNumberOfBounds);
+        if (callError || oActualNumberOfBounds!=1) {
+            PsychErrorExitMsg(PsychError_internal, "Failed to retrieve bounding box in call 2 to ATSUGetGlyphBounds() (nrbounds!=1)\n");    
+        }
+        
+        textBoundsPRect[kPsychLeft]=(Fix2X(trapezoid.upperLeft.x) < Fix2X(trapezoid.lowerLeft.x)) ? Fix2X(trapezoid.upperLeft.x) : Fix2X(trapezoid.lowerLeft.x);
+        textBoundsPRect[kPsychRight]=(Fix2X(trapezoid.upperRight.x) > Fix2X(trapezoid.lowerRight.x)) ? Fix2X(trapezoid.upperRight.x) : Fix2X(trapezoid.lowerRight.x);
+        textBoundsPRect[kPsychTop]=(Fix2X(trapezoid.upperLeft.y) < Fix2X(trapezoid.upperRight.y)) ? Fix2X(trapezoid.upperLeft.y) : Fix2X(trapezoid.upperRight.y);
+        textBoundsPRect[kPsychBottom]=(Fix2X(trapezoid.lowerLeft.y) > Fix2X(trapezoid.lowerRight.y)) ? Fix2X(trapezoid.lowerLeft.y) : Fix2X(trapezoid.lowerRight.y);
     }
-    
-    textBoundsPRect[kPsychLeft]=(Fix2X(trapezoid.upperLeft.x) < Fix2X(trapezoid.lowerLeft.x)) ? Fix2X(trapezoid.upperLeft.x) : Fix2X(trapezoid.lowerLeft.x);
-    textBoundsPRect[kPsychRight]=(Fix2X(trapezoid.upperRight.x) > Fix2X(trapezoid.lowerRight.x)) ? Fix2X(trapezoid.upperRight.x) : Fix2X(trapezoid.lowerRight.x);
-    textBoundsPRect[kPsychTop]=(Fix2X(trapezoid.upperLeft.y) < Fix2X(trapezoid.upperRight.y)) ? Fix2X(trapezoid.upperLeft.y) : Fix2X(trapezoid.upperRight.y);
-    textBoundsPRect[kPsychBottom]=(Fix2X(trapezoid.lowerLeft.y) > Fix2X(trapezoid.lowerRight.y)) ? Fix2X(trapezoid.lowerLeft.y) : Fix2X(trapezoid.lowerRight.y);
-    
-    // printf("Top %lf x Bottom %lf :: ",textBoundsPRect[kPsychTop], textBoundsPRect[kPsychBottom]); 
+
+    // printf("Top %lf x Bottom %lf :: ",textBoundsPRect[kPsychTop], textBoundsPRect[kPsychBottom]);
     PsychNormalizeRect(textBoundsPRect, textBoundsPRectOrigin);
+
+    // printf("N: Top %lf x Bottom %lf :: ",textBoundsPRectOrigin[kPsychTop], textBoundsPRectOrigin[kPsychBottom]);
+	// Denis found an off-by-one bug in the text width. Don't know where it should come from in our code, but
+	// my "solution" is to simply extend the width by one:
+    textWidth  = PsychGetWidthFromRect(textBoundsPRectOrigin) + 1.0;
+    textHeight = PsychGetHeightFromRect(textBoundsPRectOrigin);
+
+    // Adjust for differences in text height for new-style text bounding box and offset computation:
+    if (yPositionIsBaseline && (PsychPrefStateGet_TextRenderer() == 0)) textHeightToBaseline = textHeight - fabs(Fix2X(mtop));
 
 	// Only text boundingbox in absolute coordinates requested?
 	if (boundingbox) {
@@ -270,12 +299,6 @@ PsychError	PsychOSDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* 
 		return(PsychError_none);
 	}
 
-    // printf("N: Top %lf x Bottom %lf :: ",textBoundsPRectOrigin[kPsychTop], textBoundsPRectOrigin[kPsychBottom]);
-	// Denis found an off-by-one bug in the text width. Don't know where it should come from in our code, but
-	// my "solution" is to simply extend the width by one: 
-    textWidth=PsychGetWidthFromRect(textBoundsPRectOrigin) + 1.0;
-    textHeight=PsychGetHeightFromRect(textBoundsPRectOrigin);
-	
 	// Clamp maximum size of text bitmap to maximum supported texture size of GPU:
 	if (textWidth > winRec->maxTextureSize) textWidth = winRec->maxTextureSize;
 	if (textHeight > winRec->maxTextureSize) textHeight = winRec->maxTextureSize;
@@ -1377,8 +1400,8 @@ psych_bool PsychLoadTextRendererPlugin(PsychWindowRecordType* windowRecord)
 		// Dynamically bind all functions to their proper plugin entry points:
 		PsychPluginInitText = dlsym(drawtext_plugin, "PsychInitText");
 		PsychPluginShutdownText = dlsym(drawtext_plugin, "PsychShutdownText");
-		PsychPluginRebuiltFont = dlsym(drawtext_plugin, "PsychRebuiltFont");
 		PsychPluginSetTextFont = dlsym(drawtext_plugin, "PsychSetTextFont");
+        PsychPluginGetTextFont = dlsym(drawtext_plugin, "PsychGetTextFont");
 		PsychPluginSetTextStyle = dlsym(drawtext_plugin, "PsychSetTextStyle");
 		PsychPluginSetTextSize = dlsym(drawtext_plugin, "PsychSetTextSize");
 		PsychPluginSetTextFGColor = dlsym(drawtext_plugin, "PsychSetTextFGColor");
@@ -1394,7 +1417,7 @@ psych_bool PsychLoadTextRendererPlugin(PsychWindowRecordType* windowRecord)
 		PsychPluginSetTextVerbosity((unsigned int) PsychPrefStateGet_Verbosity());
 
 		// Try to initialize plugin:
-		if (PsychPluginInitText()) PsychErrorExitMsg(PsychError_internal, "Drawtext plugin, PsychInitText() failed!");
+        if (PsychPluginInitText()) PsychErrorExitMsg(PsychError_internal, "Drawtext plugin, PsychInitText() failed!");
 		
 		// Enable use of plugins internal fontMapper for selection of font file, face type and rendering
 		// parameters, based on the font/text spec provided by us:
@@ -1442,10 +1465,13 @@ void PsychCleanupTextRenderer(PsychWindowRecordType* windowRecord)
 		// Do we have an external text rendering plugin installed and initialized?
 		if (drawtext_plugin) {
 			// Yes.
-			if (PsychPrefStateGet_Verbosity() > 5) printf("PTB-DEBUG: In PsychCleanupTextRenderer: Releasing text renderer plugin.\n");
+			if (PsychPrefStateGet_Verbosity() > 5) printf("PTB-DEBUG: In PsychCleanupTextRenderer: Releasing text renderer plugin completely.\n");
 
-			// Call plugin shutdown routine:
-			PsychPluginShutdownText();
+			// Call plugin shutdown routine for this window:
+            PsychPluginShutdownText((PsychGetParentWindow(windowRecord))->windowIndex);
+
+            // Call master shutdown:
+            PsychPluginShutdownText(-1);
 
 			#if PSYCH_SYSTEM != PSYCH_WINDOWS
 			// Jettison plugin:
@@ -1455,6 +1481,17 @@ void PsychCleanupTextRenderer(PsychWindowRecordType* windowRecord)
 			drawtext_plugin = NULL;
 		}
 	}
+	else {
+        // Not the last onscreen window. Only do per window cleanup:
+        // Do we have an external text rendering plugin installed and initialized?
+        if (drawtext_plugin) {
+            // Yes.
+            if (PsychPrefStateGet_Verbosity() > 5) printf("PTB-DEBUG: In PsychCleanupTextRenderer: Releasing text renderer plugin resources for window %i.\n", windowRecord->windowIndex);
+
+            // Call plugin shutdown routine for this window:
+            PsychPluginShutdownText((PsychGetParentWindow(windowRecord))->windowIndex);
+        }
+    }
 
 	return;
 }
@@ -1463,21 +1500,16 @@ void PsychCleanupTextRenderer(PsychWindowRecordType* windowRecord)
 // MS-Windows:
 #include <locale.h>
 
-// When building against Octave-3, we don't have support for
-// _locale_t datatype and associated functions like mbstowcs_l. Therefore
-// we use setlocale() and mbstowcs() instead to set/query/use the global
-// process-wide locale instead. This should be ok, as Octave does not implement
-// locale processing itself on Windows, so we cannot interfere here.
-#if defined(PTBOCTAVE3MEX)
-#define _locale_t	char*
-#endif
-
-static	_locale_t	drawtext_locale = NULL;
+// When building against Octave-3 or the Microsoft Windows common C runtime MSCRT.dll,
+// we don't have support for _locale_t datatype and associated functions like mbstowcs_l.
+// Therefore we always use setlocale() and mbstowcs() instead to set/query/use the global
+// process-wide locale instead to avoid special cases. Our code will backup the old/current locale,
+// then apply the requested locale and use it for text conversion, then restore the old locale,
+// so that the process global locale setting is only temporarily changed during execution of our
+// text conversion function on the main thread. This should hopefully be fine:
+static  char		oldmswinlocale[256] = { 0 };
 static	char		drawtext_localestring[256] = { 0 };
 unsigned int		drawtext_codepage = 0;
-
-// Define mbstowcs_l (Posix) to the corresponding name on Windows CRT:
-#define	mbstowcs_l	_mbstowcs_l
 
 // PsychSetUnicodeTextConversionLocale():
 //
@@ -1502,73 +1534,10 @@ psych_bool	PsychSetUnicodeTextConversionLocale(const char* mnewlocale)
 {
 	unsigned int	mycodepage;
 
-#if !defined(PTBOCTAVE3MEX)
-	_locale_t		myloc = NULL;
-
 	// Was only destruction/release of current locale requested?
 	if (NULL == mnewlocale) {
-		// Destroy/Release old locale, if any:
-		if (drawtext_locale) {
-			_free_locale(drawtext_locale);
-			drawtext_locale = NULL;
-		}
-		drawtext_localestring[0] = 0;
-		drawtext_codepage = 0;
-		
-		// Done after destruction:
-		return(TRUE);
-	}
-
-	// Special # symbol to directly set a codepage provided?
-	if (strstr(mnewlocale, "#") && (sscanf(mnewlocale, "#%i", &mycodepage) > 0)) {
-		// Yes, parse numeric codepage id and assign it:
-		strcpy(drawtext_localestring, mnewlocale);
-		drawtext_codepage = mycodepage;
-		return(TRUE);
-	}
-	else {
-		// Special case "UTF-8" string provided?
-		if (PsychMatch((char*) mnewlocale, "UTF-8")) {
-			// Yes: Switch to UTF-8 codepage:
-			strcpy(drawtext_localestring, mnewlocale);
-			drawtext_codepage = CP_UTF8;
-			return(TRUE);
-		}
-	}
-	
-	// Setting of a new locale requested:
-	myloc = _create_locale(LC_CTYPE, mnewlocale);
-	if (myloc) {
-		// Destroy/Release old locale, if any:
-		if (drawtext_locale) {
-			_free_locale(drawtext_locale);
-			drawtext_locale = NULL;
-		}
-
 		drawtext_codepage = 0;
 		drawtext_localestring[0] = 0;
-		if (strlen(mnewlocale) < 1) {
-			// Special locale "" given: Set namestring to current system
-			// default locale:
-			strcpy(drawtext_localestring, setlocale(LC_CTYPE, NULL));
-		}
-		else {
-			// Named locale given: Assign its namestring:
-			strcpy(drawtext_localestring, mnewlocale);
-		}
-		drawtext_locale = myloc;
-		
-		return(TRUE);
-	}
-	
-	// Failed! No settings changed:
-	return(FALSE);
-#else
-	// Was only destruction/release of current locale requested?
-	if (NULL == mnewlocale) {
-		// Revert process global locale to system default:
-		setlocale(LC_CTYPE, "");
-		drawtext_codepage = 0;
 		return(TRUE);
 	}
 
@@ -1592,8 +1561,16 @@ psych_bool	PsychSetUnicodeTextConversionLocale(const char* mnewlocale)
 	// Setting of a new locale requested: Try to set it globally for the
 	// whole process, return success status:
 	drawtext_codepage = 0;
-	return( (setlocale(LC_CTYPE, mnewlocale) == NULL) ? FALSE : TRUE );
-#endif
+
+	if (strlen(mnewlocale) < 1) {
+		// Special locale "" given: Set namestring to current system
+		// default locale:
+		strcpy(drawtext_localestring, setlocale(LC_CTYPE, NULL));
+		return(TRUE);
+	}
+
+	strcpy(drawtext_localestring, mnewlocale);
+	return(TRUE);
 }
 
 // PsychGetUnicodeTextConversionLocale(): 
@@ -1604,15 +1581,7 @@ psych_bool	PsychSetUnicodeTextConversionLocale(const char* mnewlocale)
 // Returns NULL on error, a const char* string with the current locale setting on success.
 const char* PsychGetUnicodeTextConversionLocale(void)
 {
-#if !defined(PTBOCTAVE3MEX)
 	return(&drawtext_localestring[0]);
-#else
-	// Return encoded codepage:
-	if (drawtext_codepage) return(&drawtext_localestring[0]);
-
-	// Query process global locale:
-	return(setlocale(LC_CTYPE, NULL));
-#endif
 }
 
 #else
@@ -1784,11 +1753,18 @@ psych_bool	PsychAllocInTextAsUnicode(int position, PsychArgRequirementType isReq
 			}
 			else {
 				// Locale-based text conversion:
-				#if defined(PTBOCTAVE3MEX)
-						*textLength = mbstowcs(NULL, textCString, 0);
-				#else
-						*textLength = (int) mbstowcs_l(NULL, textCString, 0, drawtext_locale);
-				#endif
+
+				// Create backup copy of currently set process global locale:
+				sprintf(oldmswinlocale, "%s", setlocale(LC_CTYPE, NULL));
+
+				// Set process global locale to wanted locale:
+				setlocale(LC_CTYPE, drawtext_localestring);
+
+				// Perform text conversion:
+				*textLength = mbstowcs(NULL, textCString, 0);
+
+				// Reset process global locale to old setting:
+				setlocale(LC_CTYPE, oldmswinlocale);
 			}
 		#else
 			// Unix: OS/X, Linux:
@@ -1814,12 +1790,14 @@ psych_bool	PsychAllocInTextAsUnicode(int position, PsychArgRequirementType isReq
 				}
 			}
 			else {
+				// Set process global locale to wanted locale:
+				setlocale(LC_CTYPE, drawtext_localestring);
+
 				// Locale-based text conversion:
-				#if defined(PTBOCTAVE3MEX)
-					mbstowcs(textUniString, textCString, (*textLength + 1));
-				#else
-					mbstowcs_l(textUniString, textCString, (*textLength + 1), drawtext_locale);
-				#endif
+				mbstowcs(textUniString, textCString, (*textLength + 1));
+
+				// Reset process global locale to old setting:
+				setlocale(LC_CTYPE, oldmswinlocale);
 			}
 		#else
 			// Unix:
@@ -1877,14 +1855,15 @@ void PsychDrawCharText(PsychWindowRecordType* winRec, const char* textString, do
 
 PsychError PsychDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* boundingbox, unsigned int stringLengthChars, double* textUniDoubleString, double* xp, double* yp, unsigned int yPositionIsBaseline, PsychColorType *textColor, PsychColorType *backgroundColor, int swapTextDirection)
 {
-	GLdouble		backgroundColorVector[4];
-	GLdouble		colorVector[4];
-    GLenum			normalSourceBlendFactor, normalDestinationBlendFactor;
-	float			xmin, ymin, xmax, ymax;
-	double			myyp;
-	double			dummy;
+	GLdouble backgroundColorVector[4];
+	GLdouble colorVector[4];
+    GLenum normalSourceBlendFactor, normalDestinationBlendFactor;
+	float xmin, ymin, xmax, ymax;
+	double myyp;
+	double dummy;
 	unsigned int	i;
-	int				rc = 0;
+    int ctx;
+	int rc = 0;
 
 	// Invert text string (read it "backwards") if swapTextDirection is requested:
 	if (swapTextDirection) {
@@ -1902,33 +1881,39 @@ PsychError PsychDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* bo
 
 		// Use external dynamically loaded plugin:
 
+        // Get ctx context id for this window:
+        ctx = (int) (PsychGetParentWindow(winRec))->windowIndex;
+
 		// Assign current level of verbosity:
 		PsychPluginSetTextVerbosity((unsigned int) PsychPrefStateGet_Verbosity());
 
 		// Assign current anti-aliasing settings:
-		PsychPluginSetTextAntiAliasing(PsychPrefStateGet_TextAntiAliasing());
+        PsychPluginSetTextAntiAliasing(ctx, PsychPrefStateGet_TextAntiAliasing());
 
 		// Assign font family name of requested font:
-		PsychPluginSetTextFont((const char*) winRec->textAttributes.textFontName);
+        PsychPluginSetTextFont(ctx, (const char*) winRec->textAttributes.textFontName);
 
 		// Assign style settings, e.g., bold, italic etc.:
-		PsychPluginSetTextStyle(winRec->textAttributes.textStyle);
+        PsychPluginSetTextStyle(ctx, winRec->textAttributes.textStyle);
 
 		// Assign text size in pixels:
-		PsychPluginSetTextSize((double) winRec->textAttributes.textSize);
+        PsychPluginSetTextSize(ctx, (double) winRec->textAttributes.textSize);
+
+        // Retrieve true text font family name:
+        sprintf(winRec->textAttributes.textFontName, "%s", PsychPluginGetTextFont(ctx));
 
 		// Assign viewport settings for rendering:
-		PsychPluginSetTextViewPort(winRec->clientrect[kPsychLeft], winRec->clientrect[kPsychTop], PsychGetWidthFromRect(winRec->clientrect), PsychGetHeightFromRect(winRec->clientrect));
+        PsychPluginSetTextViewPort(ctx, winRec->clientrect[kPsychLeft], winRec->clientrect[kPsychTop], PsychGetWidthFromRect(winRec->clientrect), PsychGetHeightFromRect(winRec->clientrect));
 
 		// Compute and assign text background color:
 		PsychCoerceColorMode(backgroundColor);
 		PsychConvertColorToDoubleVector(backgroundColor, winRec, backgroundColorVector);
-		PsychPluginSetTextBGColor(backgroundColorVector);
+        PsychPluginSetTextBGColor(ctx, backgroundColorVector);
 		
 		// Compute and assign text foreground color - the actual color of the glyphs:
 		PsychCoerceColorMode(textColor);
 		PsychConvertColorToDoubleVector(textColor, winRec, colorVector);
-		PsychPluginSetTextFGColor(colorVector);
+        PsychPluginSetTextFGColor(ctx, colorVector);
 		
 		// Enable this windowRecords framebuffer as current drawingtarget:
 		PsychSetDrawingTarget(winRec);
@@ -1956,7 +1941,7 @@ PsychError PsychDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* bo
 		#endif
 		
 		// Compute bounding box of drawn string:
-		rc = PsychPluginMeasureText(stringLengthChars, textUniDoubleString, &xmin, &ymin, &xmax, &ymax);
+        rc = PsychPluginMeasureText(ctx, stringLengthChars, textUniDoubleString, &xmin, &ymin, &xmax, &ymax);
 
 		// Handle definition of yp properly: Is it the text baseline, or the top of the text bounding box?
 		if (yPositionIsBaseline) {
@@ -1973,7 +1958,7 @@ PsychError PsychDrawUnicodeText(PsychWindowRecordType* winRec, PsychRectType* bo
 		}
 		else {
 			// Draw text by calling into the plugin:
-			rc += PsychPluginDrawText(*xp, winRec->clientrect[kPsychBottom] - myyp, stringLengthChars, textUniDoubleString);
+            rc += PsychPluginDrawText(ctx, *xp, winRec->clientrect[kPsychBottom] - myyp, stringLengthChars, textUniDoubleString);
 		}
 		
 		// Restore alpha-blending settings if needed:

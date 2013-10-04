@@ -20,8 +20,11 @@ function varargout = PsychVideoSwitcher(cmd, varargin)
 % standard RGB true color display mode. 'screenIdx' is the screen index of the
 % for the display screen to switch.
 %
-% 'enableLuminanceMode' must be set to 0 to switch to RGB mode, and to 1 to
-% switch to high precision luminance mode.
+% 'enableLuminanceMode' is meaningful only for card VideoSwitcher, which
+% must be set to 0 to switch to RGB mode, and to 1 to switch to high
+% precision luminance mode. For box version, the SwitchMode subfunction
+% ignores the third input, and only toggles between two display modes,
+% equivalent to pushing the switch button on the box.
 %
 % 'VideoSwitcherIsABox' is an optional argument: If set to 1, then perform
 % switching procedure for an external (box) device. If set to zero, then
@@ -181,6 +184,8 @@ function varargout = PsychVideoSwitcher(cmd, varargin)
 %              Xiangrui Li in helper subroutines.
 % 05/24/11 xl  3rd input for SwitchMode is not manditory since it is not
 %              used by box version.
+% 07/17/13 xl  Clarify in help text that SwitchMode only toggles between
+%              two display modes.  
 
 % GL access is needed for setup of green trigger channel in callback:
 global GL;
@@ -787,8 +792,8 @@ for i=1:25
     img1(1, pixelPos(i)+1:pixelPos(i+1), 2)=bits(1,i)*255;
     img2(1, pixelPos(i)+1:pixelPos(i+1), 2)=bits(2,i)*255;
 end
-tex(1)=Screen('MakeTexture',w,img1);
-tex(2)=Screen('MakeTexture',w,img2);
+tex(1)=Screen('MakeTexture',w,uint8(img1));
+tex(2)=Screen('MakeTexture',w,uint8(img2));
 
 for i=1:2
     for factor=(range(1):step:range(2))/range(1)
@@ -838,7 +843,7 @@ img=zeros(1, pixelPos(26), 3); % one line image, will change green layer
 for i=1:25
     img(1, pixelPos(i)+1:pixelPos(i+1), 2)=bits(color,i)*255;
 end
-tex=Screen('MakeTexture',w,img);
+tex=Screen('MakeTexture',w,uint8(img));
 
 for factor=(range(1):step:range(2))/range(1)
     rd=rand*ppb*0.5; % random shift up to half a bit

@@ -19,6 +19,8 @@ function PsychtoolboxPostInstallRoutine(isUpdate, flavor)
 %    working copy of Psychtoolbox.
 % 3. Add the PsychJava subfolder to the static Matlab class-path if neccessary.
 %    This enables the Java-based GetChar support on Matlab.
+% 4. Add the PsychStartup.m routine to Matlab's startup.m file on Windows.
+% 5. Perform post-installation checks and basic troubleshooting.
 
 %
 % History:
@@ -54,7 +56,7 @@ function PsychtoolboxPostInstallRoutine(isUpdate, flavor)
 % 05/13/2013 Factor out Java classpath setup to call to PsychJaveTrouble(1). (MK)
 % 07/02/2013 Drop support for 32-Bit Matlab on OSX, and thereby for 32-Bit OSX. (MK)
 % 07/02/2013 Drop support for OSX versions older than 10.6 "Snow Leopard". (MK)
-%
+% 09/12/2013 Setup PsychStartup.m in startup.m for 32-Bit Windows as well. (MK)
 
 fprintf('\n\nRunning post-install routine...\n\n');
 
@@ -148,13 +150,17 @@ end
 
 % 32-Bit Octave or 32-Bit Matlab on OSX? This is unsupported as of Version 3.0.11.
 if IsOSX && ~Is64Bit
-    error('Use of 32-Bit GNU/Octave or 32-Bit Matlab on OSX with Psychtoolbox 3.0.11 is no longer supported. Aborted.');
+    fprintf('Psychtoolbox 3.0.11 and later do no longer work with 32-Bit versions of Octave or Matlab on OSX.\n');
+    fprintf('You need to upgrade to a 64-Bit version of Octave or Matlab on OSX, which is fully supported.\n');
+    fprintf('You can also use the alternate download function DownloadLegacyPsychtoolbox() to download\n');
+    fprintf('an old legacy copy of Psychtoolbox-3.0.9, which did support 32-Bit Octave 3.2 on OSX, or use\n');
+    fprintf('DownloadPsychtoolbox() with flavor ''Psychtoolbox-3.0.10'', which does support 32-Bit Matlab on OSX.\n');
+    error('Tried to setup on 32-Bit Octave, which is no longer supported on OSX.');
 end
 
 % Check if our own startup function is part of the startup file and add it,
-% if it isn't already part of it. Currently we only need this for 64-Bit
-% Matlab on Windows.
-if IsWin(1)
+% if it isn't already part of it. Currently we only need this for MS-Windows.
+if IsWin
     % Is it already implanted? Then we ain't nothing to do:
     if ~IsPsychStartupImplantedInStartup
         % Nope. Does a proper file already exist?
@@ -167,7 +173,7 @@ if IsWin(1)
             fprintf('Adding PsychStartup() call to Matlab startup.m file for Psychtoolbox at %s\n', whereisit);            
         end
         
-        % whereist points to the location of the existing or to be created
+        % whereisit points to the location of the existing or to be created
         % file. Open (or create) it in append mode:
         try
             fd = fopen(whereisit, 'a');
