@@ -1,6 +1,7 @@
 psychtoolbox-3-nonfree (3.0.11.20131003-1) neurodebian; urgency=low
 
   * New upstream release
+  * Boost dependency for libusb-1.0-0 (>= 2:1.0.11)
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 11 Oct 2013 15:51:50 -0400
 
