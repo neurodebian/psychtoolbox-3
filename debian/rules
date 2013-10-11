@@ -26,7 +26,6 @@ override_dh_install:
 		usr/lib/psychtoolbox-3/PsychtoolboxAddons/
 	dh_install -pmatlab-psychtoolbox-3-nonfree \
 		Psychtoolbox/PsychBasic/*.mex$(mexext) \
-		Psychtoolbox/PsychHardware/iViewXToolbox/tcp_udp_ip/pnet.mex$(mexext) \
 		usr/lib/matlab/site/psychtoolbox-3/
 	: # fix permissions
 	find debian/*psychtoolbox* -name *.mex* | xargs chmod a-x
