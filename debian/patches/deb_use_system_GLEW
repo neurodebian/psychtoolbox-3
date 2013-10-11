@@ -49,8 +49,8 @@
  
  // Dynamic extension rebinding: This is in an extra file mogl_rebinder.c and defined
  // with explicit C linkage. Reason: For the Octave version, we need to compile all
---- a/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
-+++ b/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
+--- a/PsychSourceGL/Source/linuxmakeitoctave3.m
++++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
 @@ -51,7 +51,7 @@ if mode==0
      else
          % Build against system installed GStreamer, backwards compatible to

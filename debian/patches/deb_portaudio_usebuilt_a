@@ -1,5 +1,5 @@
---- a/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
-+++ b/PsychSourceGL/Source/linuxmakeitoctave3_ubuntugutsy.m
+--- a/PsychSourceGL/Source/linuxmakeitoctave3.m
++++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
 @@ -92,7 +92,7 @@ end;
  
  if mode==3
