@@ -1,6 +1,8 @@
 psychtoolbox-3 (3.0.11.20131003.dfsg1-1) experimental; urgency=low
 
   * Fresh upstream primarily bugfix release
+  * debian/patches
+    - refreshed to address renaming of the build .m script
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 11 Oct 2013 15:18:39 -0400
 

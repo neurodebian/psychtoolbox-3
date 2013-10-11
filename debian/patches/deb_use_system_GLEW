@@ -51,7 +51,7 @@
  // with explicit C linkage. Reason: For the Octave version, we need to compile all
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -51,7 +51,7 @@ if mode==0
+@@ -41,7 +41,7 @@ if mode==0
      else
          % Build against system installed GStreamer, backwards compatible to
          % old Linux distros. This is the default for production builds:
@@ -60,7 +60,7 @@
      end
      
      unix(['mv ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
-@@ -116,7 +116,7 @@ if mode==6
+@@ -106,7 +106,7 @@ if mode==6
      curdir = pwd;
      cd('../../Psychtoolbox/PsychOpenGL/MOGL/source/')
      try

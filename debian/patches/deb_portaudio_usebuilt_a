@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -92,7 +92,7 @@ end;
+@@ -82,7 +82,7 @@ end;
  
  if mode==3
      % Build PsychPortAudio.mex:

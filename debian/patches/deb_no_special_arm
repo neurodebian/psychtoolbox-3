@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -25,9 +25,11 @@ fprintf('Building plugin type %i ...\n\n
+@@ -15,9 +15,11 @@ fprintf('Building plugin type %i ...\n\n
  target = 'PsychBasic/Octave3LinuxFiles/';
  
  % Special folder for ARM binaries:
