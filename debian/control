@@ -29,6 +29,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                xvfb, xauth, libgl1-mesa-dri, xdotool,
                pulseaudio-utils, octave-image,
                gstreamer0.10-plugins-base, gstreamer0.10-plugins-good,
+               gnuplot-nox | gnuplot,
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1)
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org
@@ -40,6 +41,7 @@ Package: psychtoolbox-3-common
 Architecture: all
 Depends: ${misc:Depends}
 Recommends: subversion
+Suggests: gnuplot
 Description: toolbox for vision research -- arch/interpreter independent part
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
