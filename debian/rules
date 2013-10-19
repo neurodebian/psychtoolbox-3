@@ -104,6 +104,8 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
       -e PlayMoviesWithoutGapDemo1 \
       -e FitWeibull.*Test -e DeinterlacerTest -e FitConeFundamentalsTest \
       -e AlphaMultiplicationTest -e MinExpEntStairDemo \
+    | grep -v -e "REQUIRE SOME ADDITIONAL CMDLINE TOOLS AND SPECIAL HW" \
+      -e PTBAndIsetbioColorimetryTest \
 	| xargs debian/run_tests || echo "TESTS FAILED"
 
 #      -e MovieDemos \
