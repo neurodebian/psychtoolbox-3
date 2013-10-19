@@ -30,7 +30,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                pulseaudio-utils, octave-image,
                gstreamer0.10-plugins-base, gstreamer0.10-plugins-good,
                gnuplot-nox | gnuplot,
-Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1)
+Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1), libglew-dev (= 1.9.0.is.1.8.0-0ubuntu2)
 Standards-Version: 3.9.3
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
