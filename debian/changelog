@@ -1,20 +1,15 @@
-psychtoolbox-3 (3.0.11.20131017.dfsg1-3) UNRELEASED; urgency=low
+psychtoolbox-3 (3.0.11.20131017.dfsg1-3) neurodebian; urgency=low
 
   * debian/control
     - Also adding a conflict for libglew-dev (= 1.9.0.is.1.8.0-0ubuntu2) in
       saucy
     - Adding gnuplot-nox|gnuplot to build-depends and gnuplot to suggests of
       -common package
+    - libusb-1.0-0-dev 1.0.9 (even rc) should be good enough according to Mario.
+      So downgrading this versioned dependency so it could build for squeeze and
+      precise now
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 18 Oct 2013 09:53:25 -0400
-
-psychtoolbox-3 (3.0.11.20131017.dfsg1-2) neurodebian; urgency=low
-
-  * libusb-1.0-0-dev 1.0.9 (even rc) should be good enough according to Mario.
-    So downgrading this versioned dependency so it could build for squeeze and
-    precise now
-
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 17 Oct 2013 23:45:41 -0400
 
 psychtoolbox-3 (3.0.11.20131017.dfsg1-1) experimental; urgency=low
 
