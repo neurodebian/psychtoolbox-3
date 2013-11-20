@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.11.20131017.dfsg1-3) unstable; urgency=low
+
+  * Upload to unsable since fresh glew has arrived to sid!
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 19 Nov 2013 23:34:50 -0500
+
 psychtoolbox-3 (3.0.11.20131017.dfsg1-2) neurodebian; urgency=low
 
   * debian/control
