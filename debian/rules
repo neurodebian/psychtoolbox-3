@@ -196,7 +196,7 @@ override_dh_clean:
 	find Psych* -regextype posix-egrep -regex '.*\.(o|mex|so(|\..*))' -delete
 	-rmdir $(BDIRS)
 	: # Prune some Debian generated files
-	-rm debian/octave-psychtoolbox-3.links debian/psychtoolbox-3-lib.links
+	rm -f debian/octave-psychtoolbox-3.links debian/psychtoolbox-3-lib.links
 	$(MAKE) -C PsychSourceGL/Cohorts/PortAudio clean
 
 debian/changelog.upstream:
