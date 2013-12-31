@@ -1,6 +1,19 @@
+psychtoolbox-3 (3.0.11.20131230.dfsg1-1) unstable; urgency=low
+
+  * New upstream release:
+    - detect location of (recently moved) FreeType-2 header files (Closes:
+      #733402)
+    - improved low-level support of the latest AMD gpu's
+    - fix for key-events handling under XFCE-4 (no new workspaces should
+      now get created upon exit)
+    - general improvements to video capture and video recording
+    - various other fixes
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 30 Dec 2013 19:52:29 -0500
+
 psychtoolbox-3 (3.0.11.20131017.dfsg1-3) unstable; urgency=low
 
-  * Upload to unsable since fresh glew has arrived to sid!
+  * Upload to unstable since fresh glew has arrived to sid!
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 19 Nov 2013 23:34:50 -0500
 
