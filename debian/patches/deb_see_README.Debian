@@ -18,7 +18,7 @@
  					errno=0;
 --- a/PsychSourceGL/Source/Linux/Screen/PsychWindowGlue.c
 +++ b/PsychSourceGL/Source/Linux/Screen/PsychWindowGlue.c
-@@ -110,6 +110,7 @@ psych_bool PsychRealtimePriority(psych_b
+@@ -113,6 +113,7 @@ psych_bool PsychRealtimePriority(psych_b
                      printf("PTB-INFO: Failed to enable realtime-scheduling [%s]!\n", strerror(errno));
                      if (errno==EPERM) {
                          printf("PTB-INFO: You need to run Matlab or Octave with root-privileges, or run the script PsychLinuxConfiguration once for this to work.\n");
@@ -26,7 +26,7 @@
                      }
                  }
                  errno=0;
-@@ -127,6 +128,7 @@ psych_bool PsychRealtimePriority(psych_b
+@@ -130,6 +131,7 @@ psych_bool PsychRealtimePriority(psych_b
                  printf("PTB-INFO: Failed to disable realtime-scheduling [%s]!\n", strerror(errno));
                  if (errno==EPERM) {
                      printf("PTB-INFO: You need to run Matlab or Octave with root-privileges or run the script PsychLinuxConfiguration once for this to work.\n");
