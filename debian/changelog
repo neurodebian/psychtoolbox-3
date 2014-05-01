@@ -2,6 +2,8 @@ psychtoolbox-3 (3.0.11.20140430.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot (advised for packaging by upstream):
     - many compatibility fixes etc
+  * debian/patches
+    - some patches were refreshed to address upstream code changes
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 01 May 2014 10:48:00 -0400
 

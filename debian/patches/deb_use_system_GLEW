@@ -20,7 +20,7 @@
      #include <X11/Xlib.h>
 --- a/Psychtoolbox/PsychOpenGL/MOGL/source/mogltypes.h
 +++ b/Psychtoolbox/PsychOpenGL/MOGL/source/mogltypes.h
-@@ -32,7 +32,7 @@
+@@ -38,7 +38,7 @@
  /* glew.h is part of GLEW library for automatic detection and binding of
     OpenGL core functionality and extensions.
   */
@@ -29,7 +29,7 @@
  
  /* Includes specific to MacOS-X version of mogl: */
  #ifdef MACOSX
-@@ -57,7 +57,7 @@
+@@ -63,7 +63,7 @@
  #include <stdlib.h>
  #include <unistd.h>
  #include <string.h>
@@ -51,21 +51,21 @@
  // with explicit C linkage. Reason: For the Octave version, we need to compile all
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -41,7 +41,7 @@ if mode==0
+@@ -54,7 +54,7 @@ if mode==0
      else
          % Build against system installed GStreamer, backwards compatible to
          % old Linux distros. This is the default for production builds:
--        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lXi -lXrandr -lXfixes
-+        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib  Common/Base/*.cc Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lGLEW -lXi -lXrandr -lXfixes
+-        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib   Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lXi -lXrandr -lXfixes
++        mex -v -g "-W -std=gnu99" --output ../Projects/Linux/build/Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBVIDEOCAPTURE_LIBDC -DPTBOCTAVE3MEX -D_GNU_SOURCE -I/usr/X11R6/include -I/usr/include/gstreamer-0.10 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libxml2 -ICommon/Base -ICommon/Screen -ILinux/Base -ILinux/Screen -L/usr/X11R6/lib   Linux/Base/*.c Linux/Screen/*.c Common/Screen/*.c Common/Base/*.c -lc -ldl -lrt -lGL -lGLU -lX11 -lXext -lgstreamer-0.10 -lgstbase-0.10 -lgstapp-0.10 -lgstinterfaces-0.10 -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lglib-2.0 -lXxf86vm -ldc1394 -lusb-1.0 -lpciaccess -lGLEW -lXi -lXrandr -lXfixes
      end
      
      unix(['mv ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
-@@ -106,7 +106,7 @@ if mode==6
+@@ -119,7 +119,7 @@ if mode==6
      curdir = pwd;
      cd('../../Psychtoolbox/PsychOpenGL/MOGL/source/')
      try
 -       mex -v -g --output moglcore.mex -DLINUX -DGLEW_STATIC -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut moglcore.c gl_auto.c gl_manual.c glew.c mogl_rebinder.c ftglesGlue.c
-+       mex -v -g --output moglcore.mex -DLINUX -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut -lGLEW moglcore.c gl_auto.c gl_manual.c mogl_rebinder.c ftglesGlue.c
-     catch
++       mex -v -g --output moglcore.mex -DLINUX -DPTBOCTAVE3MEX -I/usr/X11R6/include -L/usr/X11R6/lib -lc -lGL -lGLU -lglut -lGLEW moglcore.c gl_auto.c gl_manual.c glew.c mogl_rebinder.c ftglesGlue.c
+     catch %#ok<*CTCH>
      end
      unix(['mv moglcore.mex ' PsychtoolboxRoot target]);

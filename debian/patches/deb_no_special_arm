@@ -1,11 +1,11 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -15,9 +15,11 @@ fprintf('Building plugin type %i ...\n\n
+@@ -36,9 +36,11 @@ end
  target = 'PsychBasic/Octave3LinuxFiles/';
  
  % Special folder for ARM binaries:
 +if 0                            % for now no special builds on ARM on Debian's
- if ~isempty(findstr(computer, 'arm'))
+ if ~isempty(strfind(computer, 'arm'))
      target = 'PsychBasic/Octave3LinuxFilesARM/';
  end
 +end
