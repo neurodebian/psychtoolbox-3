@@ -987,8 +987,32 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
 
     PsychLockDisplay();
 
-    // Ok, the OpenGL rendering context is up and running. Auto-detect and bind all
-    // available OpenGL extensions via GLEW:
+    // Ok, the OpenGL rendering context is up and running.
+    // Running on top of a FOSS Mesa graphics driver?
+    if ((x11_windowcount == 0) && strstr((const char*) glGetString(GL_VERSION), "Mesa") && !getenv("PSYCH_DONT_LOCK_MOGLCORE")) {
+        // Yes. At least as of Mesa 10.1 as shipped in Ubuntu 14.04-LTS, Mesa
+        // will become seriously crashy if our Screen() mex files is flushed
+        // from memory due to a clear all/mex/Screen and afterwards reloaded.
+        // This because Mesa maintains pointers back into our library image,
+        // which will turn into dangling pointers if we get unloaded/reloaded
+        // into a new location. To prevent Mesa crashes on clear Screen -> reload,
+        // prevent this mex file against clearing from Octave/Matlab address space.
+        // An ugly solution which renders "clear Screen" useless, but the best i can
+        // come up with at the moment :(
+        if (PsychRuntimeEvaluateString("moglcore('LockModule');") > 0) {
+            if (PsychPrefStateGet_Verbosity() > 1) {
+                printf("PTB-WARNING: Failed to enable moglcore locking workaround for Mesa OpenGL bug. Trying alternative workaround.\n");
+                printf("PTB-WARNING: Calling 'clear all', 'clear mex', 'clear java', 'clear moglcore' is now unsafe and may crash if you try.\n");
+                printf("PTB-WARNING: You may add setenv('PSYCH_DONT_LOCK_MOGLCORE','1'); to your Octave/Matlab startup script to work around this issue in future sessions.\n");
+            }
+            setenv("PSYCH_DONT_LOCK_MOGLCORE", "1", 0);
+        }
+        else {
+            if (PsychPrefStateGet_Verbosity() > 2) printf("PTB-INFO: Workaround: Disabled ability to 'clear moglcore', as a workaround for a Mesa OpenGL bug. Sorry for the inconvenience.\n");
+        }
+    }
+
+    // Auto-detect and bind all available OpenGL extensions via GLEW:
     glerr = glewInit();
     if (GLEW_OK != glerr) {
         /* Problem: glewInit failed, something is seriously wrong. */
@@ -997,8 +1021,12 @@ psych_bool PsychOSOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Ps
     else {
         if (PsychPrefStateGet_Verbosity() > 3) printf("PTB-INFO: Using GLEW version %s for automatic detection of OpenGL extensions...\n", glewGetString(GLEW_VERSION));
     }
-  
-    fflush(NULL);
+
+    if ((x11_windowcount == 0) && strstr((const char*) glGetString(GL_VERSION), "Mesa") && getenv("PSYCH_DONT_LOCK_MOGLCORE") && !getenv("PSYCH_DONT_LOCK_SCREEN")) {
+        // Alternative approach to Mesa bug induced crash: Prevent Screen() from unloading, instead of moglcore:
+        mexLock();
+        if (PsychPrefStateGet_Verbosity() > 2) printf("PTB-INFO: Workaround: Disabled ability to 'clear Screen', as a workaround for a Mesa OpenGL bug. Sorry for the inconvenience.\n");
+    }
 
     // Increase our own open window counter:
     x11_windowcount++;
@@ -1405,20 +1433,21 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
 
     // Running on nouveau?
     if (strstr((char*) glGetString(GL_VENDOR), "nouveau")) {
-        // Yes. Query current kernel version: Is it a Linux 3.13 or 3.14 kernel with broken nouveau-kms pageflip events?
+        // Yes. Query current kernel version: Is it a Linux kernel with broken nouveau-kms pageflip events?
         struct utsname unameresult;
         int rc;
         double tref;
         int major = 0, minor = 0;
         uname(&unameresult);
         sscanf(unameresult.release, "%i.%i", &major, &minor);
-        // We mark all Linux versions from 3.13 up to and including 3.15 broken. Exception are -rc
-        // release candidate kernels, so MK can still use rc's built from git/source for patch testing:
-        if ((major == 3) && ((minor >= 13) && (minor <= 15)) && !strstr(unameresult.release, "-rc")) {
+        // We mark all Linux versions from 3.13 up as broken. Linux 3.13 and 3.14 are definitely broken, future
+        // kernels may or may not be broken, but better safe than sorry, until we know for sure that the bug was fixed.
+        // Exceptions are -rc release candidate kernels, so MK can still use rc's built from git/source for patch testing:
+        if (((major > 3) || ((major == 3) && ((minor >= 13) && (minor <= 100)))) && !strstr(unameresult.release, "-rc")) {
             // Yes. nouveau-kms on these kernels delivers faulty data inside its kms-pageflip completion events, so although
             // return from glXWaitForSbcOML() can be trusted to mean swap-completion, the msc and ust timestamp are wrong.
             if (PsychPrefStateGet_Verbosity() > 11) {
-                printf("PTB-DEBUG:PsychOSGetSwapCompletionTimestamp: glXWaitForSbcOML() success, but running on faulty nouveau-kms in Linux %s! Trying workaround.\n", unameresult.release);
+                printf("PTB-DEBUG:PsychOSGetSwapCompletionTimestamp: glXWaitForSbcOML() success, but running on potentially faulty nouveau-kms in Linux %s! Trying workaround.\n", unameresult.release);
             }
 
             // Try to (ab)use glXGetSyncValuesOML() to get nouveau-kms vblank timestamp for the vblank of
@@ -1428,7 +1457,7 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
             // counts could get updated by the kernels vblank irq handler, so the values returned by
             // glXGetSyncValuesOML() might be outdated and therefore also wrong. We query the current
             // values and then validate them in a conservative fashion. If they are close enough to
-            // current system time, ie., in the future or less than a video refresh cycle in the
+            // current system time, ie., in the future or less than about a video refresh cycle in the
             // past then we can assume them to be correct and useful to us and we can use them. Otherwise
             // we assume we got old and stale values and just fallback to standard mmio beamposition
             // timestamping. This is a conservative approach which rather discards good values than
@@ -1440,10 +1469,14 @@ psych_int64 PsychOSGetSwapCompletionTimestamp(PsychWindowRecordType *windowRecor
             PsychUnlockDisplay();
             if (rc && (msc >= windowRecord->lastSwaptarget_msc)) {
                 PsychGetAdjustedPrecisionTimerSeconds(&tref);
-                // Vblank timestamp older than 7 msecs? That's about half a video refresh duration for a 60 Hz display
-                // and 7/8th on a 120 Hz display. We can't use the measured video refresh duration here because this
-                // routine is called as part of calibration to determine that number:
-                if (PsychOSMonotonicToRefTime(((double) ust) / PsychGetKernelTimebaseFrequencyHz()) < (tref - 0.007)) {
+                // Threshold selection for stale timestamp reject: If VideoRefreshInterval is already available post
+                // calibration, then we choose 80% video refresh duration - Should catch most timing spikes but still
+                // provide enough safety margin against long vblank durations or other jitter. If measurement isn't available,
+                // e.g., during initial calibration, we choose a 7 msecs threshold: That's about half a video refresh duration
+                // for a 60 Hz display and 7/8th on a 120 Hz display - good enough for calibration, where we are tolerant against
+                // outliers anyway.
+                tref -= (windowRecord->VideoRefreshInterval > 0) ? (windowRecord->VideoRefreshInterval * 0.8) : 0.007;
+                if (PsychOSMonotonicToRefTime(((double) ust) / PsychGetKernelTimebaseFrequencyHz()) < tref) {
                     // Yes. Consider the returned ust invalid/outdated/stale. Return with "unsupported" rc to trigger
                     // regular mmio beamposition timestamping:
                     if (PsychPrefStateGet_Verbosity() > 11) {
