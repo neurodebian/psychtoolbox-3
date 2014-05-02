@@ -2,6 +2,7 @@ psychtoolbox-3 (3.0.11.20140430.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot (advised for packaging by upstream):
     - many compatibility fixes etc
+    - resolves FTBFS with recent octave/gcc (Closes: #741802)
   * debian/patches
     - some patches were refreshed to address upstream code changes
 
