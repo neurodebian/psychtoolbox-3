@@ -1,3 +1,9 @@
+psychtoolbox-3-nonfree (3.0.11.20140516-1) neurodebian; urgency=medium
+
+  * New upstream snapshot
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 17 May 2014 10:41:19 -0400
+
 psychtoolbox-3-nonfree (3.0.11.20140430-1) neurodebian; urgency=medium
 
   * New upstream snapshot
