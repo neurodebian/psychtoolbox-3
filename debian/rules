@@ -209,7 +209,7 @@ get-orig-source: debian/changelog.upstream
 
 # Fetch all those binary blobs to go into non-free binaries packages
 get-orig-source-nonfree:
-	@beta_merge_base=$$(git merge-base origin/beta HEAD); \
+	@beta_merge_base=$$(git merge-base origin/Psychtoolbox-3.0.11 HEAD); \
 	echo "I: Exporting non-free portion of `git describe $$beta_merge_base`"; \
 	git archive --format=tar --prefix=$(srcpkg)-nonfree-$(uver_nondfsg)/ $$beta_merge_base -- \
 		./Psychtoolbox/PsychBasic/*.mex{a64,glx} \
