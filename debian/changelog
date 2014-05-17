@@ -1,3 +1,10 @@
+psychtoolbox-3 (3.0.11.20140516.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream snapshot addressing some issues with AMD Radeon HD-5000
+    and fixing up some tests -- Mario never rests.
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 17 May 2014 01:48:24 -0400
+
 psychtoolbox-3 (3.0.11.20140430.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot (advised for packaging by upstream):
