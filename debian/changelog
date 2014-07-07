@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.11.20140705.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream snapshot bugfix release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 07 Jul 2014 09:47:01 -0400
+
 psychtoolbox-3 (3.0.11.20140516.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot addressing some issues with AMD Radeon HD-5000
