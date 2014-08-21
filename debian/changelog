@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.11.20140816.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream snapshot bugfix release
+  * debian/patches/deb_psychtoolboxversion
+    - dropped (upstreamed)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 20 Aug 2014 20:12:23 -0400
+
 psychtoolbox-3 (3.0.11.20140705.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot bugfix release
