@@ -18,7 +18,8 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libxrandr-dev,
                libglew-dev (>= 1.9.0~) | libglew1.9-dev,
                freeglut3-dev,
-               libgstreamer-plugins-base0.10-dev,
+               libgstreamer-plugins-base1.0-dev,
+               gstreamer1.0-plugins-base, gstreamer1.0-plugins-good,
                libdc1394-22-dev,
                libusb-1.0-0-dev (>= 2:1.0.9~),
                libfreenect-dev (>= 0.1.2),
@@ -28,7 +29,6 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libopenal-dev,
                xvfb, xauth, libgl1-mesa-dri, xdotool,
                pulseaudio-utils, octave-image,
-               gstreamer0.10-plugins-base, gstreamer0.10-plugins-good,
                gnuplot-nox | gnuplot,
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1), libglew-dev (= 1.9.0.is.1.8.0-0ubuntu2)
 Standards-Version: 3.9.3
@@ -62,10 +62,10 @@ Description: toolbox for vision research -- arch/interpreter independent part
 Package: psychtoolbox-3-lib
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: gstreamer0.10-plugins-base,
-            gstreamer0.10-plugins-good,
-            gstreamer0.10-plugins-bad,
-            gstreamer0.10-plugins-ugly,
+Recommends: gstreamer1.0-plugins-base,
+            gstreamer1.0-plugins-good,
+            gstreamer1.0-plugins-bad,
+            gstreamer1.0-plugins-ugly,
 Description: toolbox for vision research -- arch-specific parts
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
