@@ -19,7 +19,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync,
                libglew-dev (>= 1.9.0~) | libglew1.9-dev,
                freeglut3-dev,
                libgstreamer-plugins-base1.0-dev,
-               gstreamer1.0-plugins-base, gstreamer1.0-plugins-good,
+               gstreamer1.0-plugins-base, gstreamer1.0-plugins-good, gstreamer1.0-libav,
                libdc1394-22-dev,
                libusb-1.0-0-dev (>= 2:1.0.9~),
                libfreenect-dev (>= 0.1.2),
@@ -66,6 +66,7 @@ Recommends: gstreamer1.0-plugins-base,
             gstreamer1.0-plugins-good,
             gstreamer1.0-plugins-bad,
             gstreamer1.0-plugins-ugly,
+            gstreamer1.0-libav,
 Description: toolbox for vision research -- arch-specific parts
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
