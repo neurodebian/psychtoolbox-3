@@ -3,6 +3,7 @@
 % help Psychtoolbox % For an overview, triple-click me & hit enter.
 % 
 %   AddStructs              - Merges input structs into one struct.
+%   AddToMatlabPathDynamically - Add a directory tree to the Matlab path at runtime
 %   AltSize                 - ALTSIZE is an extension of SIZE, it supports querying the size of multiple dimensions of a variable in one call.
 %   AreStructsEqualOnFields - Are two structures the same on the passed list of fields?
 %   Ask                     - Display message, get user's response.
@@ -74,6 +75,7 @@
 %   NameFrequency           - Nicely format clock rate for human readers.
 %   NearestResolution       - Find a screen resolution that most closely matches a requested resolution.
 %   OSName                  - Convential English-language name of your operating system.
+%   overrideBuiltInFunction - Temporarily run a different version of some function other than what is on the path.
 %   PackColorImage          - Pack three color planes into one m by n by three matrix.
 %   ProgressBar             - Displays a progress bar in MATLAB's command window.
 %   PsychDebugWindowConfiguration - Enable special debug window configuration to aid single display debugging.
