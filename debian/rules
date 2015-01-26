@@ -201,6 +201,7 @@ override_dh_installchangelogs:
 	dh_installchangelogs debian/changelog.upstream
 
 override_dh_clean:
+	$(MAKE) -C PsychSourceGL/Cohorts/PortAudio clean || :
 	dh_clean
 	rm -rf build-stamp build
 	: # Manually remove  additional trash
@@ -208,7 +209,6 @@ override_dh_clean:
 	-rmdir $(BDIRS)
 	: # Prune some Debian generated files
 	rm -f debian/octave-psychtoolbox-3.links debian/psychtoolbox-3-lib.links
-	$(MAKE) -C PsychSourceGL/Cohorts/PortAudio clean
 
 debian/changelog.upstream:
 	git log --merges remotes/origin/beta >| $@
