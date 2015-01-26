@@ -73,8 +73,10 @@ $RM -f ./Psychtoolbox/PsychDocumentation/{ECVP2010Poster,Psychtoolbox3-Slides}*.
 $RM -rf ./PsychSourceGL/Cohorts/libDC1394 # libdc1394-22-dev -- check content
 
 # prune copies of GLEW
-$RM -f ./Psychtoolbox/PsychOpenGL/MOGL/source/*gl*ew.*
-$RM -f ./PsychSourceGL/Source/Common/Screen/gl*ew*.*
+# do not since we need now GLEW >= 1.11.0 so keep it around for
+# backport builds
+#$RM -f ./Psychtoolbox/PsychOpenGL/MOGL/source/*gl*ew.*
+#$RM -f ./PsychSourceGL/Source/Common/Screen/gl*ew*.*
 
 $RM -f ./PsychSourceGL/Cohorts/freeglut-MSVC-2.8.0-1.mp.zip
 

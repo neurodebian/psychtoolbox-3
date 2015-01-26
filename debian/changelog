@@ -3,6 +3,7 @@ psychtoolbox-3 (3.0.12.20141228.dfsg1-1) experimental; urgency=medium
   * New upstream release
   * debian/dfsg-upstream
     - remove also binary builds of drivers
+    - do not remove copy of glew -- >= 1.11.0 needed for backport builds
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 21 Jan 2015 09:24:16 -0500
 
