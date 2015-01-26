@@ -135,6 +135,15 @@ Files: Psychtoolbox/PsychHardware/iViewXToolbox/tcp_udp_ip
 Copyright: 1998-2003,  Peter Rydesäter et al
 License: GPL-2+
 
+Files: PsychSourceGL/Source/Common/Screen/gl*ew.*
+       Psychtoolbox/PsychOpenGL/MOGL/source/*gl*ew.h
+Copyright: 2008-2014, Nigel Stewart <nigels[]users sourceforge net>
+           2002-2008, Milan Ikits <milan ikits[]ieee org>
+           2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
+           2002, Lev Povalahev
+           1999-2007,  Brian Paul
+           2007, The Khronos Group Inc.
+License: BSD-3
 
 Files: debian/*
 Copyright: 2010-2013, Yaroslav Halchenko <debian@onerussian.com>

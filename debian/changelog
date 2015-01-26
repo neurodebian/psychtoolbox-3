@@ -1,4 +1,4 @@
-psychtoolbox-3 (3.0.12.20141228.dfsg1-1) experimental; urgency=medium
+psychtoolbox-3 (3.0.12.20141228.dfsg2-1) experimental; urgency=medium
 
   * New upstream release
   * debian/dfsg-upstream
