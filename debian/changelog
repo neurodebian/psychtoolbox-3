@@ -8,7 +8,7 @@ psychtoolbox-3 (3.0.12.20141228.dfsg1-1) experimental; urgency=medium
   * debian/control - limit builds to lsb-base (>= 4.1+Debian8), so we build
     in NeuroDebian for Debian >= 7.0 (wheezy), Ubuntu >= 14.04 (trusty)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 21 Jan 2015 09:24:16 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 26 Jan 2015 11:25:15 -0500
 
 psychtoolbox-3 (3.0.12.20141019.dfsg1-1) UNRELEASED; urgency=medium
 
