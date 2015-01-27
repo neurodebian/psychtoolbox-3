@@ -1,6 +1,7 @@
 psychtoolbox-3-nonfree (3.0.12.20141228-1) neurodebian; urgency=medium
 
   * New upstream release
+    - removed matlab support for i386 builds
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 27 Jan 2015 12:33:51 -0500
 

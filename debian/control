@@ -34,7 +34,7 @@ Description: toolbox for vision research -- Octave binary blobs
 
 
 Package: matlab-psychtoolbox-3-nonfree
-Architecture: i386 amd64
+Architecture: amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-lib (>= ${source:Version}.dfsg),
          psychtoolbox-3-common (>= ${source:Version}.dfsg),
