@@ -1,5 +1,5 @@
-function PerceptualVBLSyncTestFlipInfo(screen, stereomode, fullscreen, doublebuffer, maxduration, vblSync, testdualheadsync)
-% PerceptualVBLSyncTestFlipInfo(screen, stereomode, fullscreen, doublebuffer, maxduration, vblSync, testdualheadsync)
+function PerceptualVBLSyncTestFlipInfo2(screen, stereomode, fullscreen, doublebuffer, maxduration, vblSync, testdualheadsync)
+% PerceptualVBLSyncTestFlipInfo2(screen, stereomode, fullscreen, doublebuffer, maxduration, vblSync, testdualheadsync)
 %
 % Perceptual synchronization test for synchronization of Screen('Flip') and
 % Screen('WaitBlanking') to the vertical retrace. This is like
@@ -166,7 +166,7 @@ try
    fprintf('or any keypress...\n');
 
    %KbStrokeWait;
-   
+
    if stereomode~=10
        % Standard case:
        [win , winRect]=Screen('OpenWindow', screen(1), 0, rect1, [], doublebuffer, stereomode);
@@ -240,13 +240,19 @@ try
               % Throttle a little bit for visualization purpose:
               WaitSecs('YieldSecs', 0.005);
           end
-          flipinfo = Screen('GetFlipInfo', win, 3)
       else
           % Just wait a bit in non-buffered case:
           pause(0.001);
       end;
    end;
    
+   while 1
+      flipinfo = Screen('GetFlipInfo', win, 3)
+      if isempty(flipinfo)
+          break;
+      end
+   end
+
    Screen('CloseAll');
    return;   
 catch
