@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.12.20150316.dfsg-1) experimental; urgency=medium
+
+  * New upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 20 Mar 2015 00:54:26 -0400
+
 psychtoolbox-3 (3.0.12.20141228.dfsg2-1) experimental; urgency=medium
 
   * New upstream release
