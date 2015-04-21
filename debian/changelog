@@ -3,6 +3,8 @@ psychtoolbox-3 (3.0.12.20150419.dfgs1-1) experimental; urgency=medium
   * New upstream beta release
     - deals with  tripple buffer on intel cards without requiring xorg.conf
       tuneup
+  * debian/patches/deb_use_system_GLEW
+    - refreshed
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 21 Apr 2015 09:25:50 -0400
 
