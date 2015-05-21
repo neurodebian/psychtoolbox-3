@@ -1,12 +1,15 @@
-psychtoolbox-3 (3.0.12.20150419.dfgs1-1) experimental; urgency=medium
+psychtoolbox-3 (3.0.12.20150419.dfgs1-1) unstable; urgency=medium
 
   * New upstream beta release
     - deals with  tripple buffer on intel cards without requiring xorg.conf
       tuneup
   * debian/patches/deb_use_system_GLEW
     - refreshed
+  * upload to unstable
+    - should provide needed dependency on newer gstreamer 1.0
+      (Closes: #785869)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 21 Apr 2015 09:25:50 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 May 2015 08:49:15 -0400
 
 psychtoolbox-3 (3.0.12.20150316.dfsg-1) experimental; urgency=medium
 
