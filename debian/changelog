@@ -5,6 +5,9 @@ psychtoolbox-3 (3.0.12.20150419.dfgs1-1) unstable; urgency=medium
       tuneup
   * debian/patches/deb_use_system_GLEW
     - refreshed
+  * debian/copyright
+    - updated years
+    - shortened name for SGI license and listed it for glu_edit.h
   * upload to unstable
     - should provide needed dependency on newer gstreamer 1.0
       (Closes: #785869)
