@@ -12,8 +12,10 @@ psychtoolbox-3 (3.0.12.20150419.dfgs1-1) unstable; urgency=medium
     - should provide needed dependency on newer gstreamer 1.0
       (Closes: #785869)
   * debian/upstream -> debian/upstream/metadata migration
+  * debian/control
+    - boosted policy to 3.9.6
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 May 2015 08:49:15 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 May 2015 08:56:53 -0400
 
 psychtoolbox-3 (3.0.12.20150316.dfsg-1) experimental; urgency=medium
 
