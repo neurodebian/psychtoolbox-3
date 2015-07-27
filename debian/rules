@@ -36,12 +36,16 @@ export SHELL=/bin/bash
 override_dh_quilt_patch:
 	dpkg --compare-versions $(GLEW_VERSION) lt 1.11.0 \
 	 || { echo "I: system GLEW is $(GLEW_VERSION). Thus adding a use_system_GLEW patch"; \
-		  echo 'deb_use_system_GLEW' >> debian/patches/series; }
+		  echo 'deb_use_system_GLEW' >> debian/patches/series; \
+	      echo "I: moving copy of glew.c aside"; \
+	      find -iname glew.c | while read f; do mv $$f $${f}__; done; }
 	dh_quilt_patch
 
 override_dh_quilt_unpatch:
 	dh_quilt_unpatch
-	sed -i -e '/deb_use_system_GLEW/d' debian/patches/series
+	dpkg --compare-versions $(GLEW_VERSION) lt 1.11.0 \
+	 || { find -iname glew.c__ | while read f; do mv $$f $${f//__/}; done; \
+	      sed -i -e '/deb_use_system_GLEW/d' debian/patches/series; }
 
 override_dh_auto_build: build-stamp
 build-stamp:
