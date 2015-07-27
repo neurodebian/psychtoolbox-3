@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.12.20150725.dfgs1-1) unstable; urgency=medium
+
+  * New upstream beta release
+    - updated optional deb_use_system_GLEW for upstream inclusion of
+      -lX11-xcb -lxcb -lxcb-dri3
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 27 Jul 2015 12:57:01 -0400
+
 psychtoolbox-3 (3.0.12.20150419.dfgs1-1) unstable; urgency=medium
 
   * New upstream beta release
