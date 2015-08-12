@@ -1,3 +1,10 @@
+psychtoolbox-3-nonfree (3.0.12.20150725-1~ndall) neurodebian; urgency=medium
+
+  * New upstream release
+  * Starting to mark uploads aiming for all releases with ~ndall
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 11 Aug 2015 23:54:07 -0400
+
 psychtoolbox-3-nonfree (3.0.12.20150419-1) neurodebian; urgency=medium
 
   * New upstream release
