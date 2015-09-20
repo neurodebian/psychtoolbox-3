@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.12.20150725.dfgs1-1.b1) neurodebian; urgency=medium
+
+  * Just a fresh rebuild
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 19 Sep 2015 20:32:07 -0400
+
 psychtoolbox-3 (3.0.12.20150725.dfgs1-1) unstable; urgency=medium
 
   * New upstream beta release
