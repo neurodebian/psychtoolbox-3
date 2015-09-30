@@ -127,6 +127,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 #      -e MovieDemos \
 	: # Cleanup
 	find -iname MLIexpSubj11.txt -delete
+	find -type f -name core -delete
 else
 	: # Skip unittests due to nocheck
 endif

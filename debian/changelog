@@ -2,6 +2,7 @@ psychtoolbox-3 (3.0.12.20150725.dfgs1-2) unstable; urgency=medium
 
   * debian/rules
     - export gstreamer-1.0 cflags to make g++ find headers under /usr/lib/ARCH
+    - remove core files which might get dumped
   * debian/octave-psychtoolbox-3.lintian-overrides
     - allow embedding GLEW
 
