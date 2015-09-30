@@ -1,0 +1,3 @@
+# While we are having older glew (< 1.11) in Debian, we need to embed a copy
+octave-psychtoolbox-3 binary: embedded-library usr/lib/psychtoolbox-3/PsychBasic/Screen.mex: glew
+octave-psychtoolbox-3 binary: embedded-library usr/lib/psychtoolbox-3/PsychBasic/moglcore.mex: glew
