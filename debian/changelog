@@ -1,8 +1,9 @@
-psychtoolbox-3 (3.0.12.20150725.dfgs1-1.b1) neurodebian; urgency=medium
+psychtoolbox-3 (3.0.12.20150725.dfgs1-2) unstable; urgency=medium
 
-  * Just a fresh rebuild
+  * debian/rules
+    - export gstreamer-1.0 cflags to make g++ find headers under /usr/lib/ARCH
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 19 Sep 2015 20:32:07 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 30 Sep 2015 11:05:38 -0700
 
 psychtoolbox-3 (3.0.12.20150725.dfgs1-1) unstable; urgency=medium
 

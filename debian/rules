@@ -21,11 +21,12 @@ export LDFLAGS=-Wl,--as-needed
 # Critical for building on machines with multiarch support
 # (e.g. ubuntu 11.04)
 GLIB_INCLUDES=$(shell pkg-config --cflags glib-2.0)
+GST_INCLUDES=$(shell pkg-config --cflags gstreamer-1.0)
 GLEW_VERSION=$(shell pkg-config --modversion glew)
 
 # Upstream advises to build without optimization at the moment
 export CXXFLAGS=-Wall -g -O0
-export CFLAGS=-Wall -g -O0 -std=gnu99 $(GLIB_INCLUDES)
+export CFLAGS=-Wall -g -O0 -std=gnu99 $(GLIB_INCLUDES) $(GST_INCLUDES)
 
 # Let's use "advanced" bash patterns
 export SHELL=/bin/bash
