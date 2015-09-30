@@ -1,3 +1,1636 @@
+commit 18ae27fbce47609cd1a7db80b8ffe4276512a1a6
+Merge: 2b42013 1ba3107
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Aug 21 23:05:10 2015 +0200
+
+    Merge pull request #270 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Tediousness overdrive" SP2
+    
+    * Datapixx on Octave OSX fixes.
+    * PsychHID robustness improvements in HID device enumeration for OSX.
+
+commit 1ba3107b0a78c42e80db000e0c4444193af206a7
+Merge: 39802af 4e33d6e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Aug 21 23:00:59 2015 +0200
+
+    Merge pull request #269 from kleinerm/master
+    
+    PTB BETA RELEASE "Tediousness overdrive" SP2
+    
+    * Datapixx on Octave OSX fixes.
+    * PsychHID robustness improvements in HID device enumeration for OSX.
+
+commit e37853551f0ec7289b26735644479ed98c999330
+Merge: 59d71e1 2b42013
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Aug 13 07:23:29 2015 +0200
+
+    Merge pull request #64 from Psychtoolbox-3/beta
+    
+    Resync with public beta.
+
+commit 2b4201347a9f8c87d3ab78241bbe96c4d6e3c442
+Merge: 067072d 39802af
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Aug 13 07:21:09 2015 +0200
+
+    Merge pull request #268 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Tediousness overdrive" SP1
+    
+    * AutoBrightness fix from Denis.
+    * QuestUpdate improvement from Denis.
+    * DrawFormattedText fix.
+    * Some fixes for text drawing provided or suggested by Diederick.
+    * Fixes and improvements to color handling routines by David.
+    * Drop Octave 3.8.1 support for OSX HomeBrew, add 3.8.2_2 support instead.
+    * Some new tests and other minor improvements, e.g., to demos.
+
+commit 39802afa612afd0b3a166d209b33d987bf17a053
+Merge: 43c04c2 59d71e1
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Aug 13 07:18:29 2015 +0200
+
+    Merge pull request #267 from kleinerm/master
+    
+    PTB BETA RELEASE "Tediousness overdrive" SP1
+    
+    * AutoBrightness fix from Denis.
+    * QuestUpdate improvement from Denis.
+    * DrawFormattedText fix.
+    * Some fixes for text drawing provided or suggested by Diederick.
+    * Drop Octave 3.8.1 support for OSX HomeBrew, add 3.8.2_2 support instead.
+    * Some new tests and other minor improvements, e.g., to demos.
+
+commit f8c198be8414f52d3d6d4436afe2e2d43f571d26
+Merge: f925bf9 e8ca9b1
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Aug 13 03:55:37 2015 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit e8ca9b1f8dbbfe5dd1dc297eedaff9fd3d222fe9
+Merge: cae342d 85a0cee
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Aug 11 20:43:13 2015 +0200
+
+    Merge pull request #63 from crsltd-opensource/master
+    
+    Signed PsychtoolboxKernelDriver64Bit.kext for OS X
+    
+    Signing service kindly provided by CRS-Ltd. Thank you!
+
+commit bfcc6d918e2c4d080dc408974e54abfbb1863cec
+Merge: c57138f fd0072b
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jul 29 23:36:33 2015 +0200
+
+    Merge pull request #262 from kleinerm/master
+    
+    Remove Pull of Diedericks rect enhancements and fixes from official master.
+
+commit 6b27b22a0bf77be7ced4fde7e432c1ca12d511b7
+Merge: 6d8d818 c57138f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jul 28 15:49:43 2015 +0200
+
+    Merge pull request #62 from Psychtoolbox-3/master
+    
+    Pull Diedericks rect enhancements and fixes from official master.
+
+commit c57138f15256bdd52feda55ab6ddafc9221d2b7b
+Merge: 005cce2 146c2b6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jul 28 15:47:32 2015 +0200
+
+    Merge pull request #259 from dcnieho/small_fixups
+    
+    Small fixups
+
+commit 005cce2cbf167ee74d22fb618a7bdd03b8412cb2
+Merge: daad0a4 d270c19
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jul 28 15:46:28 2015 +0200
+
+    Merge pull request #260 from dcnieho/rect_enhancement
+    
+    Rect enhancement
+
+commit d81fdec301845ec1aac220117a0ebeec6225c809
+Merge: 6bf83d7 daad0a4
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 25 08:06:09 2015 +0200
+
+    Merge pull request #61 from Psychtoolbox-3/master
+    
+    Merge pull request #257 from kleinerm/master
+    Resync with beta.
+
+commit 067072dfa37dccfaab6dd3f619058c5e4e3b72c5
+Merge: 322383e daad0a4
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 25 07:58:21 2015 +0200
+
+    Merge pull request #258 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Tediousness overdrive"
+    
+              KbWait: Fix treatment of empty forWhat argument.
+              Screen: Fix PTB-2 emulation mode a bit.
+              Screen/Linux: Dis/Enable DPMS while onscreen windows are open.
+              Screen/Linux: Detect use of DRI3/Present.
+              Screen/OSX: Fix color handling of OS X native text renderer.
+              Improve help text of GetGamepad/Keyboard/KeypadIndices
+              Add Screen('DrawText') color precision test case to HighColorPrecisionDrawingTest.
+              DrawFormattedText: Improve bounding box precision for single-line case.
+              DaqAInScan: Make it potentially a bit faster for USB 1608-FS.
+              Screen/OSX: Remove hybrid graphics workaround for MBP 2010
+              DaqALoadQueue: More fixes for Octave compatibility and basic sanity.
+              Screen/Linux: Use old-style override_redirect on  multi-x-screen KDE.
+              Screen/Linux/X11: Prevent crash at Screen reload on multi-x-screen with buggy Mesa.
+              Screen/Linux/X11: Restrict workaround for Mesa mapi bug to Mesa < 10.5.2
+              White-list Mesa versions >= 10.5.9 and >= 10.6.2 for XCloseDisplay()
+              NetStation: Improve and consolidate various improvements. - Gergely Csibra
+              Screen: Add new optional 'ignoreErrors' flag to 'LoadNormalizedGammaTable'
+              Screen: Make FTGL plugin the default text renderer on OSX.
+              BasicSoundScheduleDemo: Remove redundant 'RunMode' 1 assignment.
+              Screen/OSX: Try to make modesetting Retina compatible.
+              VideoCaptureDemo, VideoDelayLoopMiniDemo: Use default ROI by default.
+              Snd(): Some fixes for corner use case.
+              PsychVideoDelayLoop: Cleanup textures at end of each session.
+              Update "help DrawTextPlugin" for new default FTGL renderer on OSX.
+              Screen: Improve Screen('Close', window);
+              Screen/OSX: Fix cursor movement lag after SetMouse()
+              Screen/OSX: Return OS reported mouse delta movement in GetMouse() valuators.
+              Screen: Add 'detachFromMouse' support to SetMouse().
+              Screen: Fix CopyWindow to use windows clientRect instead of rect for Retina/HiDPI compatibility
+              Screen/OSX: Fix hostname display in Screen('Computer')
+              DrawFormattedText: Remove 250 chars linebreak on OSX. - Diederick Niehorster
+              Screen: CopyWindow update help text.
+              Screen/Linux: Make ext_buffer_age warning less chatty.
+              Speak: Fix use with apostrophes in text string. - elladawu
+              ImageUndistortionDemo: Minor improvements.
+              ImagingVideoCaptureDemo: Add a (disabled) test line for CSV geometrycorrection.
+              CreateDisplayWarp: Bug fix and enhancement for CSV method.
+              New prototype quality display correction method: DisplayUndistortionLabRiggerMouseStim.m
+              PsychImaging: Update help text for task 'UseRetinaResolution'
+              Update and extend conversions between degrees and mm of retina - David Brainard.
+
+commit daad0a4d8c1f86129d769c96f10563f084988adf
+Merge: a6b02f1 6bf83d7
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 25 07:48:38 2015 +0200
+
+    Merge pull request #257 from kleinerm/master
+    
+    PTB BETA RELEASE "Tediousness overdrive"
+
+commit cefde2a0412d8a85277cdfc934d36e80edf844c3
+Merge: abab0f1 a6b02f1
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 25 07:38:52 2015 +0200
+
+    Merge pull request #60 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit a6b02f1c3d869fea22bb915856db829e4bd2803c
+Merge: 0adf183 abab0f1
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 25 07:17:54 2015 +0200
+
+    Merge pull request #256 from kleinerm/master
+    
+    PTB BETA RELEASE "Tediousness overdrive"
+    
+          KbWait: Fix treatment of empty forWhat argument.
+          Screen: Fix PTB-2 emulation mode a bit.
+          Screen/Linux: Dis/Enable DPMS while onscreen windows are open.
+          Screen/Linux: Detect use of DRI3/Present.
+          Screen/OSX: Fix color handling of OS X native text renderer.
+          Improve help text of GetGamepad/Keyboard/KeypadIndices
+          Add Screen('DrawText') color precision test case to HighColorPrecisionDrawingTest.
+          DrawFormattedText: Improve bounding box precision for single-line case.
+          DaqAInScan: Make it potentially a bit faster for USB 1608-FS.
+          Screen/OSX: Remove hybrid graphics workaround for MBP 2010
+          DaqALoadQueue: More fixes for Octave compatibility and basic sanity.
+          Screen/Linux: Use old-style override_redirect on  multi-x-screen KDE.
+          Screen/Linux/X11: Prevent crash at Screen reload on multi-x-screen with buggy Mesa.
+          Screen/Linux/X11: Restrict workaround for Mesa mapi bug to Mesa < 10.5.2
+          White-list Mesa versions >= 10.5.9 and >= 10.6.2 for XCloseDisplay()
+          NetStation: Improve and consolidate various improvements.
+          Screen: Add new optional 'ignoreErrors' flag to 'LoadNormalizedGammaTable'
+          Screen: Make FTGL plugin the default text renderer on OSX.
+          BasicSoundScheduleDemo: Remove redundant 'RunMode' 1 assignment.
+          Screen/OSX: Try to make modesetting Retina compatible.
+          VideoCaptureDemo, VideoDelayLoopMiniDemo: Use default ROI by default.
+          Snd(): Some fixes for corner use case.
+          PsychVideoDelayLoop: Cleanup textures at end of each session.
+          Update "help DrawTextPlugin" for new default FTGL renderer on OSX.
+          Screen: Improve Screen('Close', window);
+          Screen/OSX: Fix cursor movement lag after SetMouse()
+          Screen/OSX: Return OS reported mouse delta movement in GetMouse() valuators.
+          Screen: Add 'detachFromMouse' support to SetMouse().
+          Screen: Fix CopyWindow to use windows clientRect instead of rect for Retina/HiDPI compatibility
+          Screen/OSX: Fix hostname display in Screen('Computer')
+          DrawFormattedText: Remove 250 chars linebreak on OSX.
+          Screen: CopyWindow update help text.
+          Screen/Linux: Make ext_buffer_age warning less chatty.
+          Speak: Fix use with apostrophes in text string.
+          ImageUndistortionDemo: Minor improvements.
+          ImagingVideoCaptureDemo: Add a (disabled) test line for CSV geometrycorrection.
+          CreateDisplayWarp: Bug fix and enhancement for CSV method.
+          New prototype quality display correction method: DisplayUndistortionLabRiggerMouseStim.m
+          PsychImaging: Update help text for task 'UseRetinaResolution'
+
+commit de903fd6ecb9a55a4b2472c78916aa13b78c4cb6
+Merge: c8ab92f 80a0367
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jun 24 00:22:21 2015 +0200
+
+    Merge remote-tracking branch 'origin/master'
+
+commit 104f35492a97e3b2d6fd63f310fc59a618aae055
+Merge: 2f8d142 80181d3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Jun 14 18:57:07 2015 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 322383e41971d933154c679b7e3f3b0b8cf65288
+Merge: 447f3c7 80a0367
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jun 6 22:53:19 2015 +0200
+
+    Merge pull request #249 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Gifts for the gifted" Psychtoolbox-3.0.12 SP2
+    
+    Minor update, mostly for OSX Octave compatibility with latest HomeBrew Octave.
+    
+    * EyelinkQueuedDataDemo: Fix a warning.
+    * Rename RandSample to PsychRandSample to avoid naming conflict with latest Matlabs.
+    * OSXCompositorIdiocyTest: Make Retina display proof.
+    * SetSensorColorSpace: Fix a warning.
+    * ShowCursor recognizes new cursor type 'TextCursor' on all platforms. By Diederick Niehorster.
+    * AutoBrightness function for OSX automatic brightness control. By Denis Pelli.
+    * Mex files for 64-Bit Octave on OSX rebuilt to cope with latest HomeBrew versions of Octave 3.8.1/2
+
+commit 80a03670fee3b5264cdf232740f3294f65dd0164
+Merge: 0b0934c 1a585ef
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jun 6 22:50:57 2015 +0200
+
+    Merge pull request #248 from kleinerm/master
+    
+    PTB BETA RELEASE "Gifts for the gifted" Psychtoolbox-3.0.12 SP2
+    
+    Minor update, mostly for OSX Octave compatibility with latest HomeBrew Octave.
+    
+    * EyelinkQueuedDataDemo: Fix a warning.
+    * Rename RandSample to PsychRandSample to avoid naming conflict with latest Matlabs.
+    * OSXCompositorIdiocyTest: Make Retina display proof.
+    * SetSensorColorSpace: Fix a warning.
+    * ShowCursor recognizes new cursor type 'TextCursor' on all platforms. By Diederick Niehorster.
+    * AutoBrightness function for OSX automatic brightness control. By Denis Pelli.
+    * Mex files for 64-Bit Octave on OSX rebuilt to cope with latest HomeBrew versions of Octave 3.8.1/2
+
+commit 00dc16744b0000d7e847a6705f801880aa4d20e0
+Merge: a1644a0 6c73b34
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jun 2 21:23:17 2015 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit b328312df00c4dd1baf24101e2f6a7fca5dc00b8
+Merge: f1792a9 682f569
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed May 27 21:03:43 2015 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+    
+    Pull Screen.mexw64 for Windows with new 'TextCursor' ShowCursor support.
+
+commit 607f981dda0ed1094393154b9993d1e57df59adf
+Merge: a3b196e 0b0934c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed May 20 06:03:27 2015 +0200
+
+    Merge pull request #59 from Psychtoolbox-3/master
+    
+    Get Diedericks IBeam cursor patches.
+
+commit 0b0934c0838cc19603b792f256c74260311eddbb
+Merge: 2b195f3 a2b97cb
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed May 20 06:01:56 2015 +0200
+
+    Merge pull request #245 from dcnieho/master
+    
+    adding IBEAM cursor to selectable cursors in Windows
+
+commit d4f49c4abcf0eea03f7be10875b8c487311cf9e3
+Merge: 8dd5936 2b195f3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 19 08:46:07 2015 +0200
+
+    Merge pull request #58 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit 447f3c78b56562d4a4b57ce2098721e2acbe1213
+Merge: 95a7d56 2b195f3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 19 08:37:31 2015 +0200
+
+    Merge pull request #244 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Gifts for the gifted" Psychtoolbox-3.0.12 SP1
+    
+    * SetMouse multi-screen improvements for Windows. Allow positioning relative to screen origin.
+    * CMUBox doc updates for Windows.
+    * KbQueue fixes for OSX. Avoid hang in KbQueueRelease on some setups.
+    * PsychPortAudio improvement for Linux. Avoid selecting HDMI/DP as default sound card.
+    * Handle Intel ddx dri2 triple-buffering on Linux.
+    * General improvements to timing checks.
+    * Documentation updates.
+    * Fixes and refinement to demos.
+    * New function CenterRectArrayOnPoint() contributed by Natalia.
+    * QuestQuantile() improvements by Denis Pelli.
+    * Improvements for efficiency of clut updates and of error handling on VPixx devices.
+
+commit 2b195f38fb336a30ef8d8dc771a2ba525933c273
+Merge: 57120af 8dd5936
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 19 08:29:37 2015 +0200
+
+    Merge pull request #243 from kleinerm/master
+    
+    Pull for small 3.0.12 beta update.
+    
+    * SetMouse multi-screen improvements for Windows.
+    * CMUBox doc updates for Windows.
+    * KbQueue fixes for OSX.
+    * PsychPortAudio improvement for Linux.
+    * Handle Intel ddx dri2 triple-buffering on Linux.
+    * General improvements to timing checks.
+    * Documentation updates.
+    * Fixes and refinement to demos.
+
+commit 19d6a053cfc35796544e10a88ecb01a578da66e4
+Merge: 3ad0342 a8dea64
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Sun Apr 12 10:06:33 2015 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit a8dea64275489e33b6c480e48c3ecd3cb4412e91
+Merge: 19bb496 5e3e696
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Mar 22 19:32:56 2015 +0100
+
+    Merge pull request #241 from wuschLOR/master
+    
+    updated the instructions from xf86 to xserver for the gamepad.m
+
+commit a0237a3bf2ca585dc76374882f75be129cd1e440
+Merge: 4f1d4c7 19bb496
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Mar 16 08:56:05 2015 +0100
+
+    Merge pull request #57 from Psychtoolbox-3/master
+    
+    Merge pull request #239 from kleinerm/master
+    
+    Resync with PTB BETA "Gifts for the gifted" from 16-March-2015.
+    
+    Pull current state into public master for 3.0.12 release.
+    
+    * Experimental Wayland backend - disabled by default.
+    * Videocapture improvements and initial enablement work for tracker plugins under GStreamer.
+    * ProPixx fast mode initial support.
+    * Cleanups and bug fixes.
+
+commit 95a7d5693c12c2a6ca42ce86ae7a4aabb5d611ab
+Merge: a2614d9 19bb496
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Mar 16 08:53:48 2015 +0100
+
+    Merge pull request #240 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Gifts for the gifted" Psychtoolbox-3.0.12
+    
+    * Experimental Wayland backend for Linux - disabled by default.
+    * Many videocapture improvements, and initial enablement work for tracker plugins under GStreamer.
+    * ProPixx fast mode initial support.
+    * Many cleanups, small improvements and bug fixes.
+
+commit 19bb496cb572fe35f58d942737d55f688861f804
+Merge: 6ab6527 4f1d4c7
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Mar 16 08:47:04 2015 +0100
+
+    Merge pull request #239 from kleinerm/master
+    
+    Pull current state into public master for 3.0.12 release.
+    
+    * Experimental Wayland backend - disabled by default.
+    * Videocapture improvements and initial enablement work for tracker plugins under GStreamer.
+    * ProPixx fast mode initial support.
+    * Cleanups and bug fixes.
+
+commit c8ab92fde61f32a9a330c8d293fb3b5fddc9bfc2
+Merge: dadfa92 76a6eae
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Mar 14 11:19:08 2015 +0100
+
+    Merge branch 'LoadOBJFileFixes' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 412c117077816803f4d953c0eb604f14acd1b9bb
+Merge: b1c331c abf05f2
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Feb 26 16:32:35 2015 +0100
+
+    Merge pull request #56 from jonaskn/master
+    
+    Add option to VBLSyncTest to select the screen number and to correct  for the clock skew between a DataPixx device and the computer (use option usedpixx=2)
+    
+    Looks ok. I'll test it at some point when i'm with my Datapixx.
+
+commit c06861f9063baf9d5cab965c2e3980165d494daf
+Merge: 1348594 6ab6527
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Feb 3 19:27:46 2015 +0100
+
+    Merge pull request #54 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit bccee708aabf25f0dd1be7e1ac906f7339be2d8c
+Merge: ad1f548 85daadb
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Jan 29 11:41:23 2015 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit d1b4335da009f615ad71c9784f10a05357e0d39c
+Merge: c2340f2 2d4c33a
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Jan 25 21:05:00 2015 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+    
+    -> PsychHID for OSX resync/merge.
+
+commit dadfa92cb005c34586f23c813d17c8c4cb436f6b
+Merge: ea9028e d2a3379
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Jan 21 03:17:13 2015 +0100
+
+    Merge pull request #230 from mermerico/master
+    
+    Made the non-fullscreen warning respect verbosity
+
+commit a2614d99af98731c2acf40f68950673384f6a574
+Merge: c6830de ea9028e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Dec 28 07:09:24 2014 +0100
+
+    Merge pull request #227 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP6
+    
+    Add a intel-ddx variant for XOrg 1.16 on x86_64 for Ubuntu 14.10. Again, a
+    DRI2 only build with TripleBuffer off by default, so we can
+    be certain this will do the right thing.
+    
+    This should settle us on Ubuntu 14.04 and 14.10 until Ubuntu upstream decides to make major changes like DRI3/Present + XOrg 1.16.3, which would make most of this totally redundant.
+
+commit ea9028ec588ba58f29ada111fd4d728cfe827b94
+Merge: 649f6a5 bbdf997
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Dec 28 07:06:04 2014 +0100
+
+    Merge pull request #226 from kleinerm/master
+    
+    Pull for small beta update.
+    A customized intel 2.99.917 ddx with DRI2 only and triplebuffer off for Xorg 1.16 64-Bit. (Ubuntu 14.10)
+
+commit beaa5f1f2d1099e1508b0cb891f0a170c31f2a24
+Merge: 0053b20 649f6a5
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Dec 24 05:39:24 2014 +0100
+
+    Merge pull request #53 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo. v3.0.12-SP5
+
+commit c6830de72dc3e080e48a64b0dc50472745686a52
+Merge: ca23cd2 649f6a5
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Dec 24 04:37:30 2014 +0100
+
+    Merge pull request #225 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP5
+    
+    * Improve KDE multi-display + single-x-screen operation on Linux.
+    
+    * Add support for high precision beampos timestamping for NVidia Maxwell gpu's (GeForce 750 Ti and later) on Linux (only needed for proprietary NVidia driver) and OSX.
+    
+    * Make compatible with DRI3/Present with XOrg 1.16.3+ and Mesa 10.3+ on Linux.
+    
+    * Improve GStreamer video capture, make auto-detection/validation robust on analog video frame grabbers.
+    
+    * Improve dc1394 video capture engine for IIDC compliant USB-3 "USB-3 Vision" cameras. Timestamping fallback to get any at least approximate capture timestamps. Video recording fixes, performance fixes.
+    
+    * Ship our own custom graphics drivers for XOrg 1.15 (Ubuntu 14.04-LTS) for intel and nouveau:
+     - nouveau 1.0.11 ddx to replace unsuitable 1.0.10 ddx of 14.04.
+     - intel 2.99.917 ddx, dri2 only, with patch for fixed ZaphodHead support and triple buffering disable.
+     - These as stop gaps until 14.04 hopefully gets a backported 14.10 stack with fixed DRI3, ie., XOrg 1.16.3+
+    
+    * New "show off" demo ImageMixingTutorial, and the much cleaner/simpler SimpleImageMixingDemo contributed by Natalia Zaretskaya.
+    
+    * Bug fix to MergeCell() by Diederick Niehorster.
+    
+    * Bug fix to SaveCalFile() by David Brainard.
+    
+    This release contains no rebuilt/improved mex files for MS-Windows, as none of the improvements benefits MS-Windows.
+
+commit 649f6a5c639fa2b6c9008a3721174fab70973002
+Merge: 00430fe 0053b20
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Dec 24 04:31:02 2014 +0100
+
+    Merge pull request #224 from kleinerm/master
+    
+    Pull current state into public master for 3.0.12 release.
+    
+    * Improve KDE multi-display + single-x-screen operation on Linux.
+    
+    * Add support for high precision beampos timestamping for NVidia Maxwell gpu's (GeForce 750 Ti and later) on Linux (only needed for proprietary NVidia driver) and OSX.
+    
+    * Make compatible with DRI3/Present with XOrg 1.16.3+ and Mesa 10.3+ on Linux.
+    
+    * Improve GStreamer video capture, make auto-detection/validation robust on analog video frame grabbers.
+    
+    * Improve dc1394 video capture engine for IIDC compliant USB-3 "USB-3 Vision" cameras. Timestamping fallback to get any at least approximate capture timestamps. Video recording fixes, performance fixes.
+    
+    * Ship our own custom graphics drivers for XOrg 1.15 (Ubuntu 14.04-LTS) for intel and nouveau:
+     - nouveau 1.0.11 ddx to replace unsuitable 1.0.10 ddx of 14.04.
+     - intel 2.99.917 ddx, dri2 only, with patch for fixed ZaphodHead support and triple buffering disable.
+     - These as stop gaps until 14.04 hopefully gets a backported 14.10 stack with fixed DRI3, ie., XOrg 1.16.3+
+    
+    * New demo ImageMixingTutorial and the much simpler SimpleImageMixingDemo contributed by Natalia.
+    
+    This release contains no rebuilt/improved mex files for MS-Windows, as none of the improvements benefits MS-Windows.
+
+commit 72dd27f3ff88fa42b04df97872ad22c1b7aa3d6a
+Merge: 3787a0e 2c3f2b6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Dec 24 01:51:56 2014 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 296142c1c20f7704e4f16a8cdbd0d39e7b1a47af
+Merge: 8846e27 fe5b415
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Dec 20 00:33:56 2014 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 8e421b8c438025924d82f117fff7d80f54370ea6
+Merge: 2fb216a 901ec02
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Dec 15 23:51:33 2014 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+    
+    Conflicts:
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles64/Screen.mex
+
+commit 00430fe9a3492b670d591c4253090e8aeea0d074
+Merge: 0384034 67e4b5f
+Author: Diederick C. Niehorster <dcnieho@gmail.com>
+Date:   Sat Dec 13 16:59:06 2014 +0800
+
+    Merge pull request #223 from dcnieho/MergeCell_patch
+    
+    MergeCell did not handle empty inputs as it should (ignoring/early exit)
+
+commit ca23cd2ceac1a5fd861e5d3e8d065b5b522f62ff
+Merge: 02afafb 05d4e2f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Nov 25 01:00:43 2014 +0100
+
+    Merge pull request #222 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP4
+    
+    * New Gaussblob procedural shader.
+    * New mini 4-channel mix shader.
+    * Demo cleanups and refinements.
+    * KbQueueReserve fix.
+    * Some DRI3/Present prep work for Linux - not relevant yet, only included in Screen for 64-Bit Octave on Linux so far.
+
+commit 05d4e2f1d3d4be4cd8f2e16e73c7147107d5f480
+Merge: 0be792e aed88b3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Nov 25 00:57:40 2014 +0100
+
+    Merge pull request #221 from kleinerm/master
+    
+    Pull for small beta update.
+    
+    * Gaussblob procedural shader.
+    * Mini 4-channel mix shader.
+    * Demo cleanups and refinements.
+    * KbQueueReserve fix.
+    * Some DRI3/Present prep work for Linux - not relevant yet.
+
+commit 82d43fe04ad6acba14668d6c2e986435aaad65ef
+Merge: d74adcc dfd4ac8
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 19 17:52:18 2014 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 02afafba222d833fa4186d25ee1ee58dbd778760
+Merge: d1ae437 0be792e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 5 21:22:37 2014 +0100
+
+    Merge pull request #219 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP3
+    
+    Like SP2, but now with rebuilt Screen() for Linux and Windows as well, just for consistency.
+
+commit 0be792e0b466c79f0c964c69600a12baadd24c96
+Merge: bc61154 6a68c1e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 5 21:20:45 2014 +0100
+
+    Merge pull request #218 from kleinerm/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP3
+    
+    Get the Linux and Windows Screen mex file rebuilt as well.
+
+commit f7b97c480823206fd1b7a416ca0348197babb5a0
+Merge: 4773ad4 bc61154
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 5 06:52:08 2014 +0100
+
+    Merge pull request #51 from Psychtoolbox-3/master
+    
+    Resync with public PTB beta 5-Nov-2014 release.
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP2
+    
+        Switch to OSX 10.10 Yosemite - SDK, support status now 10.10 only.
+        Fix compatibility with 10.10 SDK, replace deprecated functions like Gestalt.
+        PanelFitter/RemapMouse: Now handle also rotation.
+        Some demo cleanups.
+        Support for Retina displays (aka HiDPI) for OSX.
+    
+    -> This is a "OSX only" update. No significant change to the other os'es.
+
+commit d1ae4376494e52049270a0d178844e8701b6e2f1
+Merge: e0827e6 bc61154
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 5 06:38:21 2014 +0100
+
+    Merge pull request #217 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP2
+    
+    * Switch to OSX 10.10 Yosemite - SDK, support status now 10.10 only.
+    * Fix compatibility with 10.10 SDK, replace deprecated functions like Gestalt.
+    * PanelFitter/RemapMouse: Now handle also rotation.
+    * Some demo cleanups.
+    * Support for Retina displays (aka HiDPI) for OSX.
+    
+    -> This is a "OSX almost only" update. No significant change to the other os'es.
+
+commit bc611541c50ffca86a8c882f7fb06918f3c37bb8
+Merge: 1d2358e 4773ad4
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 5 06:35:23 2014 +0100
+
+    Merge pull request #216 from kleinerm/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP2
+    
+    * Switch to OSX 10.10 Yosemite - SDK, support status now 10.10 only.
+    * Fix compatibility with 10.10 SDK, replace deprecated functions like Gestalt.
+    * PanelFitter/RemapMouse: Now handle also rotation.
+    * Some demo cleanups.
+    * Support for Retina displays (aka HiDPI) for OSX.
+    
+    -> This is a "OSX only" update. No significant change to the other os'es.
+
+commit 8f6ec3efe4c1c004ea4e1f5075e804e1814ab040
+Merge: 96b0665 1d2358e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 19 20:47:44 2014 +0200
+
+    Merge pull request #50 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit e0827e6d9b33b6f97c76ddbe22b16aefc8a19811
+Merge: 353baec 1d2358e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 19 20:46:26 2014 +0200
+
+    Merge pull request #213 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP1
+    
+    * Blacklist 'iSight' and 'Apple IR Receiver' as default keyboard for Linux keyboard queues.
+    * Allow configurable vtotal vs. vactive in Screen(), add setup code to loosen constraints for VPixx + Stereo.
+    * Update some help texts.
+    * Update PsychtoolboxRegistration to work with new registration server URL.
+    * Fix timestamp overflow for sending events with NetStation() to EGI Netstation system.
+
+commit 1d2358e2a441b29c323a12c12fab51e11b70b162
+Merge: 356898a 96b0665
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 19 20:43:27 2014 +0200
+
+    Merge pull request #212 from kleinerm/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12 - SP1
+    
+    * Blacklist 'iSight' and 'Apple IR Receiver' as default keyboard for Linux keyboard queues.
+    * Allow configurable vtotal vs. vactive in Screen(), add setup code to loosen constraints for VPixx + Stereo.
+    * Update some help texts.
+    * Update PsychtoolboxRegistration to work with new registration server URL.
+    * Fix timestamp overflow for sending events with NetStation() to EGI Netstation system.
+
+commit 624b4827200502ce3c12bddba55bb662fe76f966
+Merge: e2d81b7 84e896f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Oct 14 03:35:48 2014 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit d3e00693f35a0d33a1e4d4dbd353552a20615a6d
+Merge: eeffd0c 353baec
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 5 19:42:16 2014 +0200
+
+    Merge pull request #49 from Psychtoolbox-3/beta
+    
+    Resync with current beta of official Psychtoolbox-3 repo. Initial 3.0.12 release.
+    Random acts of kindness.
+
+commit 353baec96c70ed1161cedce4301d87ba738eb0f7
+Merge: 8342112 f5d95c3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 5 19:38:33 2014 +0200
+
+    Merge pull request #211 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Random acts of kindness" Psychtoolbox-3.0.12
+    
+    First PTB BETA of the new 3.0.12 series.
+    
+    Highlights:
+    
+    - GStreamer 1.0 as new multi-media backend.
+    - libfreenect 0.5 as new PsychKinectCore Kinect backend.
+    - Ubuntu 14.10 support. Tested with XOrg-1.16, Linux 3.16 and later on radeon, nouveau, intel.
+    - Improved 10 bpc framebuffer support, new 11 bpc and 16 bpc fb support for AMD gpus.
+    - Stereo crosstalk reduction support by Diederick.
+    - Bazillion other new features and fixes i can't remember anymore.
+    - Improved PsychHID for OSX: Handles multiple parallel kbqueues, maybe copes with MacbookAir 2013+
+    - MOGL support updated to roughly OpenGL 4.5 (minus unsupportable extensions and omissions).
+    - Tons of new workarounds for broken Apple operating systems, esp. OSX 10.8/10.9
+    - Completely drop support for 32-Bit Matlab on all systems, and for OSX 10.7 and earlier.
+    - Drop official support for Windows Vista and Windows-XP (still works, but no support for problems anymore)
+    - Prep work for exciting new things to come.
+
+commit f5d95c3ae5e515944afe3032ea19f54d53a509d2
+Merge: a064690 eeffd0c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 5 19:33:18 2014 +0200
+
+    Merge pull request #210 from kleinerm/master
+    
+    Pull current state into public master for 3.0.12 release.
+    
+    Highlights:
+    
+    - GStreamer 1.0 as new multi-media backend.
+    - libfreenect 0.5 as new PsychKinectCore Kinect backend.
+    - Ubuntu 14.10 support. Tested with XOrg-1.16, Linux 3.16 and later on radeon, nouveau, intel.
+    - Improved 10 bpc framebuffer support, new 11 bpc and 16 bpc fb support for AMD gpus.
+    - Stereo crosstalk reduction support by Diederick.
+    - Bazillion other new features and fixes i can't remember anymore.
+    - Improved PsychHID for OSX: Handles multiple parallel kbqueues, maybe copes with MacbookAir 2013+
+    - MOGL support updated to roughly OpenGL 4.5 (minus unsupportable extensions and omissions).
+    - Tons of new workarounds for broken Apple operating systems, esp. OSX 10.8/10.9
+    - Completely drop support for 32-Bit Matlab on all systems, and for OSX 10.7 and earlier.
+    - Drop official support for Windows Vista and Windows-XP (still works, but no support for problems anymore)
+    - Prep work for exciting new things to come.
+
+commit 87dbf2a83060b57946d76e84cfc5167e10573fa2
+Merge: e58b0a9 36da077
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Oct 5 01:08:35 2014 +0200
+
+    Merge branch 'OSXKbQueues'
+
+commit d51f6442bf846c0db3932fb69ffa0a19245608f8
+Merge: 9c2eebd 08dc84c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Oct 1 04:41:44 2014 +0200
+
+    Merge branch 'moglnext'
+
+commit 58a4a4efd72b005c7e22a16ffbd47aa2060177e9
+Merge: 166c673 13dfd6a
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Sep 25 06:11:36 2014 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+    
+    Conflicts:
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/GetSecs.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/IOPort.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/PsychHID.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/PsychKinectCore.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/Screen.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/WaitSecs.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/moalcore.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/moglcore.mex
+    	Psychtoolbox/PsychBasic/Octave3LinuxFiles/pnet.mex
+
+commit 002a2a41d91e9dbf8d63c8905a3684554eec3862
+Merge: 51a150c faea1d9
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Sep 17 22:54:44 2014 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit d4d9d432c073e73a162e9ebabfc8c00c94070d9a
+Merge: c6b1575 a064690
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Sep 16 18:06:43 2014 +0200
+
+    Merge pull request #48 from Psychtoolbox-3/master
+    
+    Pull current state into kleinerm master. Diedericks improvements.
+
+commit a0646906f9677066d24e1e52317e4c0baa8adfcc
+Merge: 3c58f93 86fc73f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Sep 16 18:05:16 2014 +0200
+
+    Merge pull request #209 from dcnieho/stereoCrossTalk
+    
+    Stereo cross-talk reduction for frame-sequential stereo by Diederick.
+
+commit 4e34e66566ddc993179464e5c656017cf5b124f0
+Merge: ae217c8 aa2c9b8
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Sep 13 19:28:42 2014 +0200
+
+    Merge pull request #47 from towolf/clean-codepage-spam
+    
+    Search and destroy evil codepage trash - Justice shall be served.
+
+commit ef6a71c84b3af83abe20e80b0998837005840226
+Merge: 1d2dfe4 615eed9
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Sep 7 22:23:28 2014 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 2bd375e3a56bb88c4a4163c7941c857265201e7e
+Merge: 978cf8f e247b94
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Aug 30 07:55:29 2014 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 3c58f9349453fe5978fd0a1f7e4e925c0804e682
+Merge: 1cac0ca 8fdaaa6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Aug 30 02:52:52 2014 +0200
+
+    Merge pull request #206 from dcnieho/docFixes
+    
+    Doc fixes
+
+commit 07568e7a5b90cd4b5a8d7e8d9cec572d403f466d
+Merge: 3e0d27f 1cac0ca
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Aug 26 10:30:21 2014 +0200
+
+    Merge pull request #46 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+    
+    ShowCursor changes of Diederick.
+
+commit 1cac0cad7119e552cd3e9c19c4625706781048d8
+Merge: cdcec8b ac86fc5
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Aug 26 10:27:45 2014 +0200
+
+    Merge pull request #205 from dcnieho/showCursorSimplify
+    
+    Show cursor simplify
+
+commit cdcec8bd064a3e728867ca38511d45881a428382
+Merge: 47c30f9 9d2f0b6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Aug 16 10:15:38 2014 +0200
+
+    Merge pull request #204 from kleinerm/master
+    
+    Pull current state into public master.
+    
+    * Linux final nouveau-kms and msc fixes.
+    * AMD MULLINS support for Linux and PTBKD.
+    * Prototype implementation for stereo crosstalk reduction - just the support infrastructure.
+    * PsychtoolboxVersion supports NeuroDebian.
+    * Smallish cleanups.
+
+commit 3ecc9ca1d96216c6063e56d996bc2360e2ddbf4a
+Merge: 1705932 47c30f9
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Aug 1 03:02:15 2014 +0200
+
+    Merge pull request #45 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+    
+    * Mostly undo octave-3.8 incompatible CalStruct OOP code.
+    * Small other BrainardLab fixes.
+    
+    Note: Testing with octave-4.2 devel branch showed that the CalStruct OOP code would have mostly worked, ie., will work once 4.2 is released. One missing item was inputParser(), and then some smal stuff.
+
+commit df6e89afc09462c8b01c2987e5ad28df4625868b
+Merge: fd3f455 09f9331
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Fri Jul 25 09:01:56 2014 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit 09f9331463e02fb3a5d62acc6befe45ccb29a1ff
+Merge: 2fd26f9 1705932
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Jul 24 00:42:49 2014 +0200
+
+    Merge pull request #202 from kleinerm/master
+    
+    ClutAnimDemo: Fix it for gpu's with other than 256-slot gamma tables.
+
+commit 2fd26f9c93a5eb0dd454a097f158d9f43200d132
+Merge: d37d880 c24dd67
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jul 22 17:34:55 2014 +0200
+
+    Merge pull request #201 from Psychtoolbox-3/ptb3publicmaster
+    
+    Pull current state into public master.
+    
+    * Linux nouveau-kms pageflip timestamp workaround no longer needed, so made optional (off by default).
+    * Screen('Computer') mac address robustness improvement on Linux.
+    * Improvements to PsychImaging, SetAnaglyphStereoParameters, DrawFormattedText, etc.
+    * BlurredMipMapDemo shader compatibility fixes.
+    * Documentation updates.
+
+commit c24dd67f71dc5496ce7c017df0f70cec7a9438bd
+Merge: d37d880 fb0ffd0
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Tue Jul 22 17:13:08 2014 +0200
+
+    Merge branch 'kleinerm-master' into ptb3publicmaster
+    
+    * Linux nouveau-kms pageflip timestamp workaround no longer needed, so made optional (off by default).
+    
+    * Screen('Computer') mac address robustness improvement on Linux.
+    
+    * Improvements to PsychImaging, SetAnaglyphStereoParameters, DrawFormattedText, etc.
+    
+    * BlurredMipMapDemo shader compatibility fixes.
+    
+    * Documentation updates.
+
+commit 32c040b98042fb2cc446cfde99236cc534987aa4
+Merge: c01562b bf0c661
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 5 04:26:06 2014 +0200
+
+    Merge pull request #199 from kleinerm/master
+    
+    Pull 10/11 bpc updates, fixes, ...
+    
+    * 10 bpc + new 11 bpc support.
+    * DrawFormattedText left-/right justification.
+    * nouveau-kms workaround limited to Linux 3.13 - 3.15
+    * KDE: Use old-style override-redirect like on other DE's.
+    * Code cleanup.
+    * Improvements to timing test, color test scripts.
+    * Fix some ColorCal demos a bit.
+
+commit 2482b78f4480e801f23c83e855dc9cb37d6b1050
+Merge: 6e33119 c01562b
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Jun 23 00:36:54 2014 +0200
+
+    Merge pull request #44 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+    
+    Pull in David's new routines and OOP calibration stuff.
+
+commit 183e28b746c1970a2bd431a360d67096cc4d1873
+Merge: 67483be abdaaa6
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed May 21 03:13:03 2014 +0200
+
+    Merge pull request #196 from kleinerm/master
+    
+    Pull current state into public master.
+    
+    Disables 32-Bit Matlab support in downloader/updater/etc.
+    Resyncs with bugfixes for 3.0.11.
+
+commit 25455f10abefc4c8afc92d3c2e5169f3c55a27f5
+Merge: 79b9781 40dd163
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 6 22:50:07 2014 +0200
+
+    Merge pull request #43 from Psychtoolbox-3/master
+    
+    Merge pull request #192 from kleinerm/master
+    
+    Resync with "goto fail" public release.
+
+commit 834211231ab1255653bfe037809a4a5ce6a1d8e5
+Merge: 2981d50 40dd163
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 6 22:11:28 2014 +0200
+
+    Merge pull request #193 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Goto fail"
+    
+    Final release of the 3.0.11 series:
+    
+    * Eyelink bug fixes and improvements by SR-Research and mk.
+    * Screen('Textfont') allows atomic setting of font family and and font style.
+    * Fix Octave + PsychDataPixx compatibility for timestamping, cleanup VBLSyncTest.
+    * 10 bpc framebuffer support for AMD DCE-4+ gpu's, aka Radeon HD-5000 and later.
+    * 10 bpc / dithering fixes for AMD DCE-3 aka Radeon HD-4000 series.
+    * Workarounds for nouveau-kms bugs in Linux 3.13/3.14 for upcoming Ubuntu 14.04 LTS release.
+    * Workarounds for OSX 10.8 dual-display stereo graphics driver bugs and various 10.8/10.9 graphics bugs.
+    * Ability to disable crashy CVDisplayLink timestamping on OSX.
+    * OSXCompositorIdiocyTest to test for the latest hilarious OSX compositor bugs.
+    * PsychImaging - add convenience setup function for dual-display stereo mode 10 - mostly for OSX.
+    * PsychImaging - Improve 10 bpc framebuffer setup: Do not disable dithering on digital output by default, but leave decision to OS, with option to override.
+    * Screen('ConfigureDisplay', 'Dithering') allow low-level control of AMD dither control registers.
+    * Various help text updates.
+    * Various updates to color calibration/color handling routines by David Brainard.
+    * Misc other fixes.
+    * PsychtoolboxKernelDriver updates. Different drivers for legacy 10.7 and earlier vs. 10.8+
+    * OSX Psychtoolbox now requires Octave 3.8.0 or later.
+    * Video recording/capture improvements for dc1394 engine and DV camera capture.
+
+commit 40dd1632b8bd370c68b6d7289be13ec92d511aba
+Merge: f0bd663 79b9781
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 6 22:05:00 2014 +0200
+
+    Merge pull request #192 from kleinerm/master
+    
+    Pull - I from kleinerm for PTB BETA RELEASE "Sex, Lies and Video" - Goto fail.
+    
+    Final release of the 3.0.11 series:
+    * Eyelink bug fixes and improvements by SR-Research and mk.
+    * Screen('Textfont') allows atomic setting of font family and and font style.
+    * Fix Octave + PsychDataPixx compatibility for timestamping, cleanup VBLSyncTest.
+    * 10 bpc framebuffer support for AMD DCE-4+ gpu's, aka Radeon HD-5000 and later.
+    * 10 bpc / dithering fixes for AMD DCE-3 aka Radeon HD-4000 series.
+    * Workarounds for nouveau-kms bugs in Linux 3.13/3.14 for upcoming Ubuntu 14.04 LTS release.
+    * Workarounds for OSX 10.8 dual-display stereo graphics driver bugs and various 10.8/10.9 graphics bugs.
+    * Ability to disable crashy CVDisplayLink timestamping on OSX.
+    * OSXCompositorIdiocyTest to test for the latest hilarious OSX compositor bugs.
+    * PsychImaging - add convenience setup function for dual-display stereo mode 10 - mostly for OSX.
+    * PsychImaging - Improve 10 bpc framebuffer setup: Do not disable dithering on digital output by default, but leave decision to OS, with option to override.
+    * Screen('ConfigureDisplay', 'Dithering') allow low-level control of AMD dither control registers.
+    * Various help text updates.
+    * Various updates to color calibration/color handling routines by David Brainard.
+    * Misc other fixes.
+
+commit 593eec0fd866c72cea7b9c63bbcb3877de25d7c6
+Merge: c4a6798 f0bd663
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Apr 6 05:30:03 2014 +0200
+
+    Merge pull request #42 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit 9e44ce1347633d671708d9416682c07590dcbe49
+Merge: 6138f11 bea403c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Apr 2 19:30:48 2014 +0200
+
+    Merge pull request #185 from eyelink/master
+    
+    Bug fixes for Eyelinktoolbox by Li Jie of SR-Research:
+    
+    * Eyelink('command' …) crash if no space is given between % ( for example, %d/%d will crash)
+    * Limit mouse cursor inside of camera image
+    * Eyelink('ImageTransfer') image transfer crashed, due to unallocated memory.
+    * 3 SR-Research Demos: fixes for case sensitivity, octave compatible and non integer arguments for Eyelink('command', …).
+
+commit a46cc16ea21759db6bda93053527c29ece8823bb
+Merge: 0710025 ccc8113
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Mar 8 18:04:26 2014 +0100
+
+    Merge pull request #190 from kleinerm/master
+    
+    Pull - I from kleinerm for PTB BETA RELEASE "Sex, Lies and Video" SP1
+    
+    Make PsychtoolboxKernelDriver64Bit work on OSX 10.8 and 10.9 - hopefully. Only tested on 10. 9 so far.
+    Revert legacy 64 bit driver to September 2013 state for use on 10.6 and 10.7.
+
+commit 0710025efcd58507bc449bbf07ca20159c4ed389
+Merge: 9590b07 25d79ef
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Thu Mar 6 08:26:56 2014 +0100
+
+    Merge pull request #189 from kleinerm/master
+    
+    Pull - I from kleinerm for PTB BETA RELEASE "Sex, Lies and Video" SP1
+    
+    A pull with the work so far. Only Screen's for OSX are up to date.
+    This mostly to pull in the 10 bpc framebuffer improvements and dithering fixes for AMD pre-HD-5000 GPUs.
+    Also some robustness improvements for OSX 10.9 stimulus onset - none had any effect, actually.
+    Marktertrackerplugin support on Linux + dc1394 engine.
+    Octave 3.8 support on OSX, removal of < 3.8 support.
+    Minor improvements and fixes here and there.
+
+commit 9590b07717dc81b4d899c651370ce300fdb1f899
+Merge: 6cb82bc 3e0e634
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Mon Feb 10 02:05:11 2014 +0100
+
+    Merge pull request #186 from suchow/patch-1
+    
+    Rename function to match file name
+
+commit a59199c1dcbbb7e32dbf53c17d4d33a5fcbb7609
+Merge: a7f074d 8ab666f
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Tue Jan 21 11:14:24 2014 -0500
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit 7e6e40d4da4e7832f597b04689c5c6c31094a438
+Merge: 7168966 8ab666f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Dec 29 20:37:05 2013 -0800
+
+    Merge pull request #41 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+    
+    Resync with official PTB BETA "Sex, Lies and Video".
+
+commit 2981d50aae499f99cfc61035b4b258e8962c9f84
+Merge: d250fc0 8ab666f
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Dec 29 20:28:42 2013 -0800
+
+    Merge pull request #184 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Sex, Lies and Video"
+    
+    * OSX 10.9 Mavericks compatibility fixes. E.g., for AppNap protection, visual timing fixes, other brokeness fixes.
+    * Rewrite of OSX FontInfo and DrawText renderer for higher startup speed and compatibility and future proofing.
+    * Add new supported GPU's from AMD.
+    * Minor bug fixes for OSX, Windows, Linux, e.g., IOPort, Eyelink, PsychHID KbQueues.
+    * General improvements to video capture and video recording, e.g., for DV cameras.
+    * DC1394 based Firewire video recording support, high bit depths capture support, various other bells and whistles.
+    * DC1394 based Firewire multi-camera synchronized video capture/recording.
+    * Staircase procedure improvements by Diederick Niehorster.
+    * PsychColorimetric routines improved by David Brainard.
+
+commit 8ab666fee111fb740734c3dbaa07f459a34606f8
+Merge: 3d23bb3 7168966
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Dec 29 20:20:36 2013 -0800
+
+    Merge pull request #183 from kleinerm/master
+    
+    Pull from kleinerm for PTB BETA RELEASE "Sex, Lies and Video"
+    
+    * OSX 10.9 Mavericks compatibility fixes.
+    * Rewrite of OSX FontInfo and DrawText renderer for higher startup speed and compatibility.
+    * Minor bug fixes for OSX, Windows, Linux.
+    * General improvements to video capture and video recording.
+    * DC1394 based Firewire video recording support.
+    * DC1394 based Firewire multi-camera synchronized video capture/recording.
+
+commit 3d23bb38c11286d380577cba2e07e565bc49e4a4
+Merge: 2121c05 9f5cc1d
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Dec 18 16:26:32 2013 -0800
+
+    Merge pull request #182 from dcnieho/master
+    
+    Staircase update by Diederick:
+    
+    Some updates to staircase internals. Cleaner and faster.
+    Also new API that is better (but default is the legacy API,
+    so users won't notice this upgrade)
+
+commit c346c467c1153b08f797c0c33f14362c128b9853
+Merge: 62d9ce9 2121c05
+Author: Diederick Niehorster <dcnieho@gmail.com>
+Date:   Fri Dec 13 22:18:11 2013 +0800
+
+    Merge branch 'upstream/master'
+
+commit 8a3e188d02f257d35d43d42641799c21c7bf698f
+Merge: 98559ac a2f326a
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Thu Nov 14 19:34:51 2013 -0500
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit a2f326af6b8503710619048346dea29a2ef94501
+Merge: f23c142 211b90c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Nov 13 04:14:13 2013 -0800
+
+    Merge pull request #177 from dcnieho/master
+    
+    Fix version check error in Explode.m for Matlab 8.0 and later.
+
+commit 62d9ce9191304694dba953d85a6f16afefc6b952
+Merge: 75460cf f23c142
+Author: Diederick Niehorster <dcnieho@gmail.com>
+Date:   Sun Nov 10 17:20:43 2013 +0800
+
+    Merge branch 'upstream/master'
+
+commit 6e751a022ce492bd55066924d3954678559fc7e8
+Merge: 639f4c7 e4face3
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Thu Nov 7 23:09:25 2013 +0100
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 408b944efc0db3163a84ff247fb57c821a925f49
+Merge: 99b8db2 f7567f6
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Sun Nov 3 02:56:57 2013 +0100
+
+    Merge branch 'osxcoretext'
+    
+    This completely switches the OSX implementations of Screen and
+    FontInfo from old and deprecated FontManager + ATSUI to the new
+    and shiny CoreText Framework.
+    
+    This was neccessary due to switch from OSX 10.6 "Snow Leopard"
+    SDK to OSX 10.9 "Mavericks" SDK to future-proof us here.
+    
+    This means that OSX 10.6 as a minimum supported version is now
+    a hard requirement, as this code would not build on 10.5 and
+    earlier anymore.
+    
+    Downsides of new implementation:
+    
+    * 'QuickDraw' font name is no longer reported by FontInfo().
+    * Some font metrics are no longer reported by FontInfo().
+    
+    Upsides:
+    
+    * Future-Proof (until Apple does its next crappy move of course).
+    * More exotic fonts like "Kuenstler Script LT" now work with default
+      renderer.
+    * Screen() startup time drastically shorter due to much faster font
+      enumeration for Screen: 15 seconds to 0.13 seconds.
+
+commit 8319b757547058f9805110a6678f5a3aaf046439
+Merge: e3f5443 cfc6aea
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Thu Oct 24 18:18:38 2013 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit d250fc0cd3715fb75a18f40cfd31c27ea713e3b8
+Merge: 37ea020 cfc6aea
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Oct 16 17:52:00 2013 -0700
+
+    Merge pull request #175 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Hammertime!" SP4 - "Deadlock"
+    
+    * XLib threading fixes for regressions introduced into Linux PTB.
+    * Make DaqDeviceIndex a bit more robust on OSX.
+    * Make IsomerizationInEye/DishDemo work again on Octave and fix some bugs.
+    * Reenable parts of PsychCV for 64-Bit Octave on Linux. (Experimental)
+
+commit cfc6aea774b85c6eef73644261e0a10d2c817c2a
+Merge: 5757dc0 338cadc
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Oct 16 17:50:17 2013 -0700
+
+    Merge pull request #174 from kleinerm/master
+    
+    PTB BETA RELEASE "Hammertime!" SP4 - "Deadlock"
+    
+    * XLib threading fixes for regressions introduced into Linux PTB.
+    * Make DaqDeviceIndex a bit more robust on OSX.
+    * Make IsomerizationInEye/DishDemo work again on Octave and fix some bugs.
+    * Reenable parts of PsychCV for 64-Bit Octave on Linux. (Experimental)
+
+commit 37ea0207205768bb77514b5e895ad3b2666250af
+Merge: bcb6e50 5757dc0
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Oct 2 19:29:49 2013 -0700
+
+    Merge pull request #173 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Hammertime!" SP3 - "Flowerpower"
+    
+    * Fix Linux X11 display locking bugs which could cause deadlock in Screen('Resolutions'), and crashes for Screen('AsyncFlipBegin') async flips and framesequential stereo mode 11. These bugs could only affect the Mesa/Gallium FOSS graphics drivers, therefore slipped through the testing which was performed with the NVidia binary blob. Retesting on nouveau exposed the bugs.
+    
+    -> Our locking bugs should be fixed without degradation in performance.
+    -> There are other bugs which can cause crashes at least with MultiWindowLockStepTest(n) for n > 1. These look like bugs in nouveau,
+    -> This release was validated on the upcoming Ubuntu 13.10 "Saucy Salamander" 64-Bit Beta with nouveau.
+
+commit 5757dc0daaab71578aed46d1ef85cd021b35a7c8
+Merge: 7838ce5 f0ed6f9
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Oct 2 19:22:55 2013 -0700
+
+    Merge pull request #172 from kleinerm/master
+    
+    Pull Linux display locking fixes.
+
+commit c9ecb3efeb37830f2658d480fe0c51bda15bca57
+Merge: d6ec24a 7838ce5
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Sep 29 22:37:59 2013 -0700
+
+    Merge pull request #39 from Psychtoolbox-3/master
+    
+    Pull to resync with PTB 3.0.11 master for release "Hammertime - SP2 - FlowerPower"
+
+commit bcb6e5020660546c1033d3f536e020fb33664946
+Merge: 62542a2 7838ce5
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Sep 29 22:24:26 2013 -0700
+
+    Merge pull request #171 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Hammertime!" SP2 - "Flowerpower"
+    
+    * Cool new SuperShapeDemo by Joana Leitao.
+    * Display rotation support in PanelFitter, as shown by PanelFitterDemo.
+    * Make 'DrawText' on Linux multi-x-screen capable and even faster than before.
+    * Make BitsPlusImagingPipelineTest a little bit more lenient.
+    * Improve display locking on Linux, and various micro-optimizations.
+    * Remove beamposition timestamping support for Intel gpu's on OSX and Linux.
+    * Small improvements to Daq toolbox and other stuff.
+    * Disable mex files for OSX versions before 10.6 Snow Leopard.
+
+commit 7838ce55b832fec4af8ba7c09d43662e7d6d4e91
+Merge: 3c16d6a d6ec24a
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Sep 29 22:18:24 2013 -0700
+
+    Merge pull request #170 from kleinerm/master
+    
+    PTB BETA RELEASE "Hammertime!" SP2 "Flowerpower"
+    
+    * Cool new SuperShapeDemo by Joana Leitao.
+    * Display rotation support in PanelFitter, as shown by PanelFitterDemo.
+    * Make 'DrawText' on Linux multi-x-screen capable and even faster than before.
+    * Make BitsPlusImagingPipelineTest a little bit more lenient.
+    * Improve display locking on Linux, and various micro-optimizations.
+    * Remove beamposition timestamping support for Intel gpu's on OSX and Linux.
+    * Small improvements to Daq toolbox and other stuff.
+    * Disable mex files for OSX versions before 10.6 Snow Leopard.
+
+commit 62542a2660793f05e767d7d613e434d534eb7704
+Merge: b904bdd 6dd3a8a
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Sep 11 22:33:18 2013 -0700
+
+    Merge pull request #168 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Hammertime!" SP1
+    
+    Stop! Hammertime! :-)
+
+commit 6dd3a8a7fd9d3dde6ba361dde4930a79d60e6331
+Merge: c652220 b4c99d3
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Sep 11 22:31:22 2013 -0700
+
+    Merge pull request #167 from kleinerm/master
+    
+    Hammertime!
+
+commit b904bdd94941578af53f142c51fa3d1637016e3e
+Merge: 42a449f c652220
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Sep 11 20:38:38 2013 -0700
+
+    Merge pull request #166 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Hammertime!"
+    
+    * PTB for 32-Bit Matlab on Windows now uses and requires the GStreamer SDK instead of OSSBuilds GStreamer.
+    * Bugfix for GStreamer on Windows for special pixelformat >= 6.
+    * Bugfix for Linux + PsychHID.
+    * Bugfix for OSX crash at window close due to Apple CVDisplayLink bugs on Matlab R2013b.
+    * OpenGL context sharing support between windowed and fullscreen windows on OSX.
+    * Improved GUI window support.
+    * Low-level support for latest AMD GPU's on Linux and with OSX PsychtoolboxKernelDriver.
+    * WinTabMex support now also for 64-Bit Matlab on Windows.
+    * And in PlayMoviesDemo's cool section: "Stop! Hammertime!"
+
+commit c652220646dcfa82d5ff74054caa9b40324d5452
+Merge: 7a7682c 4a8c29e
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Wed Sep 11 20:35:05 2013 -0700
+
+    Merge pull request #165 from kleinerm/master
+    
+    PTB BETA RELEASE "Hammertime!"
+    
+    * PTB for 32-Bit Matlab on Windows now uses and requires the GStreamer SDK instead of OSSBuilds GStreamer.
+    * Bugfix for GStreamer on Windows for special pixelformat >= 6.
+    * Bugfix for Linux + PsychHID.
+    * Bugfix for OSX crash at window close due to Apple CVDisplayLink bugs on Matlab R2013b.
+    * OpenGL context sharing support between windowed and fullscreen windows on OSX.
+    * Improved GUI window support.
+    * Low-level support for latest AMD GPU's on Linux and with OSX PsychtoolboxKernelDriver.
+    * WinTabMex support now also for 64-Bit Matlab on Windows.
+    * And in PlayMoviesDemo's cool section: "Stop! Hammertime!"
+
+commit 4550bdc52475b849af2a1407513cbd5e6d33d7c1
+Merge: 4fea8df 8cd2d49
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Wed Sep 11 03:21:38 2013 +0200
+
+    Merge branch 'gstreamerwinexperiment'
+    
+    * Switch 32-Bit PTB on Windows from OSSBuilds GStreamer to
+    GStreamer-SDK.
+    * Compatibility fixes to allow build on Windows against MSCRT.dll.
+    * Global locale + switching: backup->change->use->restore in 'DrawText'.
+    * Bug fixes for OpenGL context protection with GStreamer-SDK on
+    Windows, if clutter plugin support is available in the SDK installation.
+
+commit c4693522403b8b2d9efda94fefe13f6c47520afc
+Merge: 02b420a 7a7682c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Sep 6 19:21:08 2013 -0700
+
+    Merge pull request #38 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+    For PTB BETA "Stadtmusikanten"
+
+commit 42a449fe823274f85d5b2e9bad72e552ff144ec2
+Merge: 97b833d 7a7682c
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Sep 6 19:06:38 2013 -0700
+
+    Merge pull request #163 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Stadtmusikanten"
+    
+    * ECVP2013 demos and tutorial slides PDF file added.
+    * New function PsychDefaultSetup for normalized color range by default.
+    * Some new demos, e.g., SimpleSoundScheduleDemo.
+    * Minor fixes and improvements here and there.
+
+commit 7a7682caf74313ef9789407004ec40bd3076787e
+Merge: 201ea4d 02b420a
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Fri Sep 6 19:00:34 2013 -0700
+
+    Merge pull request #162 from kleinerm/master
+    
+    Pull from kleinerm for PTB BETA RELEASE "Stadtmusikanten"
+    
+    * ECVP2013 demos and slides pdf
+    * New function PsychDefaultSetup for normalized color range by default.
+    * Some new demos, e.g., SimpleSoundScheduleDemo.
+    * Minor fixes and improvements here and there.
+
+commit ca88a9265e4a6339ba3355868f3b75f4f3e0d1f4
+Merge: 60d2ac9 e44cff0
+Author: Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+Date:   Thu Sep 5 22:02:43 2013 +0200
+
+    Merge branch 'master' of https://github.com/kleinerm/Psychtoolbox-3
+
+commit 64f06d000784ec23f1845a65eff3c1666df3301f
+Merge: 154a2ba ff28751
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Wed Aug 14 09:23:24 2013 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+
+commit 75460cfce9d8259b4b3fb5b3254541a40cfe4add
+Merge: e5d46f9 871b203
+Author: Diederick C. Niehorster <dcnieho@gmail.com>
+Date:   Wed Jul 31 06:19:58 2013 -0700
+
+    Merge pull request #2 from Psychtoolbox-3/master
+    
+    pull in latest beta
+
+commit 871b203e04dd7ee29af751953673494774695f09
+Merge: a22e3b4 ec744e0
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sun Jul 28 18:32:21 2013 -0700
+
+    Merge pull request #160 from kleinerm/master
+    
+    Pull from kleinerm for PTB BETA RELEASE "Blue skies and empty brains" - SP3
+    * GUI window mode fixes for OSX and MS-Windows.
+
+commit fe41201ee22a5d76e480590f707ec117e7c3b633
+Merge: e6e97a9 a22e3b4
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 27 14:43:20 2013 -0700
+
+    Merge pull request #37 from Psychtoolbox-3/master
+    
+    Resync with current master of official Psychtoolbox-3 repo.
+
+commit 97b833db5f46129fc4f15180f342b0b5fa65f8f4
+Merge: 33137e5 a22e3b4
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 27 14:02:47 2013 -0700
+
+    Merge pull request #159 from Psychtoolbox-3/master
+    
+    PTB BETA RELEASE "Blue skies and empty brains" - SP2
+    
+    * Fix download failure for 3.0.10 in DownloadPsychtoolbox.m on 32-Bit OSX.
+    * Fix mex file load errors on 64-Bit Octave for OSX with Fink package manager and other versions.
+    * New function Eyelink('SetAddress') for setting tracker computer target IP address.
+    * Enable raw sample data access for Eyelink on Linux.
+    * Update PsychVideoSwitcher help.
+    * Update some other help texts, e.g., DisplayOutputMappings.
+    * Add new text rendering mode 0 on OSX for new-style ATSU rendering of problematic exotic fonts.
+    * Add GstX264Enc video encoding profile for fast camerabin2 video recording with GStreamer SDK.
+    * Some new demos and improvements from David Brainard in area of color calibration or simulation?
+    * New function GetGITPath from Ben Heasley.
+
+commit a22e3b4086c007f4214bf4ac5c2966c368072f73
+Merge: b4d05f6 e6e97a9
+Author: Mario Kleiner <mario.kleiner.de@gmail.com>
+Date:   Sat Jul 27 13:54:41 2013 -0700
+
+    Merge pull request #158 from kleinerm/master
+    
+    Pull from kleinerm for PTB BETA RELEASE "Blue skies and empty brains" - SP2
+    
+    * Fix download failure for 3.0.10 in DownloadPsychtoolbox.m on 32-Bit OSX.
+    * Fix mex file load errors on 64-Bit Octave for OSX with Fink package manager and other versions.
+    * New function Eyelink('SetAddress') for setting tracker computer target IP address.
+    * Enable raw sample data access for Eyelink on Linux.
+    * Update PsychVideoSwitcher help.
+    * Update some other help texts, e.g., DisplayOutputMappings.
+    * Add new text rendering mode 0 on OSX for new-style ATSU rendering of problematic exotic fonts.
+    * Add GstX264Enc video encoding profile for fast camerabin2 video recording with GStreamer SDK.
+
+commit 9658f66c415bdfea7810a1c9763e14463a0ae3ee
+Merge: bc0d782 cc9027e
+Author: David Brainard <brainard@psych.upenn.edu>
+Date:   Fri Jul 19 16:56:24 2013 -0400
+
+    Merge branch 'master' of https://github.com/Psychtoolbox-3/Psychtoolbox-3
+    
+    Signed-off-by: David Brainard <brainard@psych.upenn.edu>
+    
+    Conflicts:
+    	Psychtoolbox/PsychDemos/IsomerizationsInEyeDemo.m
+
 commit 33137e5d18e0e9e2eff174fe7b15d28d618d447a
 Merge: 57deff9 ef3a282
 Author: Mario Kleiner <mario.kleiner.de@gmail.com>
