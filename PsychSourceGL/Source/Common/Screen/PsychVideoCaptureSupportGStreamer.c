@@ -210,7 +210,56 @@ void PsychGSCheckInit(const char* engineName)
             // OSX linker sets the symbol to NULL if dynamic weak linking during runtime failed.
             // On failure we'll output some helpful error-message instead:
             #if PSYCH_SYSTEM == PSYCH_WINDOWS
+                #ifdef PTBOCTAVE3MEX
+                // Octave-4 on Windows specific code. Delay loading of the main dependencies
+                // does not work, because Octave-4 always resolves dependencies of mex files
+                // immediately and fails if it can not do that.
+                //
+                // However we need a Octave-4.0.0 specific hack here to prevent failure of runtime
+                // loading of some GStreamer plugins, e.g., for movie playback. Octave-4 comes
+                // with its own version of libbz2, needed by GraphicsMagick for some image format.
+                // This version is incompatible with the libbz2 provided by GStreamer and needed
+                // by some of its plugins. Our hacky solution is to runtime load libbz2 from the
+                // GStreamer installation directory now, thereby overriding the default dll search
+                // order which would try to load from the application installation directory instead,
+                // which would mean to load the "wrong" libbz2 from Octave-4's bin directory.
+                char gst_libbz2_path[FILENAME_MAX];
+                gst_libbz2_path[0] = 0;
+                if (NULL == getenv("PSYCH_GSTREAMER_SDK_ROOT")) {
+                    if (PsychPrefStateGet_Verbosity() > 1) {
+                        printf("PTB-WARNING: Environment variable PSYCH_GSTREAMER_SDK_ROOT undefined. Apparently PsychStartup.m\n");
+                        printf("PTB-WARNING: didn't set it? This can cause failure to load required GStreamer plugins, at least\n");
+                        printf("PTB-WARNING: on official 32-Bit Octave-4.0.0, unless special setup steps have been performed to\n");
+                        printf("PTB-WARNING: replace some unsuitable Octave DLL's with suitable corresponding DLL's from GStreamer.\n");
+                        printf("PTB-WARNING: If you experience failure of multi-media functions, this might be the reason for it.\n");
+                    }
+                }
+                else {
+                    // GStreamer runtime path defined by PsychStartup.m run. Try to load override dll(s) from GStreamer
+                    // runtime directory:
+                    sprintf(gst_libbz2_path, "%s\\libbz2.dll", getenv("PSYCH_GSTREAMER_SDK_ROOT"));
+                    if (NULL == LoadLibraryEx(gst_libbz2_path, NULL, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR)) {
+                        if (PsychPrefStateGet_Verbosity() > 0) {
+                            printf("PTB-ERROR: Oh oh! libbz2.dll loading from GStreamer runtime directory as '%s' failed!\n",
+                                   gst_libbz2_path);
+                            printf("PTB-ERROR: Error code %d. This can cause failure to load required GStreamer plugins, at least\n",
+                                   GetLastError());
+                            printf("PTB-ERROR: on official 32-Bit Octave-4.0.0, unless special setup steps have been performed to\n");
+                            printf("PTB-ERROR: replace some unsuitable Octave DLL's with suitable corresponding DLL's from GStreamer.\n");
+                            printf("PTB-ERROR: If you experience failure of multi-media functions, this might be the reason for it.\n");
+                        }
+                    }
+                    else if (PsychPrefStateGet_Verbosity() > 3) {
+                        printf("PTB-DEBUG: Loaded '%s' from GStreamer runtime directory to override Octave's incompatible DLL.\n", gst_libbz2_path);
+                    }
+                }
+
+                // We don't fail in the Octave specific startup path:
+                if (FALSE) {
+                #else
+                // Non-Octave (Matlab) specific code, where delay loading works:
                 if ((NULL == LoadLibrary("libgstreamer-1.0-0.dll")) || (NULL == LoadLibrary("libgstapp-1.0-0.dll"))) {
+                #endif
             #endif
             #if PSYCH_SYSTEM == PSYCH_OSX
                 if (NULL == gst_init_check) {
@@ -1889,18 +1938,6 @@ psych_bool PsychSetupRecordingPipeFromString(PsychVidcapRecordType* capdev, char
                 strcat(videocodec, "key-int-max=30 ");
             }
 
-            // Encoding profile specified?
-            /* Not (any longer, or ever??) availabe for x264enc:
-            if (profile >= 0) {
-                // Assign profile:
-                sprintf(codecoption, "profile=%i ", profile);
-                strcat(videocodec, codecoption);
-            } else {
-                // Default to "High" profile: 640 x 480 @ 30 fps possible:
-                strcat(videocodec, "profile=3 ");
-            }
-            */
-
             // Quality vs. Speed tradeoff specified?
             if (videoQuality >= 0) {
                 // Yes: Map quality vs. speed scalar to 0-10 number for speed preset:
@@ -1925,6 +1962,57 @@ psych_bool PsychSetupRecordingPipeFromString(PsychVidcapRecordType* capdev, char
 
             // Create videocodec from options string:
             capdev->videoenc = CreateGStreamerElementFromString(videocodec, "VideoCodec=", videocodec);
+
+            // This must go last, after CreateGStreamerElementFromString()! Encoding profile specified?
+            if (profile >= 0) {
+                // Assign profile:
+                switch (profile) {
+                    case 0:
+                        sprintf(codecoption, " ! video/x-h264, profile=constrained-baseline");
+                        break;
+
+                    case 1:
+                        sprintf(codecoption, " ! video/x-h264, profile=baseline");
+                        break;
+
+                    case 2:
+                        sprintf(codecoption, " ! video/x-h264, profile=main");
+                        break;
+
+                    case 3:
+                        sprintf(codecoption, " ! video/x-h264, profile=high");
+                        break;
+
+                    case 4:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-10");
+                        break;
+
+                    case 5:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-4:2:2");
+                        break;
+
+                    case 6:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-4:4:4");
+                        break;
+
+                    case 7:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-10-intra");
+                        break;
+
+                    case 8:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-4:2:2-intra");
+                        break;
+
+                    case 9:
+                        sprintf(codecoption, " ! video/x-h264, profile=high-4:4:4-intra");
+                        break;
+
+                    default:
+                        printf("PTB-WARNING: Invalid 'Profile=' option value for H264 encoding! Valid values must be between 0 and 9. Ignoring option and using default.\n");
+                        codecoption[0] = 0;
+                }
+                strcat(videocodec, codecoption);
+            }
 
             // If specific codec couldn't be created but encoding profiles are in use then we "fake" a
             // 0x1 codec to suppress warning messages and error/fallback handling. The encoding profile
@@ -2730,6 +2818,7 @@ static GstPadProbeReturn PsychHaveVideoDataCallback(GstPad *pad, GstPadProbeInfo
     unsigned char *input_image;
     PsychVidcapRecordType *capdev = (PsychVidcapRecordType *) dataptr;
     GstBuffer *videoBuffer = info->data;
+    #pragma warning( disable : 4068 )
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     GstMapInfo mapinfo = GST_MAP_INFO_INIT;

@@ -54,6 +54,33 @@
 #include <errno.h>
 #endif
 
+// Support for nvstusb library requested to drive Nvidia NVision stereo shutter goggles?
+#ifdef PTB_USE_NVSTUSB
+
+#if PSYCH_SYSTEM != PSYCH_WINDOWS
+// Include for dynamic loading of external nvstusb library plugin:
+#include <dlfcn.h>
+#endif
+
+#include "nvstusb.h"
+typedef struct nvstusb_context* (*NVSTUSB_INIT_PROC)(char const * fw);
+typedef void (*NVSTUSB_DEINIT_PROC)(struct nvstusb_context *ctx);
+typedef void (*NVSTUSB_SET_RATE_PROC)(struct nvstusb_context *ctx, float rate);
+typedef void (*NVSTUSB_SWAP_PROC)(struct nvstusb_context *ctx, enum nvstusb_eye eye, void (*swapfunc)());
+typedef void (*NVSTUSB_GET_KEYS_PROC)(struct nvstusb_context *ctx, struct nvstusb_keys *keys);
+typedef void (*NVSTUSB_INVERT_EYES_PROC)(struct nvstusb_context *ctx);
+
+NVSTUSB_INIT_PROC Nvstusb_init_proc = NULL;
+NVSTUSB_DEINIT_PROC Nvstusb_deinit_proc = NULL;
+NVSTUSB_SET_RATE_PROC Nvstusb_set_rate_proc = NULL;
+NVSTUSB_SWAP_PROC Nvstusb_swap_proc = NULL;
+NVSTUSB_GET_KEYS_PROC Nvstusb_get_keys_proc = NULL;
+NVSTUSB_INVERT_EYES_PROC Nvstusb_invert_eyes_proc = NULL;
+
+static void* nvstusb_plugin = NULL;
+static struct nvstusb_context* nvstusb_goggles = NULL;
+#endif
+
 #if PSYCH_SYSTEM != PSYCH_WINDOWS
 #include "ptbstartlogo.h"
 #else
@@ -85,7 +112,7 @@ static PsychWindowRecordType* currentRendertarget = NULL;
 // The handle of the masterthread - The Matlab/Octave/PTB main interpreter thread: This
 // is initialized when opening the first onscreen window. Its used in PsychSetDrawingTarget()
 // to discriminate between the masterthread and the worker threads for async flip operations:
-static psych_threadid    masterthread = (psych_threadid) NULL;
+static psych_threadid    masterthread = (psych_threadid) 0;
 
 // Count of currently async-flipping onscreen windows:
 static unsigned int    asyncFlipOpsActive = 0;
@@ -114,6 +141,11 @@ static void PsychDrawSplash(PsychWindowRecordType* windowRecord)
 {
     int logo_x, logo_y;
     int visual_debuglevel = PsychPrefStateGet_VisualDebugLevel();
+
+    // Skip this function on OpenGL-ES or on BroadCom VideoCore-4 gpu, as it is
+    // either unsupported, or too slow:
+    if (!PsychIsGLClassic(windowRecord) || strstr(windowRecord->gpuCoreId, "VC4"))
+        return;
 
     // Compute logo_x and logo_y x,y offset for drawing the startup logo:
     logo_x = ((int) PsychGetWidthFromRect(windowRecord->rect) - (int) splash_image.width) / 2;
@@ -892,7 +924,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
     CGDisplayCount totaldisplaycount=0;
     CGGetOnlineDisplayList(0, NULL, &totaldisplaycount);
 
-    if ((PsychPrefStateGet_Verbosity() > 2) && ((*windowRecord)->windowIndex == PSYCH_FIRST_WINDOW)) {
+    if ((PsychPrefStateGet_Verbosity() > 3) && ((*windowRecord)->windowIndex == PSYCH_FIRST_WINDOW)) {
         multidisplay = (totaldisplaycount>1) ? true : false;
         if (multidisplay) {
             printf("\n\nPTB-INFO: You are using a multi-display setup (%i active displays):\n", totaldisplaycount);
@@ -963,7 +995,9 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         glClearColor(0,0,0,1);
     }
 
-    if (PsychIsGLClassic(*windowRecord)) {
+    // Use class code path for classic OpenGL, unless we are on the Raspberry Pi's VideoCore-4
+    // gpu, where this path is so slow it would cause sync-failure and other cascading trouble:
+    if (PsychIsGLClassic(*windowRecord) && !strstr((*windowRecord)->gpuCoreId, "VC4")) {
         double tDummy;
 
         // Classic OpenGL-1/2 splash image drawing code:
@@ -992,19 +1026,22 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         PsychLockedTouchFramebufferIfNeeded(*windowRecord);
 
         // We do it again for right backbuffer to clear possible stereo-contexts as well...
-        if ((*windowRecord)->stereomode==kPsychOpenGLStereo) {
+        if (((*windowRecord)->stereomode == kPsychOpenGLStereo) && ((*windowRecord)->gfxcaps & kPsychGfxCapNativeStereo)) {
             glDrawBuffer(GL_BACK_RIGHT);
 
             PsychDrawSplash(*windowRecord);
             PsychOSFlipWindowBuffers(*windowRecord);
+            PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
             PsychLockedTouchFramebufferIfNeeded(*windowRecord);
 
             PsychDrawSplash(*windowRecord);
             PsychOSFlipWindowBuffers(*windowRecord);
+            PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
             PsychLockedTouchFramebufferIfNeeded(*windowRecord);
 
             PsychDrawSplash(*windowRecord);
             PsychOSFlipWindowBuffers(*windowRecord);
+            PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
             PsychLockedTouchFramebufferIfNeeded(*windowRecord);
         }
 
@@ -1012,6 +1049,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
     }
     else {
         // Non-classic (OpenGL-3/4 and OpenGL-ES) splash screen display code:
+        double tDummy;
         PsychWindowRecordType *textureRecord;
         PsychCreateWindowRecord(&textureRecord);
         textureRecord->windowType = kPsychTexture;
@@ -1061,6 +1099,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         glClear(GL_COLOR_BUFFER_BIT);
         if (visual_debuglevel >= 4) PsychBlitTextureToDisplay(textureRecord, *windowRecord, textureRecord->rect, textureRecord->clientrect, 0, 1, 1);
         PsychOSFlipWindowBuffers(*windowRecord);
+        PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
 
         // Protect against multi-threading trouble if needed:
         PsychLockedTouchFramebufferIfNeeded(*windowRecord);
@@ -1068,6 +1107,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         glClear(GL_COLOR_BUFFER_BIT);
         if (visual_debuglevel >= 4) PsychBlitTextureToDisplay(textureRecord, *windowRecord, textureRecord->rect, textureRecord->clientrect, 0, 1, 1);
         PsychOSFlipWindowBuffers(*windowRecord);
+        PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
 
         // Protect against multi-threading trouble if needed:
         PsychLockedTouchFramebufferIfNeeded(*windowRecord);
@@ -1075,6 +1115,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         glClear(GL_COLOR_BUFFER_BIT);
         if (visual_debuglevel >= 4) PsychBlitTextureToDisplay(textureRecord, *windowRecord, textureRecord->rect, textureRecord->clientrect, 0, 1, 1);
         PsychOSFlipWindowBuffers(*windowRecord);
+        PsychOSGetSwapCompletionTimestamp(*windowRecord, 0, &tDummy);
 
         // Protect against multi-threading trouble if needed:
         PsychLockedTouchFramebufferIfNeeded(*windowRecord);
@@ -1298,7 +1339,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
                     // Tell user:
                     if (PsychPrefStateGet_Verbosity() > 2) {
                         printf("PTB-INFO: Implausible measured vblank endline %i indicates that the beamposition query workaround should be used for your GPU.\n", VBL_Endline);
-                        printf("PTB-INFO: Enabling the beamposition workaround, as explained in 'help ConserveVRAM', section 'kPsychUseBeampositionQueryWorkaround'.\n");
+                        printf("PTB-INFO: Enabling the beamposition workaround, as explained in 'help ConserveVRAMSettings', section 'kPsychUseBeampositionQueryWorkaround'.\n");
                     }
                 }
 
@@ -1328,7 +1369,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
                         printf("PTB-INFO: for it. This will introduce a very small and constant offset (typically << 1 msec). Read 'help BeampositionQueries'\n");
                         printf("PTB-INFO: for how to correct this, should you really require that last few microseconds of precision.\n");
                         printf("PTB-INFO: Btw. this can also mean that your systems beamposition queries are slightly broken. It may help timing precision to\n");
-                        printf("PTB-INFO: enable the beamposition workaround, as explained in 'help ConserveVRAM', section 'kPsychUseBeampositionQueryWorkaround'.\n");
+                        printf("PTB-INFO: enable the beamposition workaround, as explained in 'help ConserveVRAMSettings', section 'kPsychUseBeampositionQueryWorkaround'.\n");
                     }
                 }
             }
@@ -1547,32 +1588,47 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
 
     // Check for desktop compositor activity on MS-Windows Vista and later:
     if ((PsychPrefStateGet_Verbosity() > 1) && PsychIsMSVista() && PsychOSIsDWMEnabled(0)) {
-        // DWM is active on at least one display. On a single-display setup, this means
-        // it will definitely affect/interfere with our onscreen windows timing and we should
-        // warn the user about likely performance and timing degradation. The same is true if
-        // our onscreen window is not a fullscreen window, in which case it will always interfere
-        // with our window:
-        if ((PsychGetNumDisplays() == 1) || !((*windowRecord)->specialflags & kPsychIsFullscreenWindow)) {
-            // Ok, DWM will definitely mess with our stimuli: Warn the user about the likely hazard.
-            printf("PTB-WARNING: ==============================================================================================================================\n");
-            printf("PTB-WARNING: WINDOWS DWM DESKTOP COMPOSITOR IS ACTIVE! ALL FLIP STIMULUS ONSET TIMESTAMPS WILL BE VERY LIKELY UNRELIABLE AND LESS ACCURATE!\n");
-            printf("PTB-WARNING: STIMULUS ONSET TIMING WILL BE UNRELIABLE AS WELL, AND GRAPHICS PERFORMANCE MAY BE SEVERELY REDUCED! STIMULUS IMAGES MAY NOT\n");
-            printf("PTB-WARNING: SHOW UP AT ALL! DO NOT USE THIS MODE FOR RUNNING REAL EXPERIMENT SESSIONS WITH ANY REQUIREMENTS FOR ACCURATE TIMING!\n");
-            printf("PTB-WARNING: ==============================================================================================================================\n");
+        #if PSYCH_SYSTEM == PSYCH_WINDOWS
+        // Regular fullscreen onscreen window on Windows-10 or later OS'es?
+        if (PsychOSIsMSWin10() && ((*windowRecord)->specialflags & kPsychIsFullscreenWindow) && (PsychPrefStateGet_WindowShieldingLevel() >= 2000)) {
+            // Yes. Initial testing suggests we might be mostly fine timing-wise despite the DWM being active, both
+            // on single-display and multi-display setups. Therefore tone down the DWM warnings and just tell the user
+            // to tread carefully:
+            printf("PTB-INFO: ==============================================================================================================================\n");
+            printf("PTB-INFO: WINDOWS DWM DESKTOP COMPOSITOR IS ACTIVE. On this Windows-10 or later system, Psychtoolbox can no longer reliably detect if\n");
+            printf("PTB-INFO: this will cause trouble for timing and integrity of visual stimuli or not. You might be just fine, or you could be in trouble.\n");
+            printf("PTB-INFO: Use external measurement equipment and independent procedures to verify reliability of timing if you care about proper timing.\n");
+            printf("PTB-INFO: ==============================================================================================================================\n");
         }
         else {
-            // This is a multi-display setup with the DWM active on at least some display(s) and our
-            // stimulus onscreen window is a fullscreen window that covers at least one whole display.
-            // We can't know if our stimulus display is affected, or only other irrelevant GUI desktop
-            // displays. At least on one tested recent versions of Windows-7 and presumably Windows-8,
-            // DWM was interfering massively with fullscreen stimulus displays, leading to completely
-            // wrong stimulus onset timestamps:
-            printf("PTB-WARNING: ============================================================================================================================\n");
-            printf("PTB-WARNING: WINDOWS DWM DESKTOP COMPOSITOR IS ACTIVE ON AT LEAST ONE DISPLAY! ALL FLIP STIMULUS ONSET TIMESTAMPS WILL BE LIKELY WRONG!\n");
-            printf("PTB-WARNING: STIMULUS ONSET TIMING WILL BE UNRELIABLE AS WELL, AND GRAPHICS PERFORMANCE MAY BE SEVERELY REDUCED! STIMULUS IMAGES MAY NOT\n");
-            printf("PTB-WARNING: SHOW UP AT ALL! DO NOT USE THIS MODE FOR RUNNING REAL EXPERIMENT SESSIONS WITH ANY REQUIREMENTS FOR ACCURATE TIMING!\n");
-            printf("PTB-WARNING: ============================================================================================================================\n");
+            // DWM is active on at least one display. On a single-display setup, this means
+            // it will definitely affect/interfere with our onscreen windows timing and we should
+            // warn the user about likely performance and timing degradation. The same is true if
+            // our onscreen window is not a fullscreen window, in which case it will always interfere
+            // with our window:
+            if ((PsychGetNumDisplays() == 1) || !((*windowRecord)->specialflags & kPsychIsFullscreenWindow)) {
+                // Ok, DWM will definitely mess with our stimuli: Warn the user about the likely hazard.
+                printf("PTB-WARNING: ==============================================================================================================================\n");
+                printf("PTB-WARNING: WINDOWS DWM DESKTOP COMPOSITOR IS ACTIVE! ALL FLIP STIMULUS ONSET TIMESTAMPS WILL BE VERY LIKELY UNRELIABLE AND LESS ACCURATE!\n");
+                printf("PTB-WARNING: STIMULUS ONSET TIMING WILL BE UNRELIABLE AS WELL, AND GRAPHICS PERFORMANCE MAY BE SEVERELY REDUCED! STIMULUS IMAGES MAY NOT\n");
+                printf("PTB-WARNING: SHOW UP AT ALL! DO NOT USE THIS MODE FOR RUNNING REAL EXPERIMENT SESSIONS WITH ANY REQUIREMENTS FOR ACCURATE TIMING!\n");
+                printf("PTB-WARNING: ==============================================================================================================================\n");
+            }
+            else {
+                // This is a multi-display setup with the DWM active on at least some display(s) and our
+                // stimulus onscreen window is a fullscreen window that covers at least one whole display.
+                // We can't know if our stimulus display is affected, or only other irrelevant GUI desktop
+                // displays. At least on one tested recent versions of Windows-7 and presumably Windows-8,
+                // DWM was interfering massively with fullscreen stimulus displays, leading to completely
+                // wrong stimulus onset timestamps:
+                printf("PTB-WARNING: ============================================================================================================================\n");
+                printf("PTB-WARNING: WINDOWS DWM DESKTOP COMPOSITOR IS ACTIVE ON AT LEAST ONE DISPLAY! ALL FLIP STIMULUS ONSET TIMESTAMPS WILL BE LIKELY WRONG!\n");
+                printf("PTB-WARNING: STIMULUS ONSET TIMING WILL BE UNRELIABLE AS WELL, AND GRAPHICS PERFORMANCE MAY BE SEVERELY REDUCED! STIMULUS IMAGES MAY NOT\n");
+                printf("PTB-WARNING: SHOW UP AT ALL! DO NOT USE THIS MODE FOR RUNNING REAL EXPERIMENT SESSIONS WITH ANY REQUIREMENTS FOR ACCURATE TIMING!\n");
+                printf("PTB-WARNING: ============================================================================================================================\n");
+            }
         }
+        #endif
     }
     else if ((PsychPrefStateGet_Verbosity() > 1) && PsychIsMSVista() && (PsychGetNumDisplays() > 1)) {
         // MS-Vista or later with DWM effectively disabled/inactive. On a single display setup,
@@ -1846,7 +1902,12 @@ void PsychCloseWindow(PsychWindowRecordType *windowRecord)
         PsychPipelineExecuteHook(windowRecord, kPsychCloseWindowPostGLShutdown, NULL, NULL, FALSE, FALSE, NULL, NULL, NULL, NULL);
 
         // Reduce count of onscreen windows with our own threaded framesequential stereo mode active:
-        if (windowRecord->stereomode == kPsychFrameSequentialStereo) frameSeqStereoActive--;
+        if (windowRecord->stereomode == kPsychFrameSequentialStereo) {
+            frameSeqStereoActive--;
+
+            // Perform shutdown of shutter goggle driver if needed:
+            PsychSetupShutterGoggles(windowRecord, FALSE);
+        }
 
         // If this was the last onscreen window then we reset the currentRendertarget etc. to pre-Screen load time:
         if (PsychIsLastOnscreenWindow(windowRecord)) {
@@ -1961,6 +2022,234 @@ void PsychCloseWindow(PsychWindowRecordType *windowRecord)
 void PsychFlushGL(PsychWindowRecordType *windowRecord)
 {
     if(PsychIsOnscreenWindow(windowRecord) && PsychPrefStateGet_EmulateOldPTB()) glFinish();
+}
+
+/* PsychSetupShutterGoggles()
+ *
+ * Setup/Enable or Disable support for NVidia's NVision stereo emitter kit, which
+ * allows to drive stereo shutter goggles from NVidia in frame-sequential stereo mode.
+ *
+ * We use the LGPL licensed libnvstusb to do this. It is dynamically loaded as a shared
+ * library, as is the firmware that needs to be loaded into the NVision controller.
+ * libnvstusb emits the neccessary USB trigger packets as usb bulk transfers, using
+ * the reverse-engineered protocol of the NVision USB controller.
+ *
+ * If no libnvstusb.so library is found, no firmware file is found, or no suitable
+ * controller is connected then this function does nothing and we end up with the
+ * usual blue line sync stereo. The function is currently also only for Linux. Porting
+ * to OSX or Windows would be possible with small adjustments here and more significant
+ * but doable modifications to libnvstusb.
+ *
+ */
+void PsychSetupShutterGoggles(PsychWindowRecordType *windowRecord, psych_bool doInit)
+{
+    #ifdef PTB_USE_NVSTUSB
+        char pluginPath[FILENAME_MAX];
+        char firmwareFile[FILENAME_MAX];
+        char pluginName[100];
+        char backupenv[100];
+        FILE *fw;
+
+        // Init or shutdown?
+        if (doInit) {
+            // Init.
+
+            // Try to find required firmware file. First in the Psychtoolbox configuration directory, then in the users $HOME directory:
+            sprintf(firmwareFile, "%snvstusb.fw", PsychRuntimeGetPsychtoolboxRoot(TRUE));
+            errno = 0;
+            if ((fw = fopen(firmwareFile, "rb")) != NULL) {
+                fclose(fw);
+            }
+            else {
+                if (PsychPrefStateGet_Verbosity() > 4)
+                    printf("PTB-DEBUG: PsychSetupShutterGoggles: Could not find NVision firmware file at '%s' [%s].\n", firmwareFile, strerror(errno));
+
+                sprintf(firmwareFile, "%s/nvstusb.fw", getenv("HOME"));
+                errno = 0;
+                if ((fw = fopen(firmwareFile, "rb")) != NULL) {
+                    fclose(fw);
+                }
+                else {
+                    if (PsychPrefStateGet_Verbosity() > 4)
+                        printf("PTB-DEBUG: PsychSetupShutterGoggles: Could not find NVision firmware file at '%s' [%s].\n", firmwareFile, strerror(errno));
+                    if (PsychPrefStateGet_Verbosity() > 2)
+                        printf("PTB-INFO: Could not find any firmware file for NVidia NVision stereo goggles, therefore not driving such goggles.\n");
+                    return;
+                }
+            }
+
+            // Firmware file found - Probably the user wants us to drive such Goggles.
+
+            // Plugin already loaded and linked?
+            if (NULL == nvstusb_plugin) {
+                // No. Try to load and bind the library:
+                sprintf(pluginName, "libnvstusb.so");
+
+                // Try to get it from the PsychPlugins folder:
+                if (strlen(PsychRuntimeGetPsychtoolboxRoot(FALSE)) > 0) {
+                    // Yes! Assemble full path name to plugin:
+                    sprintf(pluginPath, "%sPsychBasic/PsychPlugins/%s", PsychRuntimeGetPsychtoolboxRoot(FALSE), pluginName);
+                    if (PsychPrefStateGet_Verbosity() > 5) printf("PTB-DEBUG: PsychSetupShutterGoggles: Trying to load external driver plugin from following file: [ %s ]\n", pluginPath);
+                }
+                else {
+                    // Failed! Assign only plugin name and hope the user installed the plugin into
+                    // a folder on the system library search path:
+                    sprintf(pluginPath, "%s", pluginName);
+                    if (PsychPrefStateGet_Verbosity() > 2) printf("PTB-INFO: PsychSetupShutterGoggles: Failed to find installation directory for external driver plugin [ %s ].\nHoping it is somewhere in the library search path...\n", pluginPath);
+                }
+
+                if ((dlopen("libusb-1.0.so.0", RTLD_NOW | RTLD_GLOBAL | RTLD_NOLOAD) == NULL) &&
+                    (PsychPrefStateGet_Verbosity() > 0)) {
+                    printf("PTB-DEBUG: PsychSetupShutterGoggles: Failed to reopen libusb-1.0.so.0 in no-reload-mode [%s]. nvstusb plugin load will likely fail...\n", (const char*) dlerror());
+                }
+
+                nvstusb_plugin = dlopen(pluginPath, RTLD_NOW | RTLD_GLOBAL);
+                if (NULL == nvstusb_plugin) {
+                    // First try failed:
+                    if (PsychPrefStateGet_Verbosity() > 3) {
+                        printf("PTB-DEBUG: PsychSetupShutterGoggles: Failed to load external driver plugin [%s]. Retrying under generic name [%s].\n", (const char*) dlerror(), pluginName);
+                    }
+
+                    sprintf(pluginPath, "%s", pluginName);
+                    nvstusb_plugin = dlopen(pluginPath, RTLD_NOW | RTLD_GLOBAL);
+                }
+
+                if (NULL == nvstusb_plugin) {
+                    // Game over.
+                    if (PsychPrefStateGet_Verbosity() > 2)
+                        printf("PTB-INFO: PsychSetupShutterGoggles: Could not load stereo goggle driver plugin [%s]. Goggle support disabled.\n", (const char*) dlerror());
+                    return;
+                }
+
+                // Plugin loaded. Bind entry points:
+                Nvstusb_init_proc = dlsym(nvstusb_plugin, "nvstusb_init");
+                Nvstusb_deinit_proc = dlsym(nvstusb_plugin, "nvstusb_deinit");
+                Nvstusb_set_rate_proc = dlsym(nvstusb_plugin, "nvstusb_set_rate");
+                Nvstusb_swap_proc = dlsym(nvstusb_plugin, "nvstusb_swap");
+                Nvstusb_get_keys_proc = dlsym(nvstusb_plugin, "nvstusb_get_keys");
+                Nvstusb_invert_eyes_proc = dlsym(nvstusb_plugin, "nvstusb_invert_eyes");
+
+                // Successfully linked?
+                if (!Nvstusb_init_proc || !Nvstusb_deinit_proc || !Nvstusb_set_rate_proc || !Nvstusb_swap_proc || !Nvstusb_get_keys_proc || !Nvstusb_invert_eyes_proc) {
+                    if (PsychPrefStateGet_Verbosity() > 2)
+                        printf("PTB-INFO: PsychSetupShutterGoggles: Could not load link goggle driver plugin [%s]. Goggle support disabled.\n", (const char*) dlerror());
+
+                    // Request shutdown of stuff again:
+                    doInit = FALSE;
+                }
+            }
+
+            // Still green to go? Otherwise we fall through to the shutdown path:
+            if (doInit) {
+                // Ok, the plugin is ready. Let's see if we have actual goggles to drive.
+
+                // First we set the environment variable __GL_SYNC_TO_VBLANK before
+                // calling Nvstusb_init_proc(). This will cause the init routine to
+                // select a drive strategy for the goggles that is optimal for our
+                // frame sequential stereo implementation. Specifically it will simply
+                // immediately send the USB goggle trigger packet to the goggles when
+                // we ask it to do so. We make sure to call the function after swap
+                // completion is confirmed by the OS.
+
+                // Step 1: Backup the current setting of __GL_SYNC_TO_VBLANK:
+                if (getenv("__GL_SYNC_TO_VBLANK")) {
+                    strcpy(backupenv, getenv("__GL_SYNC_TO_VBLANK"));
+                }
+                else {
+                    backupenv[0] = 0;
+                }
+
+                // Step 2: Force it to our wanted value:
+                setenv("__GL_SYNC_TO_VBLANK", "1", 1);
+
+                // Step 3: Init library:
+                nvstusb_goggles = Nvstusb_init_proc(firmwareFile);
+
+                // Step 4: Restore old setting of __GL_SYNC_TO_VBLANK, if any:
+                if (backupenv[0] != 0) {
+                    setenv("__GL_SYNC_TO_VBLANK", backupenv, 1);
+                }
+                else {
+                    unsetenv("__GL_SYNC_TO_VBLANK");
+                }
+
+                // Step 5: Check if init actually worked:
+                if (NULL == nvstusb_goggles) {
+                    // Nope. We are done here.
+                    if (PsychPrefStateGet_Verbosity() > 2)
+                        printf("PTB-INFO: Could not connect to NVidia NVision stereo goggles, therefore not enabling such goggles.\n");
+                    doInit = FALSE;
+                }
+                else {
+                    // Yes. Set expected update rate as video refresh rate:
+                    Nvstusb_set_rate_proc(nvstusb_goggles, (float) (1.0 / windowRecord->VideoRefreshInterval));
+                    if (PsychPrefStateGet_Verbosity() > 2)
+                        printf("PTB-INFO: Activated NVidia NVision stereo goggles.\n");
+                    return;
+                }
+            }
+        }
+
+        // Shutdown requested?
+        if (!doInit) {
+            // Perform cleanup and shutdown:
+            if (nvstusb_goggles) {
+                // Goggles online. Deinit them and the library:
+                if (PsychPrefStateGet_Verbosity() > 2)
+                    printf("PTB-INFO: Shutting down NVidia NVision stereo goggles.\n");
+
+                Nvstusb_deinit_proc(nvstusb_goggles);
+                nvstusb_goggles = NULL;
+            }
+
+            if (nvstusb_plugin) {
+                if (PsychPrefStateGet_Verbosity() > 4)
+                    printf("PTB-DEBUG: Unloading nvstusb library.\n");
+
+                Nvstusb_init_proc = NULL;
+                Nvstusb_deinit_proc = NULL;
+                Nvstusb_set_rate_proc = NULL;
+                Nvstusb_swap_proc = NULL;
+                Nvstusb_get_keys_proc = NULL;
+                Nvstusb_invert_eyes_proc = NULL;
+                dlclose(nvstusb_plugin);
+                nvstusb_plugin = NULL;
+            }
+
+            // Done.
+            return;
+        }
+
+    #endif
+}
+
+/* PsychTriggerShutterGoggles()
+ *
+ * Use libnvstusb to emit USB stereo trigger packets to a NVidia NVision stereo controller.
+ * Do nothing if no such setup was enabled via PsychSetupShutterGoggles().
+ *
+ */
+void PsychTriggerShutterGoggles(PsychWindowRecordType *windowRecord, int viewid)
+{
+    static int oldviewid = -1;
+
+    #ifdef PTB_USE_NVSTUSB
+        // Emit shutter trigger if frameSeqStereoActive and NVideo NVision driver active:
+        if (nvstusb_plugin && nvstusb_goggles && (windowRecord->stereomode == kPsychFrameSequentialStereo)) {
+            Nvstusb_swap_proc(nvstusb_goggles, ((viewid == 0) ? nvstusb_left : nvstusb_right), NULL);
+            if (PsychPrefStateGet_Verbosity() > 9) printf("PTB-DEBUG: PsychTriggerShutterGoggles: Triggering for viewid %i.\n", viewid);
+        }
+        else {
+            if (PsychPrefStateGet_Verbosity() > 10) printf("PTB-DEBUG: PsychTriggerShutterGoggles: No-Op call for viewid %i.\n", viewid);
+        }
+    #endif
+
+    // Check if stereo views alternate nicely at each invocation:
+    if ((oldviewid != -1) && (oldviewid != 1 - viewid)) {
+        if (PsychPrefStateGet_Verbosity() > 9)
+            printf("PTB-WARNING: Frame sequential stereo sequencing order mismatch. Double take on viewid %i. Visual glitch expected in stereo presentation.\n", viewid);
+    }
+    oldviewid = viewid;
 }
 
 #if PSYCH_SYSTEM == PSYCH_WINDOWS
@@ -2124,7 +2413,7 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
     double tnow, lastvbl;
     int dummy1;
     double dummy2, dummy3, dummy4;
-    int viewid;
+    int viewid = 0;
     psych_uint64 vblcount = 0;
     psych_uint64 vblqcount = 0;
 
@@ -2366,6 +2655,9 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
                 flipRequest->vbl_timestamp = PsychFlipWindowBuffers(windowRecord, 0, 0, 2, flipRequest->flipwhen, &(flipRequest->beamPosAtFlip),
                                                                     &(flipRequest->miss_estimate), &(flipRequest->time_at_flipend), &(flipRequest->time_at_onset));
 
+                // Trigger an update of the shutters of potentially connected stereo goggles:
+                PsychTriggerShutterGoggles(windowRecord, viewid);
+
                 // Maintain virtual vblank counter on platforms where we need it:
                 vblcount++;
 
@@ -2397,6 +2689,10 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
 
                 // Execute synchronous flip to make it the frontbuffer: This resets the framebuffer binding to 0 at exit:
                 PsychFlipWindowBuffers(windowRecord, 0, 0, 2, tnow, &dummy1, &dummy2, &dummy3, &dummy4);
+
+                // Trigger an update of the shutters of potentially connected stereo goggles:
+                viewid = 1 - viewid;
+                PsychTriggerShutterGoggles(windowRecord, viewid);
 
                 // Maintain virtual vblank counter on platforms where we need it:
                 vblcount++;
@@ -2436,6 +2732,10 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
                     PsychWaitPixelSyncToken(windowRecord, FALSE);
                     PsychGetAdjustedPrecisionTimerSeconds(&(windowRecord->time_at_last_vbl));
                 }
+
+                // Trigger an update of the shutters of potentially connected stereo goggles:
+                viewid = 1 - viewid;
+                PsychTriggerShutterGoggles(windowRecord, viewid);
 
                 // Maintain virtual vblank counter on platforms where we need it:
                 vblcount++;
@@ -2621,8 +2921,14 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
             // Set initial thread state to "inactive, not initialized at all":
             flipRequest->flipperState = 0;
 
-            // Increment count of onscreen windows with our own threaded framesequential stereo mode active, if this is such a window:
-            if (windowRecord->stereomode == kPsychFrameSequentialStereo) frameSeqStereoActive++;
+            // Setup for our own framesequential stereo implementation:
+            if (windowRecord->stereomode == kPsychFrameSequentialStereo) {
+                // Increment count of onscreen windows with our own threaded framesequential stereo mode active:
+                frameSeqStereoActive++;
+
+                // Perform setup of shutter goggle driver if needed:
+                PsychSetupShutterGoggles(windowRecord, TRUE);
+            }
 
             // Create and startup thread:
             if ((rc=PsychCreateThread(&(flipRequest->flipperThread), NULL, PsychFlipperThreadMain, (void*) windowRecord))) {
@@ -3436,7 +3742,8 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
             // OS-Builtin timestamping failed, is unsupported, or it is disabled by usercode.
             if ((swap_msc < -1) && (verbosity > 1)) {
                 printf("PTB-WARNING:PsychOSGetSwapCompletionTimestamp() FAILED: errorcode = %lld, tSwapComplete = %lf.\n", swap_msc, tSwapComplete);
-                printf("PTB-WARNING: This likely means that timestamping will *not work at all* and has to be considered\n");
+                printf("PTB-WARNING: If this message shows up frequently during sessions, instead of only very sporadically, then\n");
+                printf("PTB-WARNING: this likely means that timestamping will *not work at all* and has to be considered\n");
                 printf("PTB-WARNING: not trustworthy! Check your system configuration, e.g., /etc/X11/xorg.conf and\n");
                 printf("PTB-WARNING: /var/log/XOrg.0.log on Linux for hints on what could be misconfigured. This is \n");
                 printf("PTB-WARNING: very likely not a bug, but a system misconfiguration by you or your distribution vendor.\n");
@@ -4303,6 +4610,14 @@ double PsychGetMonitorRefreshInterval(PsychWindowRecordType *windowRecord, int* 
         // See call below for explanation:
         if (strstr((const char*) glGetString(GL_RENDERER), "Intel")) {
             PsychWaitPixelSyncToken(windowRecord, TRUE);
+        }
+
+        if (PSYCH_SYSTEM == PSYCH_OSX) {
+            // Give gfx-system a second to settle: This stupid hack to
+            // counteract a new type of stupid bug introduced in OSX 10.11
+            // El Capitan: Sync failure at each first run after application
+            // startup. Thanks Apple!
+            PsychYieldIntervalSeconds(1);
         }
 
         // Take samples during consecutive refresh intervals:
@@ -5830,9 +6145,9 @@ void PsychSetupView(PsychWindowRecordType *windowRecord, psych_bool useRawFrameb
 /* PsychSetupClientRect() -- Compute windows clientrect from raw backbuffer size rect. */
 void PsychSetupClientRect(PsychWindowRecordType *windowRecord)
 {
-    // Do nothing if panel fitter is active and the clientrect has been set to a fixed
+    // Do nothing if panel fitter is active or the clientrect has been set to a fixed
     // size at openwindow time for the lifetime of this window:
-    if (windowRecord->imagingMode & kPsychNeedGPUPanelFitter) return;
+    if (windowRecord->imagingMode & (kPsychNeedGPUPanelFitter | kPsychNeedClientRectNoFitter)) return;
 
     // Define windows clientrect. It is a copy of windows rect, but stretched or compressed
     // to twice or half the width or height of the windows rect, depending on the special size
@@ -6093,6 +6408,7 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
     psych_bool ati = FALSE;
     psych_bool intel = FALSE;
     psych_bool llvmpipe = FALSE;
+    psych_bool vc4 = FALSE;
     GLint maxtexsize=0, maxcolattachments=0, maxaluinst=0;
     GLboolean nativeStereo = FALSE;
 
@@ -6119,6 +6435,10 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
     // Detection code for Linux DRI driver stack with ATI GPU:
     if (strstr((char*) glGetString(GL_VENDOR), "Advanced Micro Devices") || strstr((char*) glGetString(GL_RENDERER), "ATI")) {
         ati = TRUE; sprintf(windowRecord->gpuCoreId, "R100");
+    }
+
+    if (strstr((char*) glGetString(GL_VENDOR), "Broadcom") || strstr((char*) glGetString(GL_RENDERER), "VC4")) {
+        vc4 = TRUE; sprintf(windowRecord->gpuCoreId, "VC4");
     }
 
     // Check if this is an open-source (Mesa/Gallium) graphics driver on Linux with X11
@@ -6383,6 +6703,31 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
         }
     }
 
+    // Is GL_POINT_SMOOTH actually producing round, anti-aliased points? As of October 2015,
+    // we know NVidia gpus support this on Linux, both with binary blob and nouveau, but the current
+    // Mesa drivers for AMD and Intel don't. Windows and OSX graphics drivers do support point
+    // smoothing. However, at least on AMD hw this used to be done by a shader emulation, so it
+    // would not work in HDR high color precision modes. Haven't tested this for a while so i'll
+    // just assume optimistically that it will work atm. until testing disproves this:
+    if ((PSYCH_SYSTEM != PSYCH_LINUX) || nvidia) {
+        if (verbose) printf("Assuming hardware supports native OpenGL primitive smoothing (points, lines).\n");
+        windowRecord->gfxcaps |= kPsychGfxCapSmoothPrimitives;
+    }
+
+    if (vc4) {
+        // The Gallium VC4 driver as of beginning 2016 doesn't support control flow in shaders yet, ie. no if/else/while/for.
+        // Therefore our shader based point smooth implementation can't work. Instead of failing totally, we pretend the hw
+        // can do point smooth so our workaround can be skipped and the user gets to see at least something:
+        if (verbose) printf("Raspberry Pi Gallium VC4 workaround: Pretending hardware supports native OpenGL primitive smoothing (points, lines).\n");
+        windowRecord->gfxcaps |= kPsychGfxCapSmoothPrimitives;
+    }
+
+    // Allow usercode to override our pessimistic view of vertex color precision:
+    if (PsychPrefStateGet_ConserveVRAM() & kPsychAssumeGfxCapVCGood) {
+        if (verbose) printf("Assuming hardware can process vertex colors at full 32bpc float precision, as requested by usercode via ConserveVRAMSetting kPsychAssumeGfxCapVCGood.\n");
+        windowRecord->gfxcaps |= kPsychGfxCapVCGood;
+    }
+
     // Native OpenGL quad-buffered stereo context?
     glGetBooleanv(GL_STEREO, &nativeStereo);
     if (nativeStereo) {
@@ -6390,8 +6735,9 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
         windowRecord->gfxcaps |= kPsychGfxCapNativeStereo;
     }
 
-    // Running under Chromium OpenGL virtualization or Mesa Software Rasterizer?
+    // Running under Chromium OpenGL virtualization or Mesa Software Rasterizer or Mesa's Gallium LLVM rasterizer?
     if ((strstr((char*) glGetString(GL_VENDOR), "Humper") && strstr((char*) glGetString(GL_RENDERER), "Chromium")) ||
+        (strstr((char*) glGetString(GL_VENDOR), "VMware") && strstr((char*) glGetString(GL_RENDERER), "llvmpipe")) ||
         (strstr((char*) glGetString(GL_VENDOR), "Mesa") && strstr((char*) glGetString(GL_RENDERER), "Software Rasterizer"))) {
         // Yes: We're very likely running inside a Virtual Machine, e.g., VirtualBox.
         // This does not provide sufficiently accurate display timing for production use of Psychtoolbox.

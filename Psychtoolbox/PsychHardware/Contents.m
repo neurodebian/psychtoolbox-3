@@ -19,6 +19,7 @@
 % MeasSpd             - All: Use color meter to measure a spectral power 
 %                            distribution.
 % MeasXYZ             - All: Use color meter to measure XYZ coordinates.
+% nvstusb-extractfw   - Linux: Extract firmware for NVidia NVision kit. See "help NVision3D"
 % PR650Toolbox        - All: Talk to PR650 Colorimeter.
 % PR655Toolbox        - All: Talk to PR655 Colorimeter.
 % PR670Toolbox        - All: Talk to PR670 Colorimeter.
@@ -30,10 +31,12 @@
 % GetKeyboardIndices  - All: Get indices of keyboards in PsychHID device list.
 % GetMouseIndices     - All: Get indices of mice in the PsychHID device list.
 % OptiCAL             - All: Interface to the CRS OptiCAL luminance meter device.
+% PsychGPURasterizerOffsets - All: Test GPU drivers for spatial misplacement of content.
 % PsychGPUTestAndTweakGammaTables - All: Helper function. Auto-tweak gamma tables for DataPixx et al. and Bits#
 % PsychHID            - All: Read/write any HID-compliant USB device. See web page:
 %                            web http://psychtoolbox.org/usb.html
 % PsychRTBox          - All: Driver for RTBox reaction time button box.
+% PsychVRToolbox      - All: Functions for access to and use of Virtual Reality devices.
 % SerialComm          - OSX  Send and receive through serial ports.      -> DEPRECATED: Use IOPort instead!
 %                            web http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=4952&objectType=file -browser;
 % Snd                 - All: Play a sound. Only for simple sounds! Use PsychPortAudio for serious sound playback and capture!
@@ -41,8 +44,9 @@
 % EyelinkToolbox      - All: Toolbox for control of the SR-Research Eyelink gazetrackers.
 % iViewXToolbox       - All: Toolbox for control of the MSI-Research iView gazetrackers.
 % NetStation          - All: Control the EGI Netstation EEG recording system via network.
+% XOrgConfCreator   - Linux: A setup assistant for easy creation of X11 config files.
+% XOrgConfSelector  - Linux: A assistant for easy selection of X11 config files.
 %
-% 
 % Minolta Toolbox
 % Set of m-files and sample code that can be used for reading luminance data
 % from the Minolta LS-110 luminance meter. Contains simple program for 

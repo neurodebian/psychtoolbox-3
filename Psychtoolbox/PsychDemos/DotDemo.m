@@ -70,6 +70,7 @@ function DotDemo(showSprites, waitframes)
 %                   screen.
 % 5/31/05   mk      Some modifications to use new Flip command...
 % 4/18/10   mk      Add support for demo'ing PsychDrawSprites2D() command.
+% 12/15/15  mk      Query and obey gpu point size limits.
 
 AssertOpenGL;
 
@@ -113,19 +114,19 @@ try
     differentcolors =1; % Use a different color for each point if == 1. Use common color white if == 0.
     differentsizes = 2; % Use different sizes for each point if >= 1. Use one common size if == 0.
     % waitframes = 1;     % Show new dot-images at each waitframes'th monitor refresh.
-    
+
     if differentsizes>0  % drawing large dots is a bit slower
         ndots=round(ndots/5);
     end
-    
+
     % ---------------
     % open the screen
     % ---------------
 
     screens=Screen('Screens');
-	screenNumber=max(screens);
+    screenNumber=max(screens);
     [w, rect] = Screen('OpenWindow', screenNumber, 0);
-    
+
     % If you'd uncomment these lines and had the Psychtoolbox kernel driver
     % loaded on a OS/X or Linux box with ATI Radeon X1000 or later, you'd
     % probably enjoy a 10 bit per color channel framebuffer...
@@ -138,19 +139,19 @@ try
     % for drawing of smoothed points:
     Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     [center(1), center(2)] = RectCenter(rect);
-	 fps=Screen('FrameRate',w);      % frames per second
+    fps=Screen('FrameRate',w);      % frames per second
     ifi=Screen('GetFlipInterval', w);
     if fps==0
        fps=1/ifi;
     end;
-    
+
     white = WhiteIndex(w);
-    HideCursor;	% Hide the mouse cursor
+    HideCursor; % Hide the mouse cursor
     Priority(MaxPriority(w));
-    
+
     % Do initial flip...
     vbl=Screen('Flip', w);
-    
+
     % ---------------------------------------
     % initialize dot positions and velocities
     % ---------------------------------------
@@ -179,14 +180,17 @@ try
     else
         colvect=white;
     end;
-    
+
     % Create a vector with different point sizes for each single dot, if
     % requested:
     if (differentsizes>0)
         s = (1+rand(1, ndots)*(differentsizes-1))*s;
-        s = max(s, 1);
     end;
-    
+
+    % Clamp point sizes to range supported by graphics hardware:
+    [minsmooth,maxsmooth] = Screen('DrawDots', w)
+    s = min(max(s, minsmooth), maxsmooth);
+
     % Wanna show textured sprites instead of dots?
     if showSprites == 1
         % Create a small texture as offscreen window: Size is 30 x 30
@@ -214,7 +218,6 @@ try
         % be modulated by 'colvect' during drawing, so white is basically
         % just a placeholder:
         Screen('FillRect', tex, 255, [1 1 29 29]);
-        
         s = 1;
 
         % Define randomly distributed rotation angles in a +/- 30 degree
@@ -227,30 +230,30 @@ try
     % --------------    
     for i = 1:nframes
         if (i>1)
-            Screen('FillOval', w, uint8(white), fix_cord);	% draw fixation dot (flip erases it)
+            Screen('FillOval', w, uint8(white), fix_cord);  % draw fixation dot (flip erases it)
             if showSprites
                 % Draw little "sprite textures" instead of dots:
                 PsychDrawSprites2D(w, tex, xymatrix, s, angles, colvect, center, 1);  % change 1 to 0 to draw unfiltered sprites.
             else
                 % Draw nice dots:
-                Screen('DrawDots', w, xymatrix, s, colvect, center,1);  % change 1 to 0 to draw square dots
+                Screen('DrawDots', w, xymatrix, s, colvect, center, 1);  % change 1 to 0 or 4 to draw square dots
             end
             Screen('DrawingFinished', w); % Tell PTB that no further drawing commands will follow before Screen('Flip')
         end;
-        
+
         % Break out of animation loop if any key on keyboard or any button
         % on mouse is pressed:
         [mx, my, buttons]=GetMouse(screenNumber);
         if any(buttons)
             break;
         end
-        
+
         if KbCheck
             break;
         end;
-        
-        xy = xy + dxdy;						% move dots
-        r = r + dr;							% update polar coordinates too
+
+        xy = xy + dxdy; % move dots
+        r = r + dr; % update polar coordinates too
 
         % check to see which dots have gone beyond the borders of the annuli
 
@@ -275,14 +278,14 @@ try
             dxdy(r_out,:) = [dr(r_out) dr(r_out)] .* cs(r_out,:);
         end;
         xymatrix = transpose(xy);
-        
+
         vbl=Screen('Flip', w, vbl + (waitframes-0.5)*ifi);
     end;
     Priority(0);
-    ShowCursor
+    ShowCursor;
     Screen('CloseAll');
 catch
     Priority(0);
-    ShowCursor
+    ShowCursor;
     Screen('CloseAll');
 end
