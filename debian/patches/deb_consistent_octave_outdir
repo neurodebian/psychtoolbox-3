@@ -1,8 +1,8 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -31,6 +31,9 @@ if ~isempty(strfind(computer, '_64'))
- else
+@@ -35,6 +35,9 @@ else
      target = 'PsychBasic/Octave3LinuxFiles/';
+     target4 = 'PsychBasic/Octave4LinuxFiles/';
  end
 +% Debian builds do not support "multiarch" here yet, thus just override with
 +% consistent path
