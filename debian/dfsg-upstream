@@ -6,8 +6,11 @@ set -eu
 RM="git rm --ignore-unmatch"
 FINDREGEX="find -regextype posix-egrep -regex"
 
-{ $FINDREGEX '.*\.(o|dll.*|exe|mex.*|dylib|class)' -print0; \
-  $FINDREGEX '.*\.(old|bak).*' -print0; } | xargs -0 --no-run-if-empty $RM -rf
+{ $FINDREGEX '.*\.(a|so|o|lib|dll.*|exe|mex.*|dylib|class)' -print0; \
+  $FINDREGEX '.*\.(old|bak).*' -print0; \
+  find -iname '.libs' -type d -print0; \
+  find -iname nvstusb-* -print0; \
+} | xargs -0 --no-run-if-empty $RM -rf
 $FINDREGEX '.*((|Mac)OSX|Octave3OSXFiles|Windows|.bundle|.FBCLockFolder)' -print0| xargs -0 --no-run-if-empty $RM -rf
 # more of non-Linux OS specifics
 $RM -rf PsychSourceGL/Cohorts/libusb1-win32
@@ -27,8 +30,11 @@ $RM -f Psychtoolbox/PsychTests/StandaloneTimingProgram Psychtoolbox/.FBCIndex
 # Psychtoolbox/PsychTests/StandaloneTimingTest.m refers StandaloneTimingTest.c which is N/A
 
 # some additional externals: use system ones
-$RM -f ./PsychSourceGL/Cohorts/Kinect-* \
-      ./Psychtoolbox/PsychContributed/Kinect-*-Windows*
+$RM -fr ./PsychSourceGL/Cohorts/Kinect-* \
+    ./Psychtoolbox/PsychContributed/Kinect-*-Windows* \
+    ./PsychSourceGL/Cohorts/OculusSDK \
+    ./PsychSourceGL/Cohorts/freeglut \
+    ./PsychSourceGL/Cohorts/libnvstusb-*
 
 # Binary built against ATI/AMD SDK with questionable
 # redistributability
