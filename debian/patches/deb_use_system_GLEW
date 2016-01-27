@@ -51,7 +51,7 @@
  // with explicit C linkage. Reason: For the Octave version, we need to compile all
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -53,11 +53,11 @@ if mode==0
+@@ -51,11 +51,11 @@ if mode==0
      % incompatible with older Linux distros,  e.g., Debian 6.0:
      if 1
          % Build against system installed GStreamer-1.0+
@@ -65,7 +65,7 @@
      end
      
      unix(['cp ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
-@@ -71,7 +71,7 @@ end
+@@ -65,7 +65,7 @@ end
  if mode==100
      % Build Screen.mex with Wayland display backend, for desktop Linux:
      fprintf('Building Screen() for native Wayland.\n');
@@ -74,7 +74,7 @@
  
      unix(['cp ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
      striplibsfrommexfile([PsychtoolboxRoot target 'Screen.mex']);
-@@ -97,7 +97,7 @@ end
+@@ -83,7 +83,7 @@ end
  if mode==1000
      % Build Screen.mex with Waffle display backend, for embedded/android devices:
      fprintf('Hmm, me likes some mobile Waffle with this Screen :-)\n');
@@ -83,7 +83,7 @@
  
      unix(['cp ../Projects/Linux/build/Screen.mex ' PsychtoolboxRoot target]);
      striplibsfrommexfile([PsychtoolboxRoot target 'Screen.mex']);
-@@ -167,7 +167,7 @@ if mode==6
+@@ -129,7 +129,7 @@ if mode==6
      curdir = pwd;
      cd('../../Psychtoolbox/PsychOpenGL/MOGL/source/')
      try

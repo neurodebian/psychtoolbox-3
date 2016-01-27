@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -36,9 +36,11 @@ end
+@@ -38,9 +38,11 @@ end
  target = 'PsychBasic/Octave3LinuxFiles/';
  
  % Special folder for ARM binaries:

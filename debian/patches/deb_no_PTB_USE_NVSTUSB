@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -53,7 +53,7 @@ if mode==0
+@@ -51,7 +51,7 @@ if mode==0
      % incompatible with older Linux distros,  e.g., Debian 6.0:
      if 1
          % Build against system installed GStreamer-1.0+
