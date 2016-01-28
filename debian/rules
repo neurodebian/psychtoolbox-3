@@ -41,10 +41,10 @@ override_dh_link:
 	  rm -f debian/$$pkg.links; \
 	  set -e; /usr/bin/find debian/$$pkd -name *.$$ext | \
 	  while read f; do \
-		fname=$$(basename $$f); \
+		fname=$$(basename $$f); fdir=$$(dirname $$f); \
 		mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.m); \
 		[ ! -z "$$mfile" ] || mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.mex); \
-		[ ! -z "$$mfile" ] && mdir=$$(dirname $$mfile) || exit 1; \
+		[ ! -z "$$mfile" ] && mdir=$$(dirname $$mfile) || { echo "no $$mfile for ext $$ext fname $$f. skipping";  continue; }; \
 		echo "/usr/lib$${f#*usr/lib}	$$mdir/$$fname" >> debian/$$pkg.links; \
 	  done; };  \
 	link_exts octave-psychtoolbox-3-nonfree mex; \
