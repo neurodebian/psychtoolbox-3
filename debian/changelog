@@ -1,3 +1,12 @@
+psychtoolbox-3 (3.0.12.20160126.dfsg1-2) UNRELEASED; urgency=medium
+
+  * debian/control
+    - remove obsolete recommendation of subversion and recommend alsa-utils
+  * debian/patches/deb_no_so2_stripping  to not link against .so instead of
+    .so.2 for liboctaveinterp (relevant for older Debian/Ubuntus)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 01 Mar 2016 19:59:46 -0500
+
 psychtoolbox-3 (3.0.12.20160126.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release
