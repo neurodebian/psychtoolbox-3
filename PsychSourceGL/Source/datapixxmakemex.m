@@ -5,7 +5,7 @@ function datapixxmakemex()
         CPYCMD = 'cp ';
         DELCMD = 'rm ';
     elseif (IsLinux)
-        if Is64Bit
+        if Is64Bit || IsARM
           VPIXXDIR = '/home/kleinerm/projects/';
         else
           VPIXXDIR = '/media/sf_kleinerm/projects/';
@@ -115,7 +115,6 @@ function datapixxmakemex()
             S = [S ' -L' VPIXXDIR 'VPixx_Software_Tools/libusb_win32/libusb-win32-device-bin-0.1.12.2/lib/msvc_x64 -llibusb'];
         else
             if IsOctave
-                %S = [S ' -L' VPIXXDIR 'VPixx_Software_Tools/libusb_win32/libusb-win32-device-bin-0.1.12.2/lib/gcc libusb.a'];
                 S = [S ' ' VPIXXDIR 'VPixx_Software_Tools/libusb_win32/libusb-win32-device-bin-0.1.12.2/lib/gcc/libusb.a'];
             else
                 S = [S ' -L' VPIXXDIR 'VPixx_Software_Tools/libusb_win32/libusb-win32-device-bin-0.1.12.2/lib/msvc -llibusb'];
@@ -158,12 +157,21 @@ function datapixxmakemex()
                 system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/linux64/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles64'], '/', filesep));
                 striplibsfrommexfile([PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles64/Datapixx.mex']);
             else
-                system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/linux/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles'], '/', filesep));
-                striplibsfrommexfile([PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles/Datapixx.mex']);
+                if IsARM
+                    system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/linux/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFilesARM'], '/', filesep));
+                    striplibsfrommexfile([PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFilesARM/Datapixx.mex']);
+                else
+                    system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/linux/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles'], '/', filesep));
+                    striplibsfrommexfile([PTBDIR 'Psychtoolbox/PsychBasic/Octave3LinuxFiles/Datapixx.mex']);
+                end
             end
         elseif (IsWin)
             system(strrep([DELCMD PTBDIR 'PsychSourceGL/Source/Windows/Base/*.o'], '/', filesep));
-            system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/win32/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave4WindowsFiles'], '/', filesep));
+            if Is64Bit
+                system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/win32/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave4WindowsFiles64'], '/', filesep));
+            else
+                system(strrep([CPYCMD VPIXXDIR 'VPixx_Software_Tools/DatapixxToolbox_trunk/mexdev/build/octave/win32/Datapixx.mex ' PTBDIR 'Psychtoolbox/PsychBasic/Octave4WindowsFiles'], '/', filesep));
+            end
         end
     else
         if (IsOSX(1))           % 64-bit MATLAB on OS X

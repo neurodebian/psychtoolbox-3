@@ -62,12 +62,14 @@ function PsychtoolboxPostInstallRoutine(isUpdate, flavor)
 % 10/05/2014 Add some request for donations at the end. (MK)
 % 10/17/2015 Also add call to PsychStartup() to Octave startup for MS-Windows. (MK)
 % 01/27/2016 Use Octave3 folder for mex files for both Octave-3 and Octave-4. (MK)
+% 03/15/2016 Need liboctave-dev package for symlinks liboctinterp.so -> Octave specific liboctinterp.x.so (MK)
+% 04/01/2016 64-Bit Octave-4 support for MS-Windows established. (MK)
 
 fprintf('\n\nRunning post-install routine...\n\n');
 
 if nargin < 1
    error('PsychtoolboxPostInstallRoutine: Required argument isUpdate missing!');
-end;
+end
 
 if nargin < 2
     % No flavor provided: Default to 'unknown', but try to determine it from the
@@ -85,7 +87,7 @@ if nargin < 2
                     fclose(fd);
                 end
             end
-            
+
             % Still unknown?
             if strcmp(flavor, 'unknown')
                 % Yep: Retry in users PsychtoolboxConfigDir:
@@ -111,7 +113,7 @@ else
         case 'unsupported'
             flavor = 'stable';
     end
-    
+
     % Flavor provided: Write it into the flavor file for use by later update calls:
     try
         flavorfile = [PsychtoolboxRoot 'ptbflavorinfo.txt'];
@@ -146,11 +148,6 @@ try
     end
 catch
     fprintf('Info: Failed to remove .svn subfolders from path. Not a big deal...\n');
-end
-
-% Octave 64-Bit on Windows? This is unsupported as of Version 3.0.12, October 2015.
-if IsWin(1) && IsOctave
-    warning('Use of GNU/Octave-4 64-Bit on MS-Windows with Psychtoolbox 3.0.12 is not yet officially supported. Some stuff may work, other stuff not so much.');
 end
 
 % 32-Bit Octave or 32-Bit Matlab on OSX? This is unsupported as of Version 3.0.11.
@@ -213,7 +210,7 @@ if IsWin
             fprintf('WARNING: Failed to update or create startup file to add a call to PsychStartup()! Trouble ahead.\n');
         end
     end
-    
+
     % Execute our startup function once manually, so it works already for
     % this session:
     PsychStartup;
@@ -231,7 +228,7 @@ if IsOSX
         % Failed to query: Assume we're good for now...
         minorver = inf;
     end
-    
+
     % Is the operating system version < 10.8?
     if minorver < 8
         % Yes. This is MacOSX 10.7 or earlier, i.e., older than 10.8
@@ -280,33 +277,33 @@ if IsOctave
     % the pseudo-MEX files to path:
     rc = 0; %#ok<NASGU>
     rdir = '';
-    
+
     try
         % Remove binary MEX folders from path:
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFiles'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFiles']);
         end
-        
+
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFiles64'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFiles64']);
         end
-        
+
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFilesARM'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3LinuxFilesARM']);
         end
-        
+
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3OSXFiles'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3OSXFiles']);
         end
-        
+
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3OSXFiles64'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3OSXFiles64']);
         end
-        
+
         if exist([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3WindowsFiles'], 'dir')
             rmpath([PsychtoolboxRoot 'PsychBasic' filesep 'Octave3WindowsFiles']);
         end
-        
+
         % Encode prefix and Octave major version of proper folder:
         octavev = sscanf(version, '%i.%i');
         octavemajorv = octavev(1);
@@ -326,15 +323,15 @@ if IsOctave
         if IsLinux
             rdir = [rdir 'LinuxFiles'];
         end
-        
+
         if IsOSX
             rdir = [rdir 'OSXFiles'];
         end
-        
+
         if IsWin
             rdir = [rdir 'WindowsFiles'];
         end
-        
+
         if IsARM
             % ARM processor architecture:
             rdir = [rdir 'ARM'];
@@ -344,10 +341,10 @@ if IsOctave
             % 64 bit Octave. Select 64 bit mex file folder:
             rdir = [rdir '64'];
         end
-        
+
         fprintf(' %s ...\n', rdir);
         addpath(rdir);
-        
+
         rc = savepath;
     catch
         rc = 2;
@@ -363,7 +360,7 @@ if IsOctave
         fprintf('ERROR: Trying to continue but will likely fail soon.\n');
         fprintf('=====================================================================\n\n');
     end
-    
+
     if (IsWin && (octavemajorv < 4)) || (octavemajorv < 3) || (octavemajorv == 3 && octaveminorv < 2)
         fprintf('\n\n=================================================================================\n');
         fprintf('WARNING: Your version %s of Octave is obsolete. We strongly recommend\n', version);
@@ -383,7 +380,7 @@ if IsOctave
         fprintf('=================================================================================\n\n');
         pause;
     end
-    
+
     try
         % Rehash the Octave toolbox cache:
         path(path);
@@ -393,7 +390,7 @@ if IsOctave
         fprintf('WARNING: Rehashing the Octave toolbox cache failed. I may fail and recommend\n');
         fprintf('WARNING: quitting and restarting Octave, then retry.\n');
     end
-    
+
     try
         % Try if WaitSecs MEX file works...
         WaitSecs(0.1);
@@ -401,6 +398,11 @@ if IsOctave
         % Failed! Either screwed setup of path or missing runtime
         % libraries.
         fprintf('ERROR: WaitSecs-MEX does not work, most likely other MEX files will not work either.\n');
+        if ismember(octavemajorv, [3,4]) && IsLinux
+            fprintf('ERROR: Make sure to have the ''liboctave-dev'' package installed, otherwise symlinks\n');
+            fprintf('ERROR: from liboctinterp.so to the liboctinterp library of your Octave installation\n');
+            fprintf('ERROR: might by missing, causing our mex files to fail to load with linker errors.\n');
+        end
         fprintf('ERROR: One reason might be that your version %s of Octave is incompatible. We recommend\n', version);
         fprintf('ERROR: use of the latest stable version of Octave-3 or 4 as announced on the www.octave.org website.\n');
         fprintf('ERROR: Another conceivable reason would be missing or incompatible required system libraries on your system.\n\n');
@@ -408,7 +410,7 @@ if IsOctave
         fprintf('\n\nInstallation aborted. Fix the reported problem and retry.\n\n');
         return;
     end
-    
+
     % End of special Octave setup.
 end
 
@@ -422,11 +424,11 @@ if IsWin && ~IsOctave
         % get called instead of the built-in functions....
         cd(PsychtoolboxRoot);
     end
-    
+
     try
         % Remove DLL folders from path:
         rmpath([PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\']);
-        
+
         % Is this a Release2007a (Version 7.4.0) or later Matlab?
         if ~exist('verLessThan') || verLessThan('matlab', '7.4.0') %#ok<EXIST>
             % This is a pre-R2007a Matlab: No longer supported by V 3.0.10+
@@ -459,7 +461,7 @@ if IsWin && ~IsOctave
         fprintf('ERROR: Trying to continue but will likely fail soon.\n');
         fprintf('=====================================================================\n\n');
     end
-    
+
     try
         % Rehash the Matlab toolbox cache:
         path(path);
@@ -470,7 +472,7 @@ if IsWin && ~IsOctave
         fprintf('WARNING: Rehashing the Matlab toolbox cache failed. I may fail and recommend\n');
         fprintf('WARNING: quitting and restarting Matlab, then retry.\n');
     end
-    
+
     try
         % Try if WaitSecs MEX file works...
         WaitSecs('YieldSecs', 0.1)
@@ -577,7 +579,7 @@ try
 
     % Tell user we're successfully done:
     fprintf('\nDone with post-installation. Psychtoolbox is ready for use.\n\n\n');
-    
+
 catch
     fprintf('\n\n');
     fprintf('Screen() or online registration failed to work for some reason:\n\n');
