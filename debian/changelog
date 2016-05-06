@@ -1,8 +1,11 @@
-psychtoolbox-3-nonfree (3.0.12.20160126-2~ndall) UNRELEASED; urgency=medium
+psychtoolbox-3-nonfree (3.0.12.20160414-1~ndall) neurodebian; urgency=medium
 
   * debian/control
     - remove explicit recommends on versioned gstreamer -- -lib will pull
       in necessary ones
+    - removed explicit dependence on libglew1.9, provided non-free binaries
+      do not dynamically link it, and otherwise we depend on one available
+      on the system
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 01 Feb 2016 18:16:02 -0500
 

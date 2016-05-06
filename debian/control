@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: debhelper (>= 8.0.0), octave-psychtoolbox-3
-Standards-Version: 3.9.3
+Standards-Version: 3.9.8
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychtoolbox-3.git
@@ -38,7 +38,7 @@ Architecture: amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-lib (>= ${source:Version}.dfsg),
          psychtoolbox-3-common (>= ${source:Version}.dfsg),
-         libx11-6, libxext6, libxfixes3, libxi6, freeglut3, libglew1.9,
+         libx11-6, libxext6, libxfixes3, libxi6, freeglut3,
          libgl1-mesa-glx, libxmu6, libxpm4,
 Recommends: libasound2, libdc1394-22, libfreenect0.1,
             libglib2.0-0, libglu1-mesa,
