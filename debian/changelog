@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.12.20160514.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream (primarily optimizations) release:
+    - should be able to drive PROPixx at 1440 fps on Debian-8
+    - various compat fixes / optimizations for for RaspberryPi/Raspian
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 15 May 2016 17:30:27 -0400
+
 psychtoolbox-3 (3.0.12.20160414.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream (largely bugfix) release
