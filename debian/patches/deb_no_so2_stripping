@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/striplibsfrommexfile.m
 +++ b/PsychSourceGL/Source/striplibsfrommexfile.m
-@@ -46,15 +46,16 @@ if exist(filename, 'file')
+@@ -46,21 +46,22 @@ if exist(filename, 'file')
      image = stripLibrary(image, 'libcruft');
      image = stripLibrary(image, 'liboctave');
  
@@ -11,9 +11,15 @@
 -        % liboctinterp's so-name/version has changed, the api/abi of
 -        % Octave-4's C-Mex interface has not changed. Or so we hope until proven
 -        % wrong...
--        image = renameLibrary(image, 'liboctinterp.so.2', 'liboctinterp.so');
+-        if str2num(version ()(1)) == 4
+-            % Octave 4.x - liboctinterp.so.3:
+-            image = renameLibrary(image, 'liboctinterp.so.3', 'liboctinterp.so');
+-        else
+-            % Octave 3.8.x, maybe earlier Octave 3.x.y as well - liboctinterp.so.2:
+-            image = renameLibrary(image, 'liboctinterp.so.2', 'liboctinterp.so');
+-        end
 -    end
-+%    yoh: no need on a sane system
++%    yoh: no need on a sane system-specific build
 +%    if alsorenameit
 +%        % Rename the following libraries in image: We rename from .so.2 to .so,
 +%        % to make these mex files built on/against Octave-3 compatible with
@@ -21,7 +27,13 @@
 +%        % liboctinterp's so-name/version has changed, the api/abi of
 +%        % Octave-4's C-Mex interface has not changed. Or so we hope until proven
 +%        % wrong...
-+%        image = renameLibrary(image, 'liboctinterp.so.2', 'liboctinterp.so');
++%        if str2num(version ()(1)) == 4
++%            % Octave 4.x - liboctinterp.so.3:
++%            image = renameLibrary(image, 'liboctinterp.so.3', 'liboctinterp.so');
++%        else
++%            % Octave 3.8.x, maybe earlier Octave 3.x.y as well - liboctinterp.so.2:
++%            image = renameLibrary(image, 'liboctinterp.so.2', 'liboctinterp.so');
++%        end
 +%    end
  
      % Write stripped image:
