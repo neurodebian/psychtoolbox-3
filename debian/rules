@@ -94,7 +94,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
       -e Contents -e Stereo -e Serial -e PsychCV \
       -e Cedrus -e BitsPlus -e Kinect -e GPGPU -e DualHeads -e DaqTest \
       -e Matlab -e FitCumNormYNTest -e OSAUCSTest -e FitGammaPow -e FitGammaDemo \
-      -e DirectInputMonitoringTest \
+      -e DirectInputMonitoringTest -e PosterBatchAnalyzeTimestamps \
 	  -e OldNewReco -e AlphaImageDemo/[^A] \
       -e ClutAnimDemo -e MinimumMotionExp -e AdditiveBlendingForLinearSuperpositionTutorial \
       -e ImagingVideoCaptureDemo -e AudioTunnel3DDemo \
