@@ -7,7 +7,7 @@
 +all: patch-stamp build
 +
 +configure-stamp:
-+	cd portaudio; mkdir -p lib; \
++	cd portaudio; cp -f /usr/share/misc/config.sub .; cp -f /usr/share/misc/config.guess .; mkdir -p lib; \
 +	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --disable-shared --without-jack --without-asiodir
 +	$(MAKE) -C portaudio clean || :
 +	touch $@

@@ -32,6 +32,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync, quilt,
                xvfb, xauth, libgl1-mesa-dri, xdotool,
                pulseaudio-utils, octave-image,
                gnuplot-nox | gnuplot,
+               autotools-dev
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1), libglew-dev (= 1.9.0.is.1.8.0-0ubuntu2)
 Standards-Version: 3.9.6
 Homepage: http://psychtoolbox.org
