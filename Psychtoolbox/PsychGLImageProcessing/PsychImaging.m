@@ -619,7 +619,7 @@ function [rc, winRect] = PsychImaging(cmd, varargin)
 %   with 10 bit precision per color channel (10 bpc / 30 bpp / "Deep color")
 %   on graphics hardware that supports native 10 bpc framebuffers.
 %
-%   Many graphics cards of the professional class AMD/ATI Fire series 
+%   Many graphics cards of the professional class AMD/ATI Fire series
 %   (2008 models and later) and all current models of the professional class
 %   NVidia Quadro series (2008 models and later), as well as all current models
 %   of the consumer class NVidia GeForce series under Linux, do support 10 bpc
@@ -689,15 +689,14 @@ function [rc, winRect] = PsychImaging(cmd, varargin)
 %   capable displays on Linux, and maybe also on MS-Windows. All AMD graphics cards of model
 %   Radeon HD-5000 or later (and equivalent Fire-Series models) can output to HDMI deep color
 %   capable displays with 10 bpc real precision at least if you use a Linux kernel of version 3.16
-%   or later with the open-source AMD graphics drivers. At least on Linux 3.16 you will need to add
-%   the kernel command line option "radeon.deep_color=1" to the kernel boot loader options, e.g.,
-%   by editing /etc/default/grub and running "sudo update-grub2" afterwards. This because deep
-%   color output is disabled by default, to work around various broken hdmi display devices.
+%   or later with the open-source AMD graphics drivers. Run PsychLinuxConfiguration to set up
+%   this >= 10 bpc deep color output mode, then reboot your machine once to enable it.
 %
 %   The status with the proprietary AMD drivers on Linux or on MS-Windows is unknown.
 %   Apple OSX 10.9 and earlier do not support any high precision video output over any digital
 %   output, neither DVI-D, nor DisplayPort or HDMI. All you'll get at best on OSX is simulated > 8
-%   bpc via dithering.
+%   bpc via dithering. Apple OSX 10.11 and later will disable / sabotage our support to even
+%   provide 10 bpc via simulation or over VGA output.
 %
 %   Usage: PsychImaging('AddTask', 'General', 'EnableNative10BitFramebuffer' [, disableDithering=0]);
 %
@@ -742,15 +741,17 @@ function [rc, winRect] = PsychImaging(cmd, varargin)
 %   need 33 bits per pixel, and current graphics hardware can't handle that.
 %
 %   How many bits of precision of these ~ 11 bpc actually reach your display device?
+%
 %   - Analog VGA only provides for maximum 10 bpc output precision on all shipping
 %     NVidia and AMD graphics cards. Intel graphics cards only allow for 8 bpc.
+%
 %   - DisplayPort or HDMI might allow for transfer of 11 bpc precision, in general they
 %     support up to 12 bpc. However additional hardware restrictions for your graphics
 %     card may limit precision to as low as 10 bpc. To our knowledge, only AMD graphics
 %     cards support ~ 11 bpc framebuffers at all. Radeon HD-7000 and earlier can only
 %     truly process up to 10 bpc, so 'EnableNative11BitFramebuffer' may not gain you any
 %     precision over 'EnableNative10BitFramebuffer' in practice on these cards. AMD cards
-%     of the "Sea Islands" family or later, mostly models from the year 2014, should be able
+%     of the "Sea Islands" family or later, mostly models from the year >= 2014, should be able
 %     to process and output up to 12 bpc over HDMI or DisplayPort, so they'd be able to output
 %     true ~11 bpc images. However, this hasn't been verified by us so far due to lack of
 %     suitable hardware.
@@ -776,7 +777,10 @@ function [rc, winRect] = PsychImaging(cmd, varargin)
 %   precision is further limited to < 16 bpc by your display, video connection and specific model
 %   of graphics card. As of September 2014, the maximum effective output precision is limited
 %   to 12 bpc (4096 levels of red, green and blue) by the graphics card, and this precision is only
-%   attainable on the latest generation of AMD graphics cards of the so called "Sea Islands" family.
+%   attainable on AMD graphics cards of the so called "Southern Islands" family when used with the
+%   radeon-kms display driver. Any older or more recent cards, e.g., "Sea Islands" or "Volcanic Islands"
+%   will not work with this hack.
+%
 %   High bit depth output only works over HDMI or DisplayPort, and may be further restricted by
 %   your specific display device, so measure your results carefully! See the sections about 11 bpc and
 %   10 bpc native framebuffers above for further details.
@@ -1918,7 +1922,7 @@ if strcmpi(cmd, 'OpenWindow')
                     colorcorrectionmethod = reqs{row, 3};
 
                     if isempty(colorcorrectionmethod) || ~ischar(colorcorrectionmethod)
-                        Screen('CloseAll');
+                        sca;
                         error('PsychImaging: Name of color correction method for ''DisplayColorCorrection'' missing or not of string type!');
                     end
 
@@ -2035,12 +2039,12 @@ if strcmpi(cmd, 'OpenWindow')
         slavescreenid = reqs{rows, 3};
 
         if isempty(slavescreenid)
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging MirrorDisplayTo2ndOutputHead: You must provide the index of the secondary screen "slavescreen"!');
         end
         
         if ~any(ismember(Screen('Screens'), slavescreenid))
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging MirrorDisplayTo2ndOutputHead: You must provide the index of a valid secondary screen "slavescreen"!');
         end
         
@@ -2050,7 +2054,7 @@ if strcmpi(cmd, 'OpenWindow')
         end
         
         if stereomode == 1
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging MirrorDisplayTo2ndOutputHead: Tried to simultaneously enable frame-sequential stereomode 1! This is not supported.');
         end
         
@@ -2077,22 +2081,22 @@ if strcmpi(cmd, 'OpenWindow')
         slavescreenid = reqs{rows, 3};
 
         if isempty(slavescreenid)
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging EnableDualPipeHDROutput: You must provide the index of the secondary screen "slavescreen"!');
         end
         
         if ~any(ismember(Screen('Screens'), slavescreenid))
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging EnableDualPipeHDROutput: You must provide the index of a valid secondary screen "slavescreen"!');
         end
         
         if stereomode == 1
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging EnableDualPipeHDROutput: Tried to simultaneously enable frame-sequential stereomode 1! This is not supported.');
         end
         
         if stereomode == 10
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging EnableDualPipeHDROutput: Tried to simultaneously enable dual display output stereomode 10! This is not supported.');
         end
         
@@ -2118,12 +2122,12 @@ if strcmpi(cmd, 'OpenWindow')
         slavescreenid = reqs{rows, 3};
 
         if isempty(slavescreenid)
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging DualWindowStereo: You must provide the index of the secondary screen "slavescreen"!');
         end
         
         if ~any(ismember(Screen('Screens'), slavescreenid))
-            Screen('CloseAll');
+            sca;
             error('In PsychImaging DualWindowStereo: You must provide the index of a valid secondary screen "slavescreen"!');
         end
 
@@ -2137,7 +2141,7 @@ if strcmpi(cmd, 'OpenWindow')
     end
     
     % Matlab? Does the Java swing cleanup function exist?
-    if ~IsOctave && exist('PsychJavaSwingCleanup', 'file')
+    if exist('PsychJavaSwingCleanup', 'file')
         % Attach a window close callback for cleanup of Java's memory
         % management mess at window close time when Matlab with Java based
         % GUI is in use:
@@ -2202,7 +2206,7 @@ if strcmpi(cmd, 'RestrictProcessingToROI')
     % in time exactly one such ROI can be active for a chain:
 
     if nargin < 4
-        Screen('CloseAll');
+        sca;
         error('You must provide all parameters for subfunction "RestrictProcessingToROI!"');
     end
     
@@ -2210,7 +2214,7 @@ if strcmpi(cmd, 'RestrictProcessingToROI')
     win = varargin{1};
     
     if ~isscalar(win) || ~isnumeric(win) || Screen('WindowKind', win) ~= 1
-        Screen('CloseAll');
+        sca;
         error('Provided window parameter for subfunction "RestrictProcessingToROI!" is not the handle of a valid onscreen window!');
     end
     
@@ -2224,7 +2228,7 @@ if strcmpi(cmd, 'RestrictProcessingToROI')
     scissorrect = varargin{3};
     
     if size(scissorrect,1)~=1 || size(scissorrect,2)~=4
-        Screen('CloseAll');
+        sca;
         error('Command "RestrictProcessingToROI" in channel %s expects a 1-by-4 ROI rectangle to define the ROI, e.g, [left top right bottom]!', whichView);
     end
 
@@ -2275,7 +2279,7 @@ if strcmpi(cmd, 'UnrestrictProcessing')
     % runtime function. Each invocation will search the given channel if
     % such a command exists, then delete it if so.
     if nargin < 3
-        Screen('CloseAll');
+        sca;
         error('You must provide all parameters for subfunction "UnrestrictProcessing!"');
     end
     
@@ -2283,7 +2287,7 @@ if strcmpi(cmd, 'UnrestrictProcessing')
     win = varargin{1};
     
     if ~isscalar(win) || ~isnumeric(win) || Screen('WindowKind', win) ~= 1
-        Screen('CloseAll');
+        sca;
         error('Provided window parameter for subfunction "UnrestrictProcessing!" is not the handle of a valid onscreen window!');
     end
     
@@ -3276,7 +3280,7 @@ if ~isempty(floc)
             end
             
             if ~isnumeric(nClutSlots)
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Number of clut slots parameter for ''EnableCLUTMapping'' missing or not of numeric type!');
             end
 
@@ -3369,7 +3373,7 @@ if ~isempty(floc)
             PixelOffset = reqs{row, 3};
             
             if isempty(PixelOffset) || ~isnumeric(PixelOffset)
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Parameter for ''AddOffsetToImage'' missing or not of numeric type!');
             end
             
@@ -3382,7 +3386,7 @@ if ~isempty(floc)
                 PixelGain = 1;
             else
                 if ~isnumeric(PixelGain)
-                    Screen('CloseAll');
+                    sca;
                     error('PsychImaging: Optional Gain-Parameter for ''AddOffsetToImage'' not of numeric type!');
                 end
             end
@@ -3395,7 +3399,7 @@ if ~isempty(floc)
                 PixelPreOffset = 0;
             else
                 if ~isnumeric(PixelPreOffset)
-                    Screen('CloseAll');
+                    sca;
                     error('PsychImaging: Optional "Offset before Gain"- PrescaleParameter for ''AddOffsetToImage'' not of numeric type!');
                 end
             end
@@ -3465,7 +3469,7 @@ if ~isempty(floc)
             calibfilename = reqs{row, 3};
             
             if isempty(calibfilename)
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Parameter for ''GeometryCorrection'' missing!');
             end
             
@@ -3487,7 +3491,7 @@ if ~isempty(floc)
                 % calibration file: Just pass it to CreateDisplayWarp(),
                 % after some parameter validation:
                 if ischar(calibfilename) && ~exist(calibfilename, 'file')
-                    Screen('CloseAll');
+                    sca;
                     error('PsychImaging: Passed an argument to ''GeometryCorrection'' which is not a valid name of an accessible calibration file!');
                 end
             
@@ -3518,7 +3522,7 @@ if ~isempty(floc)
                 gld = warpstruct.gld;
                 if ~glIsList(gld)
                     % Game over:
-                    Screen('CloseAll');
+                    sca;
                     error('PsychImaging: Passed a handle to ''GeometryCorrection'' which is not a valid OpenGL display list!');
                 end
 
@@ -3680,7 +3684,7 @@ if ~isempty(floc)
                 end
             else
                 % Game over:
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Passed a handle for a not yet implemented display undistortion method!');
             end
         end
@@ -3700,7 +3704,7 @@ if ~isempty(find(mystrcmp(reqs, 'InterleavedLineStereo')))
     startright = reqs{rows, 3};
 
     if startright~=0 && startright~=1
-        Screen('CloseAll');
+        sca;
         error('PsychImaging: The "startright" parameter must be zero or one!');
     end
     
@@ -3737,7 +3741,7 @@ if ~isempty(find(mystrcmp(reqs, 'InterleavedColumnStereo')))
     startright = reqs{rows, 3};
 
     if startright~=0 && startright~=1
-        Screen('CloseAll');
+        sca;
         error('PsychImaging: The "startright" parameter must be zero or one!');
     end
     
@@ -3867,7 +3871,7 @@ if ~isempty(floc)
             colorcorrectionmethod = reqs{row, 3};
             
             if isempty(colorcorrectionmethod) || ~ischar(colorcorrectionmethod)
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Name of color correction method for ''DisplayColorCorrection'' missing or not of string type!');
             end
 
@@ -4105,7 +4109,7 @@ if ~isempty(find(mystrcmp(reqs, 'NormalizedHighresColorRange')))
     applyAlsoToMakeTexture = reqs{row, 3};
     if ~isempty(applyAlsoToMakeTexture)
         if ~isnumeric(applyAlsoToMakeTexture) || ~ismember(applyAlsoToMakeTexture, [0, 1])
-            Screen('CloseAll');
+            sca;
             error('In NormalizedHighresColorRange: Invalid applyAlsoToMakeTexture flag specified. Must be 0 or 1.');
         end
     else
@@ -4118,7 +4122,7 @@ end
 floc = find(mystrcmp(reqs, 'StereoCrosstalkReduction'));
 if ~isempty(floc)
     if winfo.StereoMode == 0
-        Screen('CloseAll');
+        sca;
         error('PsychImaging task ''StereoCrosstalkReduction'' requested, but no suitable stereomode active?! Aborted.');
     end
 
@@ -4279,7 +4283,7 @@ if ~isempty(floc)
     end
     
     if isempty(lut) || ~isnumeric(lut)
-        Screen('CloseAll');
+        sca;
         error('PsychImaging: Mandatory lookup table parameter lut for ''EnableGenericHighPrecisionLuminanceOutput'' missing or not of numeric type!');
     end
 
@@ -4338,12 +4342,12 @@ if ~isempty(floc)
         btrr = PsychVideoSwitcher('GetDefaultConfig', win);
     else
         if ~isnumeric(btrr) || ~isscalar(btrr)
-            Screen('CloseAll');
+            sca;
             error('PsychImaging: Optional "btrr" parameter for VideoSwitcher output not of numeric scalar type!');
         end
         
         if btrr < 0
-            Screen('CloseAll');
+            sca;
             error('PsychImaging: Optional "btrr" parameter for VideoSwitcher output is negative -- Impossible!');
         end
     end
@@ -4361,7 +4365,7 @@ if ~isempty(floc)
         VideoSwitcherTriggerflag = 0;
     else
         if ~isnumeric(VideoSwitcherTriggerflag) || ~isscalar(VideoSwitcherTriggerflag)
-            Screen('CloseAll');
+            sca;
             error('PsychImaging: Optional "trigger" parameter for VideoSwitcher output not of numeric scalar type!');
         end
         
@@ -4399,7 +4403,7 @@ if ~isempty(floc)
             [dummy, lut] = PsychVideoSwitcher('GetDefaultConfig', win);
         else
             if ~isa(lut, 'double') || ~isvector(lut) || length(lut)~=257
-                Screen('CloseAll');
+                sca;
                 error('PsychImaging: Lookup table parameter lut for VideoSwitcher output invalid: Must be a vector of double values with 257 elements!');
             end
         end

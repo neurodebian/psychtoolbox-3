@@ -183,6 +183,12 @@ function varargout = CMUBox(cmd, handle, varargin)
 % 13.02.2012 mk  Update with support for Cedrus Lumina, based on
 %                information provided by some user named "Nick".
 % 19.03.2015 mk  Add some setup tips for MS-Windows + serial ports.
+% 01.07.2016 mk  Increase maximum allowable ScanInterval from 2 msecs to
+%                3 msecs. Some MS-Windows systems with FTDI Serial-to-USB
+%                converter go mildly above 2 msecs, e.g. by a few microseconds.
+%                Be tolerant and accept up to 3 msecs before reporting trouble.
+% 21.07.2016 mk  Add GetMouse calls in 'GetEvent' loop to avoid app-not-responding
+%                timeout problems on MS-Windows Vista+.
 
 % Cell array of structs for our boxes: One cell for each open box.
 persistent boxes;
@@ -238,6 +244,12 @@ if strcmpi(cmd, 'GetEvent')
     % for new events is requested, or - in non-blocking mode - new status
     % bytes from the box are available to parse:
     while (waitEvent > 0) || (IOPort('BytesAvailable', box.port) >= 9)
+        % A tribute to Windows: A useless call to GetMouse to trigger
+        % Screen()'s Windows application event queue processing to avoid
+        % white-death due to hitting the "Application not responding" timeout:
+        if IsWin
+            GetMouse;
+        end
 
         % Wait blocking for at least one status packet of 9 bytes from box:
         [inpkt, t, err] = IOPort('Read', box.port, 1, 9);
@@ -277,11 +289,11 @@ if strcmpi(cmd, 'GetEvent')
         if box.useBitwhacker && ismember(data, [0, 10, 13])
             continue;
         end
-        
-        % Timestamps at least 0.5 msecs apart and no more than 2 msecs
+
+        % Timestamps at least 0.5 msecs apart and no more than 3 msecs
         % apart? This window should be sufficient for the CMU and PST box
         % in all streaming modes:
-        if (t - box.oldTime < 0.0005) || (box.deltaScan < 0.0005) || ((box.deltaScan > 0.002) && (box.Streaming > 0))
+        if (t - box.oldTime < 0.0005) || (box.deltaScan < 0.0005) || ((box.deltaScan > 0.003) && (box.Streaming > 0))
             % Too close to each other! Timestamp is not reliable!
             tTrouble = 1;
             fprintf('CMUBox: GetEvent: Timestamp trouble!! Delta %f msecs, ScanInterval %f msecs.\n', 1000 * (t - box.oldTime), 1000 * box.deltaScan); 
