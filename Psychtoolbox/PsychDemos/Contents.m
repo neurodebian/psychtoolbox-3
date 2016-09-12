@@ -83,6 +83,7 @@
 %    ProceduralGarboriumDemo - Same as GarboriumDemo, just with procedural gabor drawing.
 %    ProceduralNoiseDemo     - Demo for fast drawing of noise patches via procedural texturing.
 %    PsychRTBoxDemo          - Demonstrates basic use of the RTBox reaction time button response box.
+%    RaspberryPiGPIODemo     - Show basic use of GPIO's on a RaspberryPi running Raspian GNU/Linux.
 %    ReceivingTriggerFromSerialPortDemo - Template for asynchronous trigger collection and timestamping from serial port.
 %    RenderDemo              - Render CIE xyY as a color patch.
 %    SadowskiDemo            - Shows the "Sadowski" color afterimage effect.
@@ -99,6 +100,7 @@
 %    VideoCaptureToMatlabDemo - Demo of returning live captured video to Octave or Matlab as image matrices.
 %    VideoDelayLoopMiniDemo  - Delayed visual feedback with controllable delay.
 %    VideoDVCamCaptureDemo   - Demonstrate video capture and recording from DV consumer cameras.
+%    VideoIPWebcamCaptureDemo - Demo video capture from an Android device via the Android IPWebcam app.
 %    VideoMultiCameraCaptureDemo - Demo of time-synchronized high-perf capture and recording from multiple firewire cameras on Linux and OSX.
 %    VideoOfflineCaptureDemo - Capture video into internal memory, then return it after stop of capture.
 %    VideoRecordingDemo      - Record captured video to movie files, possibly with audio.

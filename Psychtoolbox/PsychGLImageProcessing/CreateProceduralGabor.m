@@ -1,5 +1,5 @@
-function [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height, nonSymmetric, backgroundColorOffset, disableNorm, contrastPreMultiplicator)
-% [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height [, nonSymmetric=0][, backgroundColorOffset =(0,0,0,0)][, disableNorm=0][, contrastPreMultiplicator=1])
+function [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height, nonSymmetric, backgroundColorOffset, disableNorm, contrastPreMultiplicator, validModulationRange)
+% [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height [, nonSymmetric=0][, backgroundColorOffset =(0,0,0,0)][, disableNorm=0][, contrastPreMultiplicator=1][, validModulationRange=[-2,2]])
 %
 % Creates a procedural texture that allows to draw Gabor stimulus patches
 % in a very fast and efficient manner on modern graphics hardware.
@@ -40,12 +40,35 @@ function [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height, 
 % definition of a gabor. Therefore we allow to disable this normalization.
 %
 % 'contrastPreMultiplicator' Optional, defaults to 1. This value is
-% multiplied as a scaling factor to the requested contrast value. If you
-% set the 'disableNorm' parameter to 1 to disable the builtin normf
+% multiplied as a scaling factor to the requested contrast value.
+%
+% 'validModulationRange' Optional, defaults to [-2, +2]. The range of gabor
+% modulation values to which the gabr is clamped. As this can vary only in
+% the range -1 to +1, the default setting of -2 <= x <= +2 means to not apply
+% any restriction/clamping. If you'd set it to, e.g., [0, 2] then you would not
+% allow negative values in the output gabor patch, only the positive "half-wave".
+% This is important when adding colors to gabors, according to practitioners of
+% the field.
+%
+%
+% Michelson contrast:
+%
+% If you use the normalized 0-1 color range and select 'modulateColor' below
+% as unit values, e.g., modulateColor = [1 1 1 0], and leave globalAlpha out
+% or set it to its 1.0 default, then the following seems to apply:
+%
+% If you set the 'disableNorm' parameter to 1 to disable the builtin normf
 % normalization and then specify contrastPreMultiplicator = 0.5 then the
 % per gabor 'contrast' value will correspond to what practitioners of the
-% field usually understand to be the contrast value of a gabor.
-%
+% field usually understand to be the contrast value of a gabor. Specifically,
+% assuming a 0.5 (=50%) gray background and a properly gamma corrected /
+% linearized display, the 'contrast' value, as described below, that you
+% pass to Screen('DrawTexture',...) will then allow to directly specify
+% Michelson contrast: 'contrast' = (Imax - Imin) / (Imin + Imax)
+% of course assuming isolated, non-superimposing gabors, so the Michelson
+% contrast corresponds to the maxima and minima of the gabor patch under
+% a suitable phase shift, where the minimum or maximum of the patch lies
+% in the center of the patch.
 %
 % The function returns a procedural texture handle 'gaborid' that you can
 % pass to the Screen('DrawTexture(s)', windowPtr, gaborid, ...) functions
@@ -108,6 +131,7 @@ function [gaborid, gaborrect] = CreateProceduralGabor(windowPtr, width, height, 
 % 01/03/2008 Enable support for asymmetric gabor shading. (MK)
 % 03/01/2009 Add 'disableNorm' flag to allow disabling of normalization term (MK).
 % 09/03/2010 Add 'contrastPreMultiplicator' as suggested by Xiangrui Li (MK).
+% 09/06/2016 Add 'validModulationRange' as suggested by Taylor Hanayik (MK).
 
 debuglevel = 1;
 
@@ -146,6 +170,15 @@ if nargin < 7 || isempty(contrastPreMultiplicator)
     contrastPreMultiplicator = 1.0;
 end
 
+if nargin < 8 || isempty(validModulationRange)
+    validModulationRange = [-2, 2];
+end
+
+if ~isnumeric(validModulationRange) || ~isreal(validModulationRange) || length(validModulationRange) ~= 2 || ...
+    validModulationRange(1) >= validModulationRange(2)
+    error('The "validModulationRange" parameter must be a 2-element vector of real numbers [minval, maxval], minval < maxval!');
+end
+
 if ~nonSymmetric
     % Load standard symmetric support shader - Faster!
     gaborShader = LoadGLSLProgramFromFiles('BasicGaborShader', debuglevel);
@@ -167,6 +200,7 @@ glUniform1f(glGetUniformLocation(gaborShader, 'disableNorm'), disableNorm);
 
 % Apply contrast premultiplier:
 glUniform1f(glGetUniformLocation(gaborShader, 'contrastPreMultiplicator'), contrastPreMultiplicator);
+glUniform2f(glGetUniformLocation(gaborShader, 'validModulationRange'), validModulationRange(1), validModulationRange(2));
 
 % Setup done:
 glUseProgram(0);

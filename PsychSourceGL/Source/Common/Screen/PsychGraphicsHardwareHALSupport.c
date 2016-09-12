@@ -887,6 +887,11 @@ unsigned int PsychGetNVidiaGPUType(PsychWindowRecordType* windowRecord)
             // Maxwell: GeForce 750+ series: 3rd gen scanout engine, up to 4 CRTC's.
             card_type = 0x110;
             break;
+        case 0x130:
+            // Pascal: GeForce 1000+ series: 3rd gen scanout engine, up to 4 CRTC's.
+            card_type = 0x130;
+            break;
+
         default:
             printf("PTB-DEBUG: Unknown NVidia chipset 0x%08x - Assuming latest generation.\n", reg0);
             card_type = 0x000;
@@ -1125,21 +1130,21 @@ void PsychGetBeamposCorrection(int screenId, int *vblbias, int *vbltotal)
  */
 void PsychSetBeamposCorrection(int screenId, int vblbias, int vbltotal)
 {
-    // Need head id of primary crtc of this screen for auto-detection:
+    int gpuMaintype;
     int crtcid = PsychScreenToCrtcId(screenId, 0);
 
-    // Auto-Detection of correct values requested? A valid OpenGL context must
-    // be bound for this to work or we will crash horribly:
+    // Auto-Detection of correct values requested?
     if (((unsigned int) vblbias == 0xffffffff) && ((unsigned int) vbltotal == 0xffffffff)) {
         // First set'em to neutral safe values in case we fail our auto-detect:
         vblbias  = 0;
         vbltotal = 0;
 
-        // Can do this on NVidia GPU's >= NV-50 if low-level access (PTB kernel driver or equivalent) is enabled:
-        if ((strstr((char*) glGetString(GL_VENDOR), "NVIDIA") || strstr((char*) glGetString(GL_VENDOR), "nouveau") ||
-            strstr((char*) glGetString(GL_RENDERER), "NVIDIA") || strstr((char*) glGetString(GL_RENDERER), "nouveau")) &&
-            PsychOSIsKernelDriverAvailable(screenId)) {
+        // Get model of display gpu, which provides beamposition:
+        gpuMaintype = kPsychUnknown;
+        PsychGetGPUSpecs(screenId, &gpuMaintype, NULL, NULL, NULL);
 
+        // Can do this on NVidia GPU's >= NV-50 if low-level access (PTB kernel driver or equivalent) is enabled:
+        if ((gpuMaintype == kPsychGeForce) && PsychOSIsKernelDriverAvailable(screenId)) {
             // Need to read different regs, depending on GPU generation:
             if ((PsychGetNVidiaGPUType(NULL) >= 0x0d0) || (PsychGetNVidiaGPUType(NULL) == 0x0)) {
                 // Auto-Detection. Read values directly from NV-D0 / E0-"Kepler" class and later hardware:
@@ -1198,9 +1203,7 @@ void PsychSetBeamposCorrection(int screenId, int vblbias, int vbltotal)
             }
         }
 
-        if ((strstr((char*) glGetString(GL_VENDOR), "INTEL") || strstr((char*) glGetString(GL_VENDOR), "Intel") ||
-            strstr((char*) glGetString(GL_RENDERER), "INTEL") || strstr((char*) glGetString(GL_RENDERER), "Intel")) &&
-            PsychOSIsKernelDriverAvailable(screenId)) {
+        if ((gpuMaintype == kPsychIntelIGP) && PsychOSIsKernelDriverAvailable(screenId)) {
             #if PSYCH_SYSTEM != PSYCH_WINDOWS
             vblbias = 0;
 
