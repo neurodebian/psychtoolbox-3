@@ -1,5 +1,6 @@
-psychtoolbox-3 (3.0.12.20160514.dfsg1-2) UNRELEASED; urgency=medium
+psychtoolbox-3 (3.0.13.20160910.dfsg1-1) unstable; urgency=medium
 
+  * Fresh upstream release
   * Patch from Ubuntu (via Steve Langasek, Thanks!) to update autotools
     within shipped copy of pulseaudio (Closes: #727951)
 
