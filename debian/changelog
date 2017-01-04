@@ -1,9 +1,9 @@
-psychtoolbox-3 (3.0.14.20170103.dfsg1-1) unstable; urgency=medium
+psychtoolbox-3 (3.0.14.20170103+git6-g605ff5c.dfsg1-1) unstable; urgency=medium
 
-  * Fresh upstream release
+  * Fresh upstream release + few post release fixes snapshot
   * debian/patches/deb_no_PTB_USE_NVSTUSB -- refreshed
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 04 Jan 2017 13:25:49 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 04 Jan 2017 16:35:51 -0500
 
 psychtoolbox-3 (3.0.13.20160910.dfsg1-1) unstable; urgency=medium
 
