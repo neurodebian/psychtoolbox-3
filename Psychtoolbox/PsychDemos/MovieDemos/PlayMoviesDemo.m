@@ -55,6 +55,12 @@ function PlayMoviesDemo(moviename, backgroundMaskOut, tolerance, pixelFormat, ma
 % 08/03/12  mk  Add 'maxThreads' parameter.
 % 06/17/13  mk  Add new (c)ool movies, remove Apple PRopaganda videos, cleanup.
 
+if IsWin && ~IsOctave && psychusejava('jvm')
+    fprintf('Running on Matlab for Microsoft Windows, with JVM enabled!\n');
+    fprintf('This may crash. See ''help GStreamer'' for problem and workaround.\n');
+    warning('Running on Matlab for Microsoft Windows, with JVM enabled!');
+end
+
 theanswer = [];
 
 if (nargin < 1) || isempty(moviename)
@@ -184,11 +190,6 @@ try
         moviefiles(end+1).name = 'http://video.fosdem.org/2012/maintracks/k.1.105/Wayland.webm';
         moviefiles(end).url = 'http://video.fosdem.org/2012';
         moviefiles(end).credits = 'FOSDEM 2012 talk about Linux''s next generation graphics display server "Wayland"';
-        
-        % ELC 2012 talk: Gstreamer-1.0 No-longer-compromise-flexibility-for-performance:
-        moviefiles(end+1).name = 'http://d17mmld7179ppq.cloudfront.net/gstreamer-10-no-longer-compromise-flexibility-for-performance_52ca47/hd_ready.webm';
-        moviefiles(end).url = '';
-        moviefiles(end).credits = 'ELC 2012 talk about GStreamer - 1.0';
         
         % Count all movies in our playlist:
         moviecount = size(moviefiles,2);

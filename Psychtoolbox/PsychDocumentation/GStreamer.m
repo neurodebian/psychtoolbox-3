@@ -40,8 +40,8 @@
 %
 % You must install GStreamer if you want to use multi-media functions!
 % You must also install GStreamer if you want to use the high-quality text
-% renderer on Windows with Matlab, instead of the lower quality legacy GDI
-% text renderer.
+% renderer on Windows with Matlab, which provides consistent text rendering
+% with OSX and Linux, instead of the lower quality legacy GDI text renderer.
 %
 % If you don't intend to use such functionality then installation of
 % GStreamer is optional. Screen will work normally, but abort with an error
@@ -50,25 +50,28 @@
 % functionality or not, as the Screen() mex file won't work at all without GStreamer
 % installed.
 %
+% NOTE: Many Matlab versions on MS-Windows show instable behavior with GStreamer,
+% e.g., crashing in SimpleMovieDemo and other demos that use GStreamer, unless
+% they are used without the Graphical user interface and without Java. That means
+% you need to start Matlab with the -nojvm command line switch, ie. matlab.exe -nojvm.
+% See also: https://github.com/Psychtoolbox-3/Psychtoolbox-3/wiki/FAQ#how-to-resolve-gstreamer-problems
+%
+%
 % Download and install the latest 64-Bit ("x86_64") GStreamer runtimes from:
 %
 % <http://gstreamer.freedesktop.org/download/>
 %
 % You should check for and install the latest runtime packages available for your
 % system for best reliability and performance. However, as a convenience, at time
-% of this writing (April 2016) the required downloads would be:
+% of this writing (January 2017) the required downloads would be:
 %
-% For MS-Windows: 64-Bit Intel runtime v1.8.0 for use with 64-Bit Matlab/Octave.
+% For MS-Windows: 64-Bit Intel runtime v1.10.2 for use with 64-Bit Matlab/Octave.
 %
-% <http://gstreamer.freedesktop.org/data/pkg/windows/1.8.0/gstreamer-1.0-x86_64-1.8.0.msi>
+% <http://gstreamer.freedesktop.org/data/pkg/windows/1.10.2/gstreamer-1.0-x86_64-1.10.2.msi>
 %
-% For MS-Windows: 32-Bit Intel runtime v1.8.0 for use with 32-Bit GNU/Octave-4.
+% For Apple OSX: Runtime v1.10.2
 %
-% <http://gstreamer.freedesktop.org/data/pkg/windows/1.8.0/gstreamer-1.0-x86-1.8.0.msi>
-%
-% For Apple OSX: Runtime v1.8.0
-%
-% <http://gstreamer.freedesktop.org/data/pkg/osx/1.8.0/gstreamer-1.0-1.8.0-x86_64.pkg>
+% <http://gstreamer.freedesktop.org/data/pkg/osx/1.10.2/gstreamer-1.0-1.10.2-x86_64.pkg>
 %
 %
 % When the installer asks you to select the components it should install,
@@ -82,18 +85,4 @@
 % -> If SimpleMovieDemo doesn't work, then the most likely cause is that
 % you didn't select all GStreamer packages for installation, so restart the
 % installer and repeat installation with the full set of packages.
-%
-%
-% On Apple MacOSX, optionally you can also install GStreamer version 1.4 or later
-% via the Homebrew package manager, building the very latest GStreamer from
-% source code. This is more effort and takes more time for download and
-% installation, also it is so far completely untested for compatibility with
-% Psychtoolbox by us. At this point in time there are no known functional
-% advantages in using the HomeBrew build instead of the binary packages from
-% gstreamer.net, but whatever fancies you...
-%
-% 1. Get Homebrew at <http://brew.sh>
-% 2. Then install GStreamer 1 and its plugins like this:
-%
-% brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav
 %
