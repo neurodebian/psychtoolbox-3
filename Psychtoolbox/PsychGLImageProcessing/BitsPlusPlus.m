@@ -367,6 +367,11 @@ function [win, winRect] = BitsPlusPlus(cmd, arg, dummy, varargin)
 %            Now also triggers revalidation if OS kernel version/release changes, as
 %            things like dithering or output color depth control are usually located in
 %            the kernel level display drivers, so new kernel can imply new bugs.
+% 01.05.2017 Replace evalin('base', ...) call by direct call in PsychDataPixx clut updates,
+%            as a small performance optimization. (MK)
+%            Now possible due to ability for Screen() to assign imaging pipeline variables
+%            to callers workspace. This requires Octave 3.8+ or Matlab R2012a, which is our
+%            supported minimum requirement for Psychtoolbox 3.0.14.
 
 global GL;
 
@@ -1076,12 +1081,7 @@ if strcmpi(cmd, 'OpenWindowBits++')
     end
     
     if targetdevicetype == 1
-        % We need this weird evalin('base', ...); wrapper so the
-        % function gets called from the base-workspace, where the
-        % IMAGINGPIPE_GAMMATABLE variable is defined. We can only
-        % define it there reliably due to incompatibilities between
-        % Matlab and Octave in variable assignment inside Screen() :-(
-        rclutcmd = 'evalin(''base'', ''PsychDataPixx(1, IMAGINGPIPE_GAMMATABLE);'');';
+        rclutcmd = 'PsychDataPixx(1, IMAGINGPIPE_GAMMATABLE);';
         Screen('HookFunction', win, 'PrependMFunction', 'LeftFinalizerBlitChain', 'Upload new clut into DataPixx callback', rclutcmd);
     end
     
@@ -1568,12 +1568,7 @@ if strcmpi(cmd, 'OpenWindowMono++') || strcmpi(cmd, 'OpenWindowMono++WithOverlay
         end
 
         if targetdevicetype == 1
-            % We need this weird evalin('base', ...); wrapper so the
-            % function gets called from the base-workspace, where the
-            % IMAGINGPIPE_GAMMATABLE variable is defined. We can only
-            % define it there reliably due to incompatibilities between
-            % Matlab and Octave in variable assignment inside Screen() :-(
-            rclutcmd = 'evalin(''base'', ''PsychDataPixx(1, IMAGINGPIPE_GAMMATABLE);'');';
+            rclutcmd = 'PsychDataPixx(1, IMAGINGPIPE_GAMMATABLE);';
             Screen('HookFunction', win, 'PrependMFunction', 'LeftFinalizerBlitChain', 'Upload new clut into DataPixx callback', rclutcmd);
         end
 
