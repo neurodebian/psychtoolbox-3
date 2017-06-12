@@ -2844,7 +2844,11 @@ function openRTBox(deviceID, handle)
             % Enumerate all possible ports as candidates for box:
             % Suppose RTBox not assigned to COM1 or COM2, as these are
             % usually the native serial ports, if any:
-            ports=cellstr(num2str((3:256)','\\\\.\\COM%i'));
+            for kk=3:5
+                ports{kk - 2} = { sprintf('\\\\.\\COM%i', kk) };
+            end
+            ports = cellstr(ports);
+            % Does not work with Octave on Windows, hence replaced by code above: ports=cellstr(num2str((3:5)','\\\\.\\COM%i'))
             ports=strtrim(ports); % needed for Matlab R2009b and later.
         end
         
@@ -2913,6 +2917,10 @@ function openRTBox(deviceID, handle)
             % and on Linux any value <= 1 msecs enables ASYNC_LOW_LATENCY mode on serial
             % ports, ie. some low-latency optimizations. E.g., with the FTDI chips used in
             % RTBox it will automatically set the chips latency timer to its minimum of 1 msec:
+            % UPDATE 22-May-2017: Actually no, on Linux it will not set 1 msec hw latency timer
+            % unless Octave/Matlab is run as sudo root, which is not generally recommended! Our
+            % psychtoolbox.rules udev rules file though will set the hw timer to 1 msec nonetheless,
+            % so ReceiveLatency on Linux neither helps nor hurts.
             [s errmsg]=IOPort('OpenSerialPort', port, 'BaudRate=115200 ReceiveTimeout=1.0 PollLatency=0.0001 ReceiveLatency=0.0001 ');
 
             % Worked?
