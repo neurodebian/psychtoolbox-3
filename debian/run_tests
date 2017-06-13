@@ -86,7 +86,7 @@ failed=
 			xvfb-run --auto-servernum --server-num=20 -s "$XVFB_OPTS" \
 			bash -c "$keypress ( sleep $timeescape; xdotool key Escape Escape Escape Escape Escape Escape Escape 2>/dev/null 1>&2; ) & \
 				timeout --kill-after=$timelimitkill $timelimit \
-				octave -q --eval \"$PATH_CMDS; PsychTweak('PrepareForVirtualMachine'); $test\" >| $outlog 2>&1"
+				octave -q --no-history --eval \"$PATH_CMDS; PsychTweak('PrepareForVirtualMachine'); $test\" >| $outlog 2>&1"
 			rv=$?
 			cd "$basedir"
 		else
