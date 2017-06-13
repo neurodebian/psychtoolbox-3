@@ -98,6 +98,7 @@ Recommends: octave-audio,
             octave-optim,
             octave-signal,
             octave-statistics,
+            octave-pkg-dev,
 Provides: psychtoolbox, psychtoolbox-3
 Description: toolbox for vision research -- Octave bindings
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and

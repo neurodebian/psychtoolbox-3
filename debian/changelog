@@ -3,8 +3,11 @@ psychtoolbox-3 (3.0.14.20170611.dfsg1-1) unstable; urgency=medium
   * Fresh upstream release
   * debian/run_tests
     - add  --no-history  option to octave invocation
+  * debian/control
+    - added octave-pkg-dev to Recommends of octave-psychtoolbox-3 per
+      upstream's  request to facilitate users' troubleshooting
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 12 Jun 2017 11:18:06 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 12 Jun 2017 22:31:16 -0400
 
 psychtoolbox-3 (3.0.14.20170103+git6-g605ff5c.dfsg1-1) unstable; urgency=medium
 
