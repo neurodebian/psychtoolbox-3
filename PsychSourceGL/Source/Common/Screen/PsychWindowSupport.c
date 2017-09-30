@@ -6266,12 +6266,24 @@ void PsychSetupView(PsychWindowRecordType *windowRecord, psych_bool useRawFrameb
 
     // Setup projection matrix for a proper orthonormal projection for this framebuffer or window:
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    if (!PsychIsGLES(windowRecord)) {
-        gluOrtho2D(rect[kPsychLeft], rect[kPsychRight], rect[kPsychBottom], rect[kPsychTop]);
+    if ((windowRecord->proj == NULL) || useRawFramebufferSize) {
+        // Default case: No override projection matrix assigned, or use of it not wanted.
+        // Setup standard ortho transform:
+        glLoadIdentity();
+        if (!PsychIsGLES(windowRecord)) {
+            gluOrtho2D(rect[kPsychLeft], rect[kPsychRight], rect[kPsychBottom], rect[kPsychTop]);
+        }
+        else {
+            glOrthofOES((float) rect[kPsychLeft], (float) rect[kPsychRight], (float) rect[kPsychBottom], (float) rect[kPsychTop], (float) -1, (float) 1);
+        }
     }
     else {
-        glOrthofOES((float) rect[kPsychLeft], (float) rect[kPsychRight], (float) rect[kPsychBottom], (float) rect[kPsychTop], (float) -1, (float) 1);
+        // Override projection matrix/matrices assigned. Select proper one for given
+        // mono/stereo view:
+        if (windowRecord->stereomode > 0 && windowRecord->stereodrawbuffer == 1)
+            glLoadMatrixd(&(windowRecord->proj[16]));
+        else
+            glLoadMatrixd(&(windowRecord->proj[0]));
     }
 
     // Switch back to modelview matrix, but leave it unaltered:
@@ -7102,10 +7114,13 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
         printf("OML_sync_control indicators: glXGetSyncValuesOML=%p , glXWaitForMscOML=%p, glXWaitForSbcOML=%p, glXSwapBuffersMscOML=%p\n",
                 glXGetSyncValuesOML, glXWaitForMscOML, glXWaitForSbcOML, glXSwapBuffersMscOML);
         printf("OML_sync_control indicators: glxewIsSupported() says %i.\n", (int) glxewIsSupported("GLX_OML_sync_control"));
+        printf("OML_sync_control indicators: glXQueryExtensionsString() says %i.\n",
+               !!((long) strstr(glXQueryExtensionsString(windowRecord->targetSpecific.deviceContext, PsychGetXScreenIdForScreen(windowRecord->screenNumber)), "GLX_OML_sync_control")));
     }
 
     // Check if OpenML extensions for precisely scheduled stimulus onset and onset timestamping are supported:
-    if (glxewIsSupported("GLX_OML_sync_control") && (glXGetSyncValuesOML && glXWaitForMscOML && glXWaitForSbcOML && glXSwapBuffersMscOML)) {
+    if (glxewIsSupported("GLX_OML_sync_control") && (glXGetSyncValuesOML && glXWaitForMscOML && glXWaitForSbcOML && glXSwapBuffersMscOML) &&
+        strstr(glXQueryExtensionsString(windowRecord->targetSpecific.deviceContext, PsychGetXScreenIdForScreen(windowRecord->screenNumber)), "GLX_OML_sync_control")) {
     #else
     // Disable this whole code-path if PTB_USE_WAFFLE:
     if (FALSE) {
