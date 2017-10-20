@@ -41,7 +41,7 @@ $RM -fr ./PsychSourceGL/Cohorts/Kinect-* \
 $RM -f Psychtoolbox/PsychContributed/ATIRadeonperf_Linux*
 
 # Some binary pre-built drivers from Mario.  I am leaving sources for now
-$RM -f ./Psychtoolbox/PsychHardware/LinuxDrivers/*.so_*
+$RM -f ./Psychtoolbox/PsychHardware/LinuxDrivers{,/*}/*.so_* 
 
 # libwaffle -- for now only in binary form -- will ship in octave.*-nonfree for now
 $RM -f ./Psychtoolbox/PsychContributed/ArmArch/libwaffle*_glxegl \
