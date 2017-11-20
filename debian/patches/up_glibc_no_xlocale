@@ -1,0 +1,12 @@
+--- a/PsychSourceGL/Source/Common/Screen/SCREENDrawText.c
++++ b/PsychSourceGL/Source/Common/Screen/SCREENDrawText.c
+@@ -1814,7 +1814,9 @@ const char* PsychGetUnicodeTextConversio
+ 
+ // POSIX systems Linux and OS/X:
+ #include <locale.h>
++#if !defined(__GLIBC__)
+ #include <xlocale.h>
++#endif
+ 
+ static locale_t    drawtext_locale = NULL;
+ static char        drawtext_localestring[256] = { 0 };

@@ -1,8 +1,10 @@
 psychtoolbox-3 (3.0.14.20171008.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot release
+  * debian/patches/up_glibc_no_xlocale
+    - to not #include xlocale while using glibc which no longer ships it
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 20 Oct 2017 12:14:00 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 19 Nov 2017 22:07:56 -0500
 
 psychtoolbox-3 (3.0.14.20170819.dfsg1-1) unstable; urgency=medium
 
