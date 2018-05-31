@@ -1,8 +1,11 @@
 psychtoolbox-3 (3.0.14.20180526.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream snapshot release
+  * d/control
+    - allow for both  dh-octave | octave-pkg-dev (>= 0.5.7)  for easy
+      backportability
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 30 May 2018 00:17:12 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 31 May 2018 12:10:29 -0400
 
 psychtoolbox-3 (3.0.14.20171008.dfsg1-1) unstable; urgency=medium
 
