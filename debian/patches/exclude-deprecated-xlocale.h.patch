@@ -1,0 +1,17 @@
+Description: Do not include xlocale.h, deprecated in glibc >= 2.26
+Author: Rafael Laboissiere <rafael@debian.org>
+Bug-Debian: http://bugs.debian.org/895738
+Forwarded: no
+Last-Update: 2018-04-15
+
+--- psychtoolbox-3-3.0.14.20170103+git6-g605ff5c.dfsg1.orig/PsychSourceGL/Source/Common/Screen/SCREENDrawText.c
++++ psychtoolbox-3-3.0.14.20170103+git6-g605ff5c.dfsg1/PsychSourceGL/Source/Common/Screen/SCREENDrawText.c
+@@ -1814,7 +1814,7 @@ const char* PsychGetUnicodeTextConversio
+ 
+ // POSIX systems Linux and OS/X:
+ #include <locale.h>
+-#include <xlocale.h>
++// #include <xlocale.h>
+ 
+ static locale_t    drawtext_locale = NULL;
+ static char        drawtext_localestring[256] = { 0 };
