@@ -7,4 +7,3 @@ deb_consistent_octave_outdir
 deb_no_special_arm
 deb_no_PTB_USE_NVSTUSB
 deb_no_so2_stripping
-exclude-deprecated-xlocale.h.patch
