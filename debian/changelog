@@ -4,8 +4,10 @@ psychtoolbox-3 (3.0.14.20180526.dfsg1-1) unstable; urgency=medium
   * d/control
     - allow for both  dh-octave | octave-pkg-dev (>= 0.5.7)  for easy
       backportability
+  * d/rules
+    - handle Octave:Depends in backports friendly way
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 31 May 2018 12:10:29 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 01 Jun 2018 10:09:38 -0400
 
 psychtoolbox-3 (3.0.14.20171008.dfsg1-1) unstable; urgency=medium
 
