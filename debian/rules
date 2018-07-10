@@ -60,6 +60,11 @@ disable_override_dh_shlibdeps:
 		| grep -v 'Eyelink\.mex' \
 		| xargs dpkg-shlibdeps --ignore-missing-info -Tdebian/$$p.substvars debian/$$p; done
 
+# For portability to older systems which do not support default (since
+# buster) .xz for components of the .deb
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip
+
 override_dh_clean:
 	dh_clean
 	: # Prune some Debian generated files

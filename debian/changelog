@@ -1,3 +1,10 @@
+psychtoolbox-3-nonfree (3.0.14.20180526-1~ndall+1) neurodebian; urgency=medium
+
+  * d/rules
+    + Force to use gzip not xz for compatibility of ndall with older systems
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 10 Jul 2018 09:15:54 -0400
+
 psychtoolbox-3-nonfree (3.0.14.20180526-1~ndall) neurodebian; urgency=medium
 
   * Fresh upstream release
