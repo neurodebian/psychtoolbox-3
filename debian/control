@@ -3,11 +3,10 @@ Section: science
 Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
-Build-Depends: debhelper (>= 7.0.50~), rsync, quilt,
+Build-Depends: debhelper (>= 9), rsync, quilt,
                lsb-base (>= 4.1+Debian8~),
                matlab-support-dev,
                dh-octave | octave-pkg-dev (>= 0.5.7),
-               python2-minimal | python-minimal,
                gfortran,
                libpciaccess-dev,
                libxml2-dev,
