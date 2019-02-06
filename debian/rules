@@ -36,7 +36,7 @@ export SHELL=/bin/bash
 	dh $@ --with quilt
 
 override_dh_quilt_patch:
-	dpkg --compare-versions $(GLEW_VERSION) lt 999.1.11.0 \
+	dpkg --compare-versions $(GLEW_VERSION) lt 1.11.0 \
 	 || { echo "I: system GLEW is $(GLEW_VERSION). Thus adding a use_system_GLEW patch"; \
 		  echo 'deb_use_system_GLEW' >> debian/patches/series; \
 	      echo "I: moving copy of glew.c aside"; \

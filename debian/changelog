@@ -5,6 +5,9 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-2) UNRELEASED; urgency=medium
       be needed, but I guess were triggered by having too old of compat level
   * d/control
     - use "optional" not "extra" priority
+  * d/rules
+    - build against against system wide GLEW instead of upstream provided
+      copy
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Feb 2019 15:49:47 -0500
 
