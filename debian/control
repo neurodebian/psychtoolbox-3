@@ -35,7 +35,7 @@ Build-Depends: debhelper (>= 7.0.50~), rsync, quilt,
                gnuplot-nox | gnuplot,
                autotools-dev
 Build-Conflicts: libglew-dev (= 1.9.0.is.1.8.0-0ubuntu1), libglew-dev (= 1.9.0.is.1.8.0-0ubuntu2)
-Standards-Version: 3.9.6
+Standards-Version: 4.3.0
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
 Vcs-Git: git://git.debian.org/git/pkg-exppsy/psychtoolbox-3.git

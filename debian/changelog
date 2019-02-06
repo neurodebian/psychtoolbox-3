@@ -3,6 +3,8 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-1) unstable; urgency=medium
   * Recent upstream snapshot release
   * d/{control,rules,patches}
     - use system wide pulseaudio with upstream blessing
+  * d/control
+    - boosted policy to 4.3.0
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 05 Feb 2019 22:31:38 -0500
 
