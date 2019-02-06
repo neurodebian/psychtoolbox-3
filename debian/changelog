@@ -5,6 +5,9 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-1) unstable; urgency=medium
     - use system wide pulseaudio with upstream blessing
   * d/control
     - boosted policy to 4.3.0
+    - added python2-minimal | python-minimal to build-depends since 
+      dh auto_clean started to fail with enigmatic demand of pyversions
+      to be present
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 05 Feb 2019 22:31:38 -0500
 
