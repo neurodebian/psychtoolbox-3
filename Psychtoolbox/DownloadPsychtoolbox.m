@@ -14,6 +14,9 @@ function DownloadPsychtoolbox(targetdirectory, flavor, targetRevision)
 % matlab-psychtoolbox-3 instead from http://neuro.debian.net - This is more
 % convenient and will provide you with automatic updates.
 %
+% CAUTION: Psychtoolbox 3.0.14 will not work anymore with OSX versions
+% earlier than 10.11 "El Capitan".
+%
 % CAUTION: Psychtoolbox 3.0.13 will not work anymore with 32-Bit Octave-4
 % on MS-Windows, or with OSX versions earlier than 10.10 "Yosemite".
 % Psychtoolbox will likely work with versions of Microsoft Windows older
@@ -306,6 +309,8 @@ function DownloadPsychtoolbox(targetdirectory, flavor, targetRevision)
 % 06/01/16 mk  32-Bit Octave-4 support for MS-Windows removed.
 % 11/16/16 mk  Don't bail if a specific 'flavor' is requested, otherwise people
 %              can not actually download older PTB versions with this downloader.
+% 06/11/18 mk  Change search order for svn executable to account for preferred location
+%              on macOS, as provided by XCode command line tools.
 
 % Flush all MEX files: This is needed at least on M$-Windows for SVN to
 % work if Screen et al. are still loaded.
@@ -519,10 +524,6 @@ else
     if IsOSX
         svnpath = '';
 
-        if isempty(svnpath) && exist('/opt/subversion/bin/svn', 'file')
-            svnpath = '/opt/subversion/bin/';
-        end
-
         if isempty(svnpath) && exist('/usr/bin/svn','file')
             svnpath='/usr/bin/';
         end
@@ -537,6 +538,10 @@ else
 
         if isempty(svnpath) && exist('/opt/local/bin/svn', 'file')
             svnpath = '/opt/local/bin/';
+        end
+
+        if isempty(svnpath) && exist('/opt/subversion/bin/svn', 'file')
+            svnpath = '/opt/subversion/bin/';
         end
 
         if isempty(svnpath)
@@ -779,6 +784,11 @@ end
 if err
     fprintf('Sorry, the download command "CHECKOUT" failed with error code %d: \n',err);
     fprintf('%s\n',result);
+    if IsOSX
+        fprintf('If the error output above contains the text ''SSL handshake failed: SSL error: tlsv1 alert protocol version''\n');
+        fprintf('then your svn command line client is too old. Get a more recent one, e.g., from XCode developer tools, or the\n');
+        fprintf('HomeBrew package manager or such.\n');
+    end
     fprintf('The download failure might be due to temporary network or server problems. You may want to try again in a\n');
     fprintf('few minutes. It could also be that the subversion client was not (properly) installed. On Microsoft\n');
     fprintf('Windows you will need to exit and restart Matlab or Octave after installation of the Subversion client. If that\n');
