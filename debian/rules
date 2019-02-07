@@ -85,6 +85,8 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	cd Psychtoolbox/PsychDemos/PsychTutorials/; ln -sf ../konijntjes1024x768*.jpg .
 	cd Psychtoolbox/PsychTests/; ln -sf ../PsychDemos/konijntjes1024x768*.jpg .
 
+	: # Run tests with fake HOME so ptb-3 could write its things
+	mkdir -p tests-home; export HOME=$(CURDIR)/tests-home; \
 	find Psychtoolbox/PsychDemos Psychtoolbox/PsychTests -type f -iname *.m \
 	| grep -v -e "FAILURES DUE TO ABSENT FUNCTIONALITY IN TEST ENVIRONMENT" \
       -e Contents -e Stereo -e Serial -e PsychCV \

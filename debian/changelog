@@ -10,6 +10,7 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-2) unstable; urgency=medium
   * d/rules
     - force --buildsystem=makefile so debhelper doesn't decide to go for
       pybuild (not relevant and causes demanding python)
+    - run tests with the fake HOME pointing to empty writable dir ./tests-home
   * d/watch
     - for now added target one to monitor (github) as a comment since still
       would need heavy version parsing tuning
