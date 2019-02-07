@@ -8,8 +8,6 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-2) UNRELEASED; urgency=medium
     - adjusted VCS fields to point to github where we have it most up to date
       ATM
   * d/rules
-    - build against against system wide GLEW instead of upstream provided
-      copy
     - force --buildsystem=makefile so debhelper doesn't decide to go for
       pybuild (not relevant and causes demanding python)
   * d/watch
