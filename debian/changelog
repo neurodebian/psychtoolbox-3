@@ -10,6 +10,8 @@ psychtoolbox-3 (3.0.15.20181125.dfsg1-2) UNRELEASED; urgency=medium
   * d/rules
     - build against against system wide GLEW instead of upstream provided
       copy
+    - force --buildsystem=makefile so debhelper doesn't decide to go for
+      pybuild (not relevant and causes demanding python)
   * d/watch
     - for now added target one to monitor (github) as a comment since still
       would need heavy version parsing tuning

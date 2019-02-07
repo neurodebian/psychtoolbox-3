@@ -33,7 +33,7 @@ export CFLAGS=-Wall -g -O0 -std=gnu99 $(GLIB_INCLUDES) $(GST_INCLUDES)
 export SHELL=/bin/bash
 
 %:
-	dh $@ --with quilt
+	dh $@ --with quilt --buildsystem=makefile
 
 override_dh_quilt_patch:
 	dpkg --compare-versions $(GLEW_VERSION) lt 1.11.0 \
