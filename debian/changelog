@@ -2,8 +2,10 @@ psychtoolbox-3-nonfree (3.0.15.20190207-1~ndall+1) neurodebian; urgency=medium
 
   * Fresh upstream release
   * debian/compat - boost to 9
+  * debian/rules - manually add a symlink for PsychOpenHMDVRCore.mexa64
+    per upstream's (Mario) request
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 07 Feb 2019 16:42:57 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 22 Feb 2019 10:20:49 -0500
 
 psychtoolbox-3-nonfree (3.0.14.20180526-1~ndall+1) neurodebian; urgency=medium
 
