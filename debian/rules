@@ -175,6 +175,9 @@ override_dh_auto_install:
 	find debian/ -iname simplepsychtoolboxsetup.sh -o -iname setupdate.sh | xargs -r rm
 	find debian/ -regextype posix-egrep -regex '.*/(Update|Setup|Download)Psychtoolbox\..*' -delete
 
+	: # Remove unreproducible files
+	find debian/ -name octave-workspace | xargs -r rm
+
 override_dh_makeshlibs:
 	dh_makeshlibs
 	: # Provide Octave:Depends, do it in backports friendly way

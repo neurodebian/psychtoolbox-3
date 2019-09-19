@@ -3,8 +3,11 @@ psychtoolbox-3 (3.0.15.20190725.dfsg1-1) unstable; urgency=medium
   * Strip away ./Psychtoolbox/PsychContributed/gpuclockctl
     from sources, and Recommend libgamemode0 providing it ATM
   * Remove obsolete octave-audio from Recommends (Closes: #801652)
+  * Remove octave-workspace files from the installation, which would
+    also help making build reproducible (thanks Chris Lamb for the
+    patch) (Closes: #883348)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 19 Sep 2019 16:08:07 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 19 Sep 2019 16:17:11 -0400
 
 psychtoolbox-3 (3.0.15.20190401.dfsg1-1) experimental; urgency=medium
 
