@@ -1,3 +1,10 @@
+psychtoolbox-3 (3.0.15.20190401.dfsg1-2) UNRELEASED; urgency=medium
+
+  * Strip away ./Psychtoolbox/PsychContributed/gpuclockctl
+    from sources, and Recommend libgamemode0 providing it ATM
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 19 Sep 2019 16:08:07 -0400
+
 psychtoolbox-3 (3.0.15.20190401.dfsg1-1) experimental; urgency=medium
 
   * Fresh upstream release

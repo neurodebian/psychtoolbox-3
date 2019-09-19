@@ -47,6 +47,11 @@ $RM -f ./Psychtoolbox/PsychHardware/LinuxDrivers{,/*}/*.so_*
 $RM -f ./Psychtoolbox/PsychContributed/ArmArch/libwaffle*_glxegl \
 	   ./PsychSourceGL/Cohorts/libwaffle/libwaffle*_*
 
+# a binary which should be provided by one of the gamemode binary
+# packages. ATM (as of 1.5~git20190722.4ecac89-1) it is provided by
+# libgamemode0 under /usr/lib/x86_64-linux-gnu
+$RM -f ./Psychtoolbox/PsychContributed/gpuclockctl
+
 # __TODO:
 # http://docs.psychtoolbox.org/DrawTextPlugin
 # BDepends: libfontconfig1-dev, libfreetype6-dev
