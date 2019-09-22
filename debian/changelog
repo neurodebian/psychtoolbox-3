@@ -1,3 +1,9 @@
+psychtoolbox-3-nonfree (3.0.15.20190725-1~ndall+1) neurodebian; urgency=medium
+
+  * Fresh upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 21 Sep 2019 21:22:40 -0400
+
 psychtoolbox-3-nonfree (3.0.15.20190401-1~ndall+1) neurodebian; urgency=medium
 
   * Fresh upstream release
