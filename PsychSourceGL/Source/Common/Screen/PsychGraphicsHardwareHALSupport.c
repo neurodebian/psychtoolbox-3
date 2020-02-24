@@ -618,6 +618,7 @@ psych_bool PsychGetCurrentGPUSurfaceAddresses(PsychWindowRecordType* windowRecor
     #if PSYCH_SYSTEM == PSYCH_OSX || PSYCH_SYSTEM == PSYCH_LINUX
         int gpuMaintype, gpuMinortype, fNumDisplayHeads;
         unsigned int updateStatus;
+        unsigned int value = 0;
 
         // If we are called, we know that 'windowRecord' is an onscreen window.
         int screenId = windowRecord->screenNumber;
@@ -626,22 +627,26 @@ psych_bool PsychGetCurrentGPUSurfaceAddresses(PsychWindowRecordType* windowRecor
         // Just need to check if GPU low-level access is supported:
         if (!PsychOSIsKernelDriverAvailable(screenId)) return(FALSE);
 
-        // We only support AMD Radeon/Fire GPU's, nothing else:
-        if (!PsychGetGPUSpecs(screenId, &gpuMaintype, &gpuMinortype, NULL, &fNumDisplayHeads) || (gpuMaintype != kPsychRadeon)) {
+        // We only support AMD Radeon/Fire GPU's and Intel IGPs, nothing else:
+        if (!PsychGetGPUSpecs(screenId, &gpuMaintype, &gpuMinortype, NULL, &fNumDisplayHeads) ||
+            (gpuMaintype != kPsychRadeon && gpuMaintype != kPsychIntelIGP)) {
             return(FALSE);
         }
 
         // Driver is online: Read the registers, but only for primary crtc in a multi-crtc config:
-        if  (gpuMinortype < 40) {
+        if  ((gpuMaintype == kPsychRadeon) && (gpuMinortype < 40)) {
             // Pre DCE-4: AVIVO class display hardware:
-            *primarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, (PsychScreenToCrtcId(screenId, 0) < 1) ? RADEON_D1GRPH_PRIMARY_SURFACE_ADDRESS : RADEON_D2GRPH_PRIMARY_SURFACE_ADDRESS, NULL);
-            *secondarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, (PsychScreenToCrtcId(screenId, 0) < 1) ? RADEON_D1GRPH_SECONDARY_SURFACE_ADDRESS : RADEON_D2GRPH_SECONDARY_SURFACE_ADDRESS, NULL);
-            updateStatus = PsychOSKDReadRegister(screenId, (PsychScreenToCrtcId(screenId, 0) < 1) ? RADEON_D1GRPH_UPDATE : RADEON_D2GRPH_UPDATE, NULL);
+            *primarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, (headid < 1) ? RADEON_D1GRPH_PRIMARY_SURFACE_ADDRESS : RADEON_D2GRPH_PRIMARY_SURFACE_ADDRESS, NULL);
+            *secondarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, (headid < 1) ? RADEON_D1GRPH_SECONDARY_SURFACE_ADDRESS : RADEON_D2GRPH_SECONDARY_SURFACE_ADDRESS, NULL);
+            updateStatus = PsychOSKDReadRegister(screenId, (headid < 1) ? RADEON_D1GRPH_UPDATE : RADEON_D2GRPH_UPDATE, NULL);
 
             *updatePending = (updateStatus & RADEON_SURFACE_UPDATE_PENDING) ? TRUE : FALSE;
+
+            // Get display engine framebuffer scanout format:
+            value = PsychOSKDReadRegister(screenId, (headid == 0) ? RADEON_D1GRPH_CONTROL : RADEON_D2GRPH_CONTROL, NULL);
         }
 
-        if  (gpuMinortype >= 40) {
+        if  ((gpuMaintype == kPsychRadeon) && (gpuMinortype >= 40)) {
             // DCE-4 or later display hardware:
             if (headid < 0 || headid > fNumDisplayHeads - 1) {
                 if (PsychPrefStateGet_Verbosity() > 1) printf("PTB-WARNING: PsychGetCurrentGPUSurfaceAddresses(): Invalid headId %i (greater than max %i) provided for DCE-4+ display engine!\n", headid, fNumDisplayHeads - 1);
@@ -656,10 +661,73 @@ psych_bool PsychGetCurrentGPUSurfaceAddresses(PsychWindowRecordType* windowRecor
             updateStatus =      PsychOSKDReadRegister(screenId, EVERGREEN_GRPH_UPDATE + crtcoff[headid], NULL);
 
             *updatePending = (updateStatus & EVERGREEN_GRPH_SURFACE_UPDATE_PENDING) ? TRUE : FALSE;
+
+            // Get display engine framebuffer scanout format:
+            value = PsychOSKDReadRegister(screenId, EVERGREEN_GRPH_CONTROL + crtcoff[headid], NULL);
+        }
+
+        if (gpuMaintype == kPsychIntelIGP) {
+            // Intel IGP:
+
+            // No secondary surface atm., but (ab)use to store the latched next requested surface address for reg doublebuffering:
+            *secondarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, 0x7019C + (headid * 0x1000), NULL);;
+
+            // Get primarySurface address from plane base address live register, ie. the true current value from last completed flip:
+            *primarySurface = (psych_uint64) PsychOSKDReadRegister(screenId, 0x701AC + (headid * 0x1000), NULL);
+
+            // primarySurface encodes current scanout buffer address - live, whereas secondarySurface encodes pre-doublebuffered
+            // address for a flip. If both are identical then no flip is pending. If they differ then obviously the wanted
+            // address has not yet been latched into the live register and a pageflip is programmed/pending but not yet
+            // completed - iow. updatePending:
+            *updatePending = *primarySurface != *secondarySurface;
+            updateStatus = -1;
         }
 
         if (PsychPrefStateGet_Verbosity() > 14) {
-            printf("PTB-DEBUG: Screen %i: Head %i: primarySurface=%p : secondarySurface=%p : updateStatus=%i\n", screenId, PsychScreenToCrtcId(screenId, 0), *primarySurface, *secondarySurface, updateStatus);
+            double tNow;
+            PsychGetAdjustedPrecisionTimerSeconds(&tNow);
+
+            if (gpuMaintype == kPsychIntelIGP) {
+                // Intel:
+                printf("PTB-DEBUG: %6lf : Screen %i: Head %i: currentSurface=%p <-- requestedSurface=%p : updatePending=%i\n",
+                       tNow, screenId, headid, *primarySurface, *secondarySurface, (int) *updatePending);
+            } else {
+                // AMD:
+                printf("PTB-DEBUG: %6lf : Screen %i: Head %i: primarySurface=%p : secondarySurface=%p : updateStatus=%i",
+                       tNow, screenId, headid, *primarySurface, *secondarySurface, updateStatus);
+                if (PsychPrefStateGet_Verbosity() > 15) {
+                    // Decode display engine scanout format aka format of the system fb / needed for page-flipping:
+                    // (cfe. drivers/gpu/drm/amd/amdgpu/si_enums.h)
+                    printf(" : raw=0x%08x : bppcode=%i : formatcode=%i -> ", value, value & 0x3, (value >> 8) & 0x7);
+                    if ((value & 0x3) == 3) {
+                        // Some 64 bpp - 16 bpc format: 16 bpc fixed point or half-float.
+                        printf("16 bpc fb");
+                        value = 16;
+                    } else {
+                        // Some 32 bpp format (Assume code 2, ignore 16 bpp [1] / 8 bpp [0], because it's not the 90s anymore):
+                        value = (value >> 8) & 0x7;
+                        if (value == 0) {
+                            printf("8 bpc ARGB8888 fb");
+                            value = 8;
+                        } else if (value < 6) {
+                            printf("10 bpc [prob. ARGB2101010] fb");
+                            value = 10;
+                        } else {
+                            printf("~11 bpc [prob. RGB111110/BGR101111] fb");
+                            value = 11;
+                        }
+                    }
+
+                    // If the OpenGL backbuffer/frontbuffer format is mismatched to the system scanout buffer format,
+                    // then the compositor will likely have to kick in for format conversion in a way that at least
+                    // will screw up stimulus timing/timestamping on primitive OS'es like Apple macOS or Windows,
+                    // whereas on Linux it depends on the compositor implementation. E.g., Waylands Weston should not
+                    // cause timing trouble with the current implementation as tested in 2018.
+                    if (windowRecord->bpc != (int) value)
+                        printf(" ==> Mismatch OpenGL fb %i vs. system fb %i ==> Compositor takeover will be likely!", windowRecord->bpc, value);
+                }
+                printf("\n");
+            }
         }
 
         // Success:
@@ -889,6 +957,14 @@ unsigned int PsychGetNVidiaGPUType(PsychWindowRecordType* windowRecord)
             // Pascal: GeForce 1000+ series: 3rd gen scanout engine, up to 4 CRTC's.
             card_type = 0x130;
             break;
+        case 0x140:
+            // Volta: NVidia Titan-V and Quadro GV100: 4th gen scanout engine. Assuming up to 4 CRTC's.
+            card_type = 0x140;
+            break;
+        case 0x160:
+            // Turing: GeForce 1650+ series, GeForce RTX 2060, 2070, 2080 (Ti), Titan RTX: 4th gen scanout engine. Assuming up to 4 CRTC's.
+            card_type = 0x160;
+            break;
 
         default:
             printf("PTB-DEBUG: Unknown NVidia chipset 0x%08x - Assuming latest generation.\n", reg0);
@@ -1049,6 +1125,13 @@ void PsychAutoDetectScreenToHeadMappings(int maxHeads)
             continue;
         }
 
+        // Older kernel drivers do not support PsychOSKDGetLUTState() on modern AMD gpu + macOS combos, so bail early:
+        if ((PSYCH_SYSTEM == PSYCH_OSX) && (PsychOSKDGetLUTState(screenId, 0, 0) == 0xffffffff)) {
+            if (PsychPrefStateGet_Verbosity() > 3)
+                printf("PTB-INFO: Autodetection of screen->head mapping unsupported for this gpu + kernel driver combo.\n");
+            break;
+        }
+
         // Yes. Perform detection sequence:
         if (PsychPrefStateGet_Verbosity() > 3) printf("PTB-INFO: Trying to detect screenId to display head mapping for screenid %i ...\n", screenId);
 
@@ -1072,7 +1155,7 @@ void PsychAutoDetectScreenToHeadMappings(int maxHeads)
 
             // Check all display heads to find the null table:
             for (headId = 0; headId < maxHeads; headId++) {
-                if (PsychOSKDGetLUTState(screenId, headId, 0) == 1) {
+                if (PsychOSKDGetLUTState(screenId, headId, (PsychPrefStateGet_Verbosity() > 4) ? 1 : 0) == 1) {
                     // Got it. Store mapping:
                     displayScreensToCrtcIds[screenId][outputId] = headId;
 
@@ -1147,7 +1230,26 @@ void PsychSetBeamposCorrection(int screenId, int vblbias, int vbltotal)
         // Can do this on NVidia GPU's >= NV-50 if low-level access (PTB kernel driver or equivalent) is enabled:
         if ((gpuMaintype == kPsychGeForce) && PsychOSIsKernelDriverAvailable(screenId)) {
             // Need to read different regs, depending on GPU generation:
-            if ((PsychGetNVidiaGPUType(NULL) >= 0x0d0) || (PsychGetNVidiaGPUType(NULL) == 0x0)) {
+            if ((PsychGetNVidiaGPUType(NULL) >= 0x140) || (PsychGetNVidiaGPUType(NULL) == 0x0)) {
+                // Auto-Detection. Read values directly from NV-140 / NV-160 aka "Volta" / "Turing" class and later hardware:
+
+                #if PSYCH_SYSTEM != PSYCH_WINDOWS
+                // VBLANKE end line of vertical blank - smaller than VBLANKS. Subtract VBLANKE + 1 to normalize to "scanline zero is start of active scanout":
+                vblbias = (int) ((PsychOSKDReadRegister(crtcid, 0x68206c + 0x8000 + (crtcid * 0x400), NULL) >> 16) & 0xFFFF) + 1;
+
+                // DISPLAY_TOTAL: Encodes VTOTAL in high-word, HTOTAL in low-word. Get the VTOTAL in high word:
+                vbltotal = (int) ((PsychOSKDReadRegister(crtcid, 0x682064 + 0x8000 + (crtcid * 0x400), NULL) >> 16) & 0xFFFF);
+
+                // Decode VBL_START and VBL_END and VACTIVE for debug purposes:
+                if (PsychPrefStateGet_Verbosity() > 5) {
+                    unsigned int vbl_start, vbl_end;
+                    vbl_start = (int) ((PsychOSKDReadRegister(crtcid, 0x682070 + 0x8000 + (crtcid * 0x400), NULL) >> 16) & 0xFFFF);
+                    vbl_end   = (int) ((PsychOSKDReadRegister(crtcid, 0x68206c + 0x8000 + (crtcid * 0x400), NULL) >> 16) & 0xFFFF);
+                    printf("PTB-DEBUG: Screen %i [head %i]: vbl_start = %i  vbl_end = %i.\n", screenId, crtcid, (int) vbl_start, (int) vbl_end);
+                }
+                #endif
+            }
+            else if (PsychGetNVidiaGPUType(NULL) >= 0x0d0) {
                 // Auto-Detection. Read values directly from NV-D0 / E0-"Kepler" class and later hardware:
                 //
                 #if PSYCH_SYSTEM != PSYCH_WINDOWS
@@ -1159,11 +1261,10 @@ void PsychSetBeamposCorrection(int screenId, int vblbias, int vbltotal)
 
                 // Decode VBL_START and VBL_END and VACTIVE for debug purposes:
                 if (PsychPrefStateGet_Verbosity() > 5) {
-                    unsigned int vbl_start, vbl_end, vactive;
+                    unsigned int vbl_start, vbl_end;
                     vbl_start = (int) ((PsychOSKDReadRegister(crtcid, 0x640420 + (crtcid * 0x300), NULL) >> 16) & 0xFFFF);
                     vbl_end   = (int) ((PsychOSKDReadRegister(crtcid, 0x64041c + (crtcid * 0x300), NULL) >> 16) & 0xFFFF);
-                    vactive   = (int) ((PsychOSKDReadRegister(crtcid, 0x640414 + (crtcid * 0x300), NULL) >> 16) & 0xFFFF);
-                    printf("PTB-DEBUG: Screen %i [head %i]: vbl_start = %i  vbl_end = %i  vactive = %i.\n", screenId, crtcid, (int) vbl_start, (int) vbl_end, (int) vactive);
+                    printf("PTB-DEBUG: Screen %i [head %i]: vbl_start = %i  vbl_end = %i.\n", screenId, crtcid, (int) vbl_start, (int) vbl_end);
                 }
                 #endif
             }

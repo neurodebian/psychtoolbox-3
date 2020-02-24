@@ -147,11 +147,9 @@ function DownloadPsychtoolbox(targetdirectory, flavor, targetRevision)
 %
 % P.S. If you get stuck, first check the FAQ section and Download section
 % of our Wiki at http://www.psychtoolbox.org. If that doesn't help, post
-% your question to the forum by email or web:
+% your question to the forum:
 %
-% web mailto:psychtoolbox@yahoogroups.com
-% web http://groups.yahoo.com/group/psychtoolbox/messages/
-% web http://groups.yahoo.com/group/psychtoolbox/post/
+% https://psychtoolbox.discourse.group
 %
 % Please specify your full name and the version of your operating system,
 % MATLAB / OCTAVE, and psychtoolbox.
@@ -321,7 +319,7 @@ if (nargin < 2 || isempty(strfind(flavor, 'Psychtoolbox-3.0.')))
     % Check if this is 32-Bit Octave-4 on Windows, which we don't support at all:
     if isempty(strfind(computer, 'x86_64')) && ~isempty(strfind(computer, 'mingw32'))
         fprintf('Psychtoolbox 3.0.13 and later do no longer work with 32-Bit GNU/Octave-4 on MS-Windows.\n');
-        fprintf('You need to use 64-Bit Octave-4 if you want to use Psychtoolbox with Octave on Windows.\n');
+        fprintf('You need to use 64-Bit Octave-5 if you want to use Psychtoolbox with Octave on Windows.\n');
         fprintf('DownloadPsychtoolbox() with flavor ''Psychtoolbox-3.0.12'', does support 32-Bit Octave-4 on Windows.\n');
         error('Tried to setup on 32-Bit Octave, which is no longer supported on Windows.');
     end
@@ -547,10 +545,10 @@ else
         end
 
         if isempty(svnpath)
-            fprintf('The Subversion client "svn" is not in one of its expected\n');
-            fprintf('locations for Mac OSX  on your disk. Please download and\n');
-            fprintf('install the most recent Subversion client from:\n');
-            fprintf('web http://subversion.apache.org/packages.html#osx -browser\n');
+            fprintf('The Subversion client "svn" is not in its expected\n');
+            fprintf('location on your disk. Please download and install the most\n');
+            fprintf('recent Subversion client via typing this into a terminal window:\n');
+            fprintf('xcode-select --install\n');
             fprintf('and then run %s again.\n', mfilename);
             error('Subversion client is missing. Please install it.');
         end
@@ -795,6 +793,10 @@ end
 if err
     fprintf('Sorry, the download command "CHECKOUT" failed with error code %d:\n', err);
     fprintf('%s\n', result);
+    
+    if IsOSX && err == 69
+        fprintf('If the error output suggests running a command, this should be typed into Terminal.app found in Applications/Utilities\n')
+    end
 
     if IsOctave
         fprintf('If the error output above contains the text ''SSL handshake failed: SSL error: tlsv1 alert protocol version''\n');

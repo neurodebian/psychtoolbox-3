@@ -113,10 +113,13 @@ static psych_bool inGLUserspace = FALSE;
 static PsychWindowRecordType* currentRendertarget = NULL;
 
 // Count of currently async-flipping onscreen windows:
-static unsigned int    asyncFlipOpsActive = 0;
+static unsigned int asyncFlipOpsActive = 0;
 
 // Count of onscreen windows which have our own threaded frameseq stereo implementation active:
 static unsigned int frameSeqStereoActive = 0;
+
+// Count of onscreen windows which have our own threaded VRR scheduler implementation active:
+static unsigned int vrrSchedulersActive = 0;
 
 // Return count of currently async-flipping onscreen windows:
 unsigned int PsychGetNrAsyncFlipsActive(void)
@@ -128,6 +131,53 @@ unsigned int PsychGetNrAsyncFlipsActive(void)
 unsigned int PsychGetNrFrameSeqStereoWindowsActive(void)
 {
     return(frameSeqStereoActive);
+}
+
+// Return count of currently VRR scheduler threaded onscreen windows:
+unsigned int PsychGetNrVRRSchedulerWindowsActive(void)
+{
+    return(vrrSchedulersActive);
+}
+
+// Internal helper: Measure and compute VBLANK start and end timestamp for current refresh cycle:
+static double PsychGetVblankTimestamps(PsychWindowRecordType *windowRecord, double *vblankStart)
+{
+    int beamPosAtFlip;
+    double vbl_lines_elapsed, onset_lines_togo;
+    double time_at_vbl, vbl_time_elapsed, onset_time_togo;
+    double currentrefreshestimate = windowRecord->VideoRefreshInterval;
+    double vbl_startline = windowRecord->VBL_Startline;
+    double vbl_endline = windowRecord->VBL_Endline;
+
+    // Beamposition queries inoperative/unsupported/broken/disabled?
+    if (vbl_endline == -1)
+        return(-1);
+
+    beamPosAtFlip = PsychGetDisplayBeamPosition(NULL, windowRecord->screenNumber);
+    PsychGetAdjustedPrecisionTimerSeconds(&time_at_vbl);
+
+    if (beamPosAtFlip >= vbl_startline) {
+        vbl_lines_elapsed = beamPosAtFlip - vbl_startline;
+        onset_lines_togo = vbl_endline - beamPosAtFlip + 1;
+    }
+    else {
+        vbl_lines_elapsed = vbl_endline - vbl_startline + 1 + beamPosAtFlip;
+        onset_lines_togo = -1.0 * beamPosAtFlip;
+    }
+
+    // From the elapsed number we calculate the elapsed time since VBL start:
+    vbl_time_elapsed = vbl_lines_elapsed / vbl_endline * currentrefreshestimate;
+    onset_time_togo = onset_lines_togo / vbl_endline * currentrefreshestimate;
+
+    // Compute start of vblank -- Only works in non-VRR mode with fixed duration Vblank:
+    if (vblankStart)
+        *vblankStart = time_at_vbl - vbl_time_elapsed;
+
+    // Compute of stimulus-onset, aka time when retrace is finished:
+    time_at_vbl = time_at_vbl + onset_time_togo;
+
+    // Return end of vblank aka start of active scanout:
+    return(time_at_vbl);
 }
 
 static void PsychDrawSplash(PsychWindowRecordType* windowRecord)
@@ -264,7 +314,7 @@ void PsychRebindARBExtensionsToCore(void)
         Contains experimental support for flipping multiple displays synchronously, e.g., for dual display stereo setups.
 
 */
-psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, PsychWindowRecordType **windowRecord, int numBuffers, int stereomode, double* rect, int multiSample, PsychWindowRecordType* sharedContextWindow, psych_int64 specialFlags)
+psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, PsychWindowRecordType **windowRecord, int numBuffers, int stereomode, double* rect, int multiSample, PsychWindowRecordType* sharedContextWindow, psych_int64 specialFlags, PsychVRRModeType vrrMode, PsychVRRStyleType vrrStyleHint, double vrrMinDuration, double vrrMaxDuration)
 {
     PsychRectType dummyrect;
     double splashMinDurationSecs = 0;
@@ -327,7 +377,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
     if ((*windowRecord)->windowIndex == PSYCH_FIRST_WINDOW) {
         if(PsychPrefStateGet_Verbosity()>2) {
             printf("\n\nPTB-INFO: This is Psychtoolbox-3 for %s, under %s (Version %i.%i.%i - Build date: %s).\n", PSYCHTOOLBOX_OS_NAME, PSYCHTOOLBOX_SCRIPTING_LANGUAGE_NAME, PsychGetMajorVersionNumber(), PsychGetMinorVersionNumber(), PsychGetPointVersionNumber(), PsychGetBuildDate());
-            printf("PTB-INFO: Support status on this operating system release: %s\n", PsychSupportStatus());
+            printf("PTB-INFO: OS support status: %s\n", PsychSupportStatus());
             printf("PTB-INFO: Type 'PsychtoolboxVersion' for more detailed version information.\n");
             printf("PTB-INFO: Most parts of the Psychtoolbox distribution are licensed to you under terms of the MIT License, with\n");
             printf("PTB-INFO: some restrictions. See file 'License.txt' in the Psychtoolbox root folder for the exact licensing conditions.\n\n");
@@ -342,6 +392,13 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
 
     // Add all passed-in specialFlags to windows specialflags:
     (*windowRecord)->specialflags |= specialFlags;
+
+    // Add all passed-in VRR parameters to windowRecord:
+    (*windowRecord)->vrrMode = vrrMode;
+    (*windowRecord)->vrrStyleHint = vrrStyleHint;
+    (*windowRecord)->vrrMinDuration = vrrMinDuration;
+    (*windowRecord)->vrrMaxDuration = vrrMaxDuration;
+    (*windowRecord)->vrrLatencyCompensation = 0.0;
 
     // Assign the passed windowrect 'rect' to the new window:
     PsychCopyRect((*windowRecord)->rect, rect);
@@ -401,7 +458,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
 
     // Call the OS specific low-level Window & Context setup routine:
     if (!PsychOSOpenOnscreenWindow(screenSettings, (*windowRecord), numBuffers, stereomode, conserveVRAM)) {
-        printf("\nPTB-ERROR[Low-Level setup of window failed]:The specified display may not support double buffering and/or stereo output. There could be insufficient video memory\n\n");
+        printf("\nPTB-ERROR[Low-Level setup of window failed]:The specified gpu + display + gfx-driver combo may not support some requested feature.\n\n");
         FreeWindowRecordFromPntr(*windowRecord);
         return(FALSE);
     }
@@ -615,7 +672,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
     PsychRebindARBExtensionsToCore();
 
     if (((((*windowRecord)->depth == 30) || ((*windowRecord)->depth == 33) || ((*windowRecord)->depth == 48)) && !((*windowRecord)->specialflags & kPsychNative10bpcFBActive)) ||
-        ((*windowRecord)->depth == 32) || ((*windowRecord)->depth == 64) || ((*windowRecord)->depth == 128)) {
+        ((*windowRecord)->depth == 24) || ((*windowRecord)->depth == 32) || ((*windowRecord)->depth == 64) || ((*windowRecord)->depth == 128)) {
 
         // Floating point framebuffer active?
         isFloatBuffer = FALSE;
@@ -1175,7 +1232,8 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
             // value at two measurements 2 ms apart...
             i=(int) PsychGetDisplayBeamPosition(cgDisplayID, (*windowRecord)->screenNumber);
             PsychWaitIntervalSeconds(0.002);
-            if ((((int) PsychGetDisplayBeamPosition(cgDisplayID, (*windowRecord)->screenNumber)) == i) || (i < -1)) {
+            if (((((int) PsychGetDisplayBeamPosition(cgDisplayID, (*windowRecord)->screenNumber)) == i) || (i < -1)) &&
+                !PsychVRRActive(*windowRecord)) {
                 // PsychGetDisplayBeamPosition returns the same value at two different points in time?!?
                 // That's impossible on anything else than a high-precision 500 Hz display!
                 // --> PsychGetDisplayBeamPosition is not working correctly for some reason.
@@ -1202,6 +1260,12 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
                 double told, tnew;
                 for (i = 0; i < 50; i++) {
                     // Take beam position samples from current monitor refresh interval:
+
+                    // In a VRR/FreeSync/G-Sync/DP-Adaptive sync setup, beampositions will behave
+                    // extremely weird if no flip is pending during measurement, so make sure one is pending:
+                    if (PsychVRRActive(*windowRecord))
+                        PsychOSFlipWindowBuffers(*windowRecord);
+
                     maxline = -1;
                     // We spin-wait until retrace and record our highest measurement:
                     while ((bp = (int) PsychGetDisplayBeamPosition(cgDisplayID, (*windowRecord)->screenNumber)) >= maxline) {
@@ -1394,37 +1458,68 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         // ifi_beamestimate as alternative ifi hint for stabilization. Having an alternative is especially
         // important on OSX which reports ifi_nominal == 0 on builtin flat panels and has often noisy timing,
         // especially since OSX 10.9 Mavericks.
-
-        // We try 3 times a maxDuration seconds max., in case something goes wrong...
-        while(ifi_estimate==0 && retry_count<3) {
-            numSamples = minSamples;      // Require at least minSamples *valid* samples...
-            // Require a std-deviation of maxStddev (default is less than 200 microseconds) on all systems.
-            // If a non-Linux system likely has desktop composition enabled, we are more lenient and allow
-            // up to 5x the maxStddev which would end up with 1 msec at default settings:
-            stddev = (PsychOSIsDWMEnabled(screenSettings->screenNumber) && (PSYCH_SYSTEM != PSYCH_LINUX)) ? (5 * maxStddev) : maxStddev;
-            // If skipping of sync-test is requested, we limit the calibration to 1 sec.
-            maxsecs = (skip_synctests) ? 1 : maxDuration;
-            retry_count++;
-            ifi_estimate = PsychGetMonitorRefreshInterval(*windowRecord, &numSamples, &maxsecs, &stddev, ((ifi_nominal > 0) ? ifi_nominal : ifi_beamestimate), &did_pageflip);
-
-            if((PsychPrefStateGet_Verbosity()>1) && (ifi_estimate==0 && retry_count<3)) {
-                printf("\nWARNING: VBL Calibration run No. %i failed. Retrying...\n", retry_count);
+        //
+        // We skip this flip-based procedure if the special Linux MMIO hack is used to achieve 16 bpc / 64 bpp
+        // framebuffers for 48 bit color depth display on modern AMD GCN gpu's with DCE8+ display engine. The
+        // hack causes such a massive rendering performance hit even on fast gpu's that this test will definitely
+        // fail due to a fps way lower than the video refresh rate of the display, iow. the test would show a false
+        // positive, e.g., a 60 Hz display may only be able to flip at 20 fps at most, possibly even slower. On Linux
+        // we have various other means to check for proper timing, so this test can be skipped with no harm.
+        if (!((*windowRecord)->specialflags & kPsychNative10bpcFBActive) || ((*windowRecord)->depth != 48)) {
+            // Performance degrading hack should not be used?
+            if (((getenv("R600_DEBUG") && strstr(getenv("R600_DEBUG"), "notiling")) || (getenv("AMD_DEBUG") && strstr(getenv("AMD_DEBUG"), "notiling"))) &&
+                (PsychPrefStateGet_Verbosity() > 1)) {
+                // Uh, notiling / linear render-/scanoutbuffers requested, although not needed! This will kill perfomance.
+                // Probably a leftover from using 16 bpc hack. Advise user:
+                printf("\nPTB-WARNING: The environment variables R600_DEBUG or AMD_DEBUG are set to include the keyword 'notiling'. This\n");
+                printf("PTB-WARNING: will cause massive graphics performance degradation and possibly failure of the sync tests. Unless\n");
+                printf("PTB-WARNING: you are doing this for some low-level debugging purpose, it should be avoided. Either remove the keyword\n");
+                printf("PTB-WARNING: from both environment variables and then 'clear all', or if that does not help - or as a simple solution -\n");
+                printf("PTB-WARNING: simply quit and restart Octave or Matlab. Will continue, but may fail the timing tests due to this confound...\n\n");
             }
 
-            // Is this the 2nd failed trial?
-            if ((ifi_estimate==0) && (retry_count == 2)) {
-                // Yes. Before we start the 3rd and final trial, we enable manual syncing of bufferswaps
-                // to retrace by setting the kPsychBusyWaitForVBLBeforeBufferSwapRequest flag for this window.
-                // Our PsychOSFlipWindowBuffers() routine will spin-wait/busy-wait manually for onset of VBL
-                // before emitting the double buffer swaprequest, in the hope that this will fix possible
-                // sync-to-retrace driver bugs/failures and fix our calibration issue. This should allow the
-                // 3rd calibration run to succeed if this is the problem:
-                (*windowRecord)->specialflags |= kPsychBusyWaitForVBLBeforeBufferSwapRequest;
-                if (PsychPrefStateGet_Verbosity() > 1) {
-                    printf("WARNING: Will enable VBL busywait-workaround before trying final VBL Calibration run No. %i.\n", retry_count + 1);
-                    printf("WARNING: This will hopefully work-around graphics driver bugs of the GPU sync-to-retrace mechanism. Cross your fingers!\n");
+            // We try 3 times a maxDuration seconds max., in case something goes wrong...
+            while (ifi_estimate == 0 && retry_count < 3) {
+                numSamples = minSamples;      // Require at least minSamples *valid* samples...
+                // Require a std-deviation of maxStddev (default is less than 200 microseconds) on all systems.
+                // If a non-Linux system likely has desktop composition enabled, we are more lenient and allow
+                // up to 5x the maxStddev which would end up with 1 msec at default settings:
+                stddev = (PsychOSIsDWMEnabled(screenSettings->screenNumber) && (PSYCH_SYSTEM != PSYCH_LINUX)) ? (5 * maxStddev) : maxStddev;
+                // If skipping of sync-test is requested, we limit the calibration to 1 sec.
+                maxsecs = (skip_synctests) ? 1 : maxDuration;
+                retry_count++;
+                ifi_estimate = PsychGetMonitorRefreshInterval(*windowRecord, &numSamples, &maxsecs, &stddev, ((ifi_nominal > 0) ? ifi_nominal : ifi_beamestimate), &did_pageflip);
+
+                if((PsychPrefStateGet_Verbosity()>1) && (ifi_estimate==0 && retry_count<3)) {
+                    printf("\nWARNING: VBL Calibration run No. %i failed. Retrying...\n", retry_count);
+                }
+
+                // Is this the 2nd failed trial?
+                if ((ifi_estimate==0) && (retry_count == 2)) {
+                    // Yes. Before we start the 3rd and final trial, we enable manual syncing of bufferswaps
+                    // to retrace by setting the kPsychBusyWaitForVBLBeforeBufferSwapRequest flag for this window.
+                    // Our PsychOSFlipWindowBuffers() routine will spin-wait/busy-wait manually for onset of VBL
+                    // before emitting the double buffer swaprequest, in the hope that this will fix possible
+                    // sync-to-retrace driver bugs/failures and fix our calibration issue. This should allow the
+                    // 3rd calibration run to succeed if this is the problem:
+                    (*windowRecord)->specialflags |= kPsychBusyWaitForVBLBeforeBufferSwapRequest;
+                    if (PsychPrefStateGet_Verbosity() > 1) {
+                        printf("WARNING: Will enable VBL busywait-workaround before trying final VBL Calibration run No. %i.\n", retry_count + 1);
+                        printf("WARNING: This will hopefully work-around graphics driver bugs of the GPU sync-to-retrace mechanism. Cross your fingers!\n");
+                    }
                 }
             }
+        }
+        else {
+            // 48 bit color depth, 64 bpp, 16 bpc high precision MMIO hack active. Skipped this calibration. Make up some
+            // reasonable values to keep going:
+            ifi_estimate = (ifi_nominal > 0) ? ifi_nominal : ifi_beamestimate;
+            did_pageflip = TRUE;
+            numSamples = minSamples;
+            stddev = 0.0;
+            maxsecs = 0.0;
+            (*windowRecord)->nrIFISamples = numSamples;
+            (*windowRecord)->IFIRunningSum = ifi_estimate * minSamples;
         }
 
         // Compare ifi_estimate from VBL-Sync against beam estimate. If we are in OpenGL native
@@ -1493,11 +1588,12 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         }
         else {
             if ((PsychPrefStateGet_VBLTimestampingMode()==4) && !((*windowRecord)->specialflags & kPsychOpenMLDefective)) {
-                if ((*windowRecord)->hybridGraphics == 3 || (*windowRecord)->hybridGraphics == 4)
+                if ((*windowRecord)->hybridGraphics == 3 || (*windowRecord)->hybridGraphics == 4) {
                     printf("PTB-INFO: Will try to use PRIME custom modesetting-ddx protocol for accurate Flip timestamping.\n");
-                else
+                } else {
                     printf("PTB-INFO: Will try to use OS-Builtin %s for accurate Flip timestamping.\n",
                            ((PSYCH_SYSTEM == PSYCH_LINUX) && ((*windowRecord)->winsysType != WAFFLE_PLATFORM_WAYLAND)) ? "OpenML sync control support" : "method");
+                }
             }
             else if ((PsychPrefStateGet_VBLTimestampingMode()==1 || PsychPrefStateGet_VBLTimestampingMode()==3) &&
                      (PSYCH_SYSTEM == PSYCH_OSX || ((PSYCH_SYSTEM == PSYCH_LINUX) && !((*windowRecord)->specialflags & kPsychOpenMLDefective)))) {
@@ -1516,6 +1612,11 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
 
         if (ifi_nominal > 0) printf("PTB-INFO: Reported monitor refresh interval from operating system = %f ms [%f Hz].\n", ifi_nominal * 1000, 1/ifi_nominal);
         printf("PTB-INFO: Small deviations between reported values are normal and no reason to worry.\n");
+        if (PsychVRRActive(*windowRecord)) {
+            printf("PTB-INFO: Enabling Variable Refresh Rate VRR mode, using method %i and timing style %i.\n", (*windowRecord)->vrrMode, (*windowRecord)->vrrStyleHint);
+            printf("PTB-INFO: Assuming minimum VRR refresh duration %f msecs, maximum duration %f msecs.\n", 1000 * (*windowRecord)->vrrMinDuration, 1000 * (*windowRecord)->vrrMaxDuration);
+            printf("PTB-INFO: Using initial VRR latency compensation of %f msecs.\n", 1000 * (*windowRecord)->vrrLatencyCompensation);
+        }
 
         if ((*windowRecord)->stereomode==kPsychOpenGLStereo) printf("PTB-INFO: Stereo display via OpenGL built-in frame-sequential stereo requested.\n");
         if ((*windowRecord)->stereomode==kPsychCompressedTLBRStereo) printf("PTB-INFO: Stereo display via vertical image compression enabled (Top=LeftEye, Bot.=RightEye).\n");
@@ -1709,7 +1810,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         // want to spoil somebodys study just because s(he) is relying on a non-working sync.
         if (PsychPrefStateGet_Verbosity() > 0) {
             printf("\n\n");
-            printf("----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! ----\n\n");
+            printf("----- ! PTB - ERROR: SYNCHRONIZATION FAILURE ! -----\n\n");
             printf("One or more internal checks (see Warnings above) indicate that synchronization\n");
             printf("of Psychtoolbox to the vertical retrace (VBL) is not working on your setup.\n\n");
             printf("This will seriously impair proper stimulus presentation and stimulus presentation timing!\n");
@@ -1741,10 +1842,46 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
 
     // Ok, basic syncing to VBL seems to work and we have a valid estimate of monitor refresh interval...
 
+    // VRR requested, but not working?
+    if (((*windowRecord)->vrrMode) && !PsychVRRActive(*windowRecord)) {
+        // We abort, unless in skip_synctests mode. If the usercode requires VRR for this study then it
+        // would screw up the results if we'd run fixed refresh rate instead:
+        if (PsychPrefStateGet_Verbosity() > 0) {
+            printf("\n\n");
+            printf("----- ! PTB - ERROR: VRR FAILURE ! -----\n\n");
+            printf("One or more internal checks (see Warnings above) indicate that Variable Refresh Rate mode (VRR)\n");
+            printf("for fine-grained stimulus onset timing is not working for this onscreen window on your setup.\n\n");
+            printf("This will seriously impair proper stimulus presentation timing!\n");
+            printf("Please read 'help VRRSupport' for information about how to solve the problem.\n");
+            printf("You can force Psychtoolbox to continue, despite the severe problems, by adding the command\n");
+            printf("Screen('Preference', 'SkipSyncTests', 2); at the top of your script, if you really know what you are doing.\n\n\n");
+        }
+
+        // Abort right here if sync tests are enabled:
+        if (skip_synctests < 2) {
+            // We abort! Close the onscreen window:
+            PsychOSCloseWindow(*windowRecord);
+
+            // Free the windowRecord:
+            FreeWindowRecordFromPntr(*windowRecord);
+
+            // Done. Return failure:
+            return(FALSE);
+        }
+
+        // User wants us to continue despite VRR failure. Mark VRR as disabled:
+        (*windowRecord)->vrrMode = kPsychVRROff;
+
+        // Flash our visual warning bell at alert-level for 1 second if skipping sync tests is requested:
+        PsychVisualBell((*windowRecord), 1, 2);
+    }
+
     // Check for mismatch between measured ifi from beamposition and from VBLSync method.
     // This would indicate that the beam position is reported from a different display device
     // than the one we are VBL syncing to. -> Trouble!
-    if ((ifi_beamestimate < 0.8 * ifi_estimate || ifi_beamestimate > 1.2 * ifi_estimate) && (ifi_beamestimate > 0)) {
+    // This condition may not hold on a G-Sync/FreeSync setup, so skip fail in that case.
+    if ((ifi_beamestimate < 0.8 * ifi_estimate || ifi_beamestimate > 1.2 * ifi_estimate) && (ifi_beamestimate > 0) &&
+        !PsychVRRActive(*windowRecord)) {
         if (!sync_trouble && PsychPrefStateGet_Verbosity()>1)
             printf("\nWARNING: Mismatch between measured monitor refresh intervals! This indicates problems with rasterbeam position queries.\n");
         sync_trouble = true;
@@ -1758,7 +1895,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
         // If OpenML timestamping is available then beamposition queries are not needed anyway, so no reason to make a big fuss...
         if ((PsychPrefStateGet_Verbosity() > 1) && ((PsychPrefStateGet_VBLTimestampingMode() != 4) || ((*windowRecord)->specialflags & kPsychOpenMLDefective))) {
             printf("\n\n");
-            printf("----- ! PTB - WARNING: SYNCHRONIZATION TROUBLE ! ----\n\n");
+            printf("----- ! PTB - WARNING: SYNCHRONIZATION TROUBLE ! -----\n\n");
             printf("One or more internal checks (see Warnings above) indicate that\n");
             printf("queries of rasterbeam position are not properly working for your setup.\n\n");
             printf("Psychtoolbox will work around this by using a different timing algorithm, \n");
@@ -1922,11 +2059,16 @@ void PsychCloseWindow(PsychWindowRecordType *windowRecord)
             PsychSetupShutterGoggles(windowRecord, FALSE);
         }
 
+        // Reduce count of onscreen windows with our own threaded VRR scheduler active:
+        if (windowRecord->vrrMode == kPsychVRROwnScheduled)
+            vrrSchedulersActive--;
+
         // If this was the last onscreen window then we reset the currentRendertarget etc. to pre-Screen load time:
         if (PsychIsLastOnscreenWindow(windowRecord)) {
             currentRendertarget = NULL;
             asyncFlipOpsActive = 0;
             frameSeqStereoActive = 0;
+            vrrSchedulersActive = 0;
         }
 
         // Release dynamically allocated splash image buffer, if any, if this is the last onscreen window to be closed:
@@ -2453,8 +2595,8 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
     psych_bool oldStyle = (PsychPrefStateGet_ConserveVRAM() & kPsychUseOldStyleAsyncFlips) ? TRUE : FALSE;
 
     // Get a handle to our info structs: These pointers must not be NULL!!!
-    PsychWindowRecordType*    windowRecord = (PsychWindowRecordType*) windowRecordToCast;
-    PsychFlipInfoStruct*    flipRequest     = windowRecord->flipInfo;
+    PsychWindowRecordType* windowRecord = (PsychWindowRecordType*) windowRecordToCast;
+    PsychFlipInfoStruct* flipRequest = windowRecord->flipInfo;
     psych_bool useOpenML = ((PsychPrefStateGet_VBLTimestampingMode() == 4) && !(windowRecord->specialflags & kPsychOpenMLDefective));
 
     // Assign a name to ourselves, for debugging:
@@ -2508,8 +2650,8 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
     if (windowRecord->imagingMode & kPsychEnableSRGBRendering)
         glEnable(GL_FRAMEBUFFER_SRGB);
 
-    // We have a special dispatch loop for our home-grown frame-sequential stereo implementation:
-    if (windowRecord->stereomode != kPsychFrameSequentialStereo) {
+    // Is this a true async flip and not something else like stereo or vrr?
+    if ((windowRecord->stereomode != kPsychFrameSequentialStereo) && (windowRecord->vrrMode != kPsychVRROwnScheduled)) {
         // Set our state as "initialized, ready & waiting":
         flipRequest->flipperState = 1;
 
@@ -2617,8 +2759,9 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
             // get triggered again with more work to do:
         }
         // Exit from standard dispatch loop.
-    }
-    else {
+    } // End of standard Async flip code.
+
+    if (windowRecord->stereomode == kPsychFrameSequentialStereo) {
         // Frame-Sequential stereo dispatch loop: Repeats infinitely, processing one flip request or stereo buffer swap per loop iteration.
         // Well, not infinitely, but until we receive a shutdown request and terminate ourselves...
 
@@ -2783,7 +2926,157 @@ void* PsychFlipperThreadMain(void* windowRecordToCast)
             // Next dispatch loop iteration...
         }
         // Exit from frame-sequential stereo dispatch loop.
-    }
+    } // End of frame-sequential stereo code.
+
+    if (windowRecord->vrrMode == kPsychVRROwnScheduled) {
+        // Homegrown VRR scheduler dispatch loop: Repeats infinitely, processing one flip request or "prevent lfc kick-in" per loop iteration.
+        // Well, not infinitely, but until we receive a shutdown request and terminate ourselves...
+
+        // Setup view: We set the full backbuffer area of the window.
+        PsychSetupView(windowRecord, TRUE);
+
+        // Set our state as "initialized and ready":
+        flipRequest->flipperState = 6;
+
+        PsychUnlockMutex(&(flipRequest->performFlipLock));
+        needWork = TRUE;
+
+        // Dispatch loop:
+        while (TRUE) {
+            // Do we need a new vrr flip work item? If so, can we get the lock to check it?
+            if (needWork && (PsychTryLockMutex(&(flipRequest->performFlipLock)) == 0)) {
+                // Need new work and got lock.
+
+                // Check if we are supposed to terminate:
+                if (flipRequest->opmode == -1) {
+                    // We shall terminate: We are not waiting on the flipperGoGoGo variable.
+                    // We hold the mutex, so set us to state "terminating with lock held" and exit the loop:
+                    flipRequest->flipperState = 4;
+                    break;
+                }
+
+                // New work available?
+                if (flipRequest->flipperState == 1) {
+                    // Yes: We have work and we have the mutex until we are
+                    // done with the work.
+                    needWork = FALSE;
+
+                    // Set our state to "executing - flip in progress":
+                    flipRequest->flipperState = 2;
+                }
+                else {
+                    // No: Release the lock, so master has a chance to give us new work:
+                    PsychUnlockMutex(&(flipRequest->performFlipLock));
+                }
+            }
+
+            // Update our last vblank end timestamp: On Linux we can query the actual
+            // timestamp at any time iff the open-source graphics drivers are used.
+            // On Linux with NVidia proprietary blob or on Windows and macOS, no such
+            // luck, and especially not in a VRR configuration! On such setups we fall
+            // back to approximation trickery which may or may not work reliable:
+            lastvbl = PsychOSGetVBLTimeAndCount(windowRecord, &vblcount);
+            if (lastvbl < 0)
+                lastvbl = windowRecord->time_at_last_vbl;
+
+            // Are we past the deadline for pending flip work?
+            PsychGetAdjustedPrecisionTimerSeconds(&tnow);
+
+            // For performing a "virtual bufferswap" we need a swaprequest to be pending,
+            // and the flipwhen deadline being reached.
+            if (!needWork && (flipRequest->flipwhen - lastvbl < windowRecord->vrrMaxDuration - windowRecord->vrrLatencyCompensation)) {
+                // Yes: Time to update the backbuffers with our finalizedFBOs and do
+                // properly scheduled/timestamped bufferswaps:
+
+                // Copy our virtual backbuffer finalizedFBO[0] fbo to true backbuffer:
+                PsychPipelineExecuteHook(windowRecord, kPsychIdentityBlit, NULL, NULL, TRUE, FALSE,
+                                         &(windowRecord->fboTable[windowRecord->finalizedFBO[0]]), NULL,
+                                         &(windowRecord->fboTable[0]), NULL);
+
+                // Execute synchronous flip to make it the frontbuffer: This resets the framebuffer binding to 0 at exit:
+                flipRequest->vbl_timestamp = PsychFlipWindowBuffers(windowRecord, 0, 0, 2, flipRequest->flipwhen - windowRecord->vrrLatencyCompensation,
+                                                                    &(flipRequest->beamPosAtFlip), &(flipRequest->miss_estimate),
+                                                                    &(flipRequest->time_at_flipend), &(flipRequest->time_at_onset));
+
+                // We glFinish() here, to make sure all rendering commands submitted
+                // by our OpenGL context are finished. This means the finalizedFBOs are
+                // "used up" for this redraw cycle and ready for refill by the masterthread:
+                glFinish();
+
+                // Set our state to 3 aka "flip operation finished, ready for new commands":
+                flipRequest->flipperState = 3;
+
+                // Compute swap deadline for onset of 2nd view (right eye):
+                // tnow = flipRequest->flipwhen + windowRecord->VideoRefreshInterval;
+
+                // We can release the lock already to unblock the client code on the masterthread,
+                // as it already has access to all timestamps and status information and can start
+                // rendering into the client framebuffers (drawBufferFBOs) already. It could even
+                // already perform new preflip operations, as we're done with the finalizedFBO:
+                PsychUnlockMutex(&(flipRequest->performFlipLock));
+
+                // Ready to accept new work:
+                needWork = TRUE;
+
+                // Restart at beginning of dispatch while-loop:
+                continue;
+            }
+
+            // Ok, either swap deadline for flip not within reach of current VRR
+            // refresh cycle, or nothing to do from client side. Idle swap handling...
+            if (!needWork) {
+                // Have something to swap, but not within reach of current refresh cycle.
+                // Perform immediate idle flip to move us closer to target time flipwhen,
+                // while keeping lfc or vblank timeout handling from triggering:
+                lastvbl = tnow;
+            }
+            else {
+                // We are idle, no new bufferswap pending. Set a reasonable idle-flip
+                // to keep lfc from triggering:
+
+                // Estimate next vblank deadline: Safety headroom is 0.5 refresh cycles.
+                lastvbl += windowRecord->vrrMinDuration;
+            }
+
+            // Time for a swap request?
+            if (tnow >= lastvbl) {
+                // Copy current frontbuffer to backbuffer for an idle "no-op" swap:
+                glReadBuffer(GL_FRONT);
+                glRasterPos2i(0, PsychGetHeightFromRect(windowRecord->rect));
+                glCopyPixels(0, 0, PsychGetWidthFromRect(windowRecord->rect), PsychGetHeightFromRect(windowRecord->rect), GL_COLOR);
+
+                // Trigger a doublebuffer swap in sync with vblank:
+                PsychOSFlipWindowBuffers(windowRecord);
+
+                // Protect against multi-threading trouble if needed:
+                PsychLockedTouchFramebufferIfNeeded(windowRecord);
+
+                if (PsychPrefStateGet_Verbosity() > 10) {
+                    printf("PTB-DEBUG: VRR Idle-Swap tnow = %f >= deadline = %f  delta = %f  [lastvbl = %f]\n", tnow, lastvbl, tnow - lastvbl, windowRecord->time_at_last_vbl);
+                }
+
+                // Wait for swap completion, so we get an updated vblank time estimate:
+                if (!(useOpenML && (PsychOSGetSwapCompletionTimestamp(windowRecord, 0, &(windowRecord->time_at_last_vbl)) >= 0))) {
+                    // OpenML swap completion timestamping unsupported, disabled, or failed.
+                    // Use our standard trick instead.
+                    PsychWaitPixelSyncToken(windowRecord, FALSE);
+
+                    // Try to get good predicted scanout start timestamp:
+                    windowRecord->time_at_last_vbl = PsychGetVblankTimestamps(windowRecord, NULL);
+
+                    // Fallback to the basics if that fails:
+                    if (windowRecord->time_at_last_vbl < 0)
+                        PsychGetAdjustedPrecisionTimerSeconds(&(windowRecord->time_at_last_vbl));
+                }
+            } else {
+                // Nope. Need to sleep a bit here to kill some time:
+                PsychYieldIntervalSeconds(0.001);
+            }
+
+            // Next dispatch loop iteration...
+        }
+        // Exit from VRR scheduling dispatch loop.
+    } // End of VRR scheduler code.
 
     // Exit path from thread at thread termination...
 
@@ -2882,7 +3175,7 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
     if (NULL == flipRequest) PsychErrorExitMsg(PsychError_internal, "NULL-Ptr for 'flipRequest' field of windowRecord passed in PsychFlipWindowsIndirect()!!");
 
     // Synchronous flip requested?
-    if ((flipRequest->opmode == 0) && (windowRecord->stereomode != kPsychFrameSequentialStereo)) {
+    if ((flipRequest->opmode == 0) && (windowRecord->stereomode != kPsychFrameSequentialStereo) && (windowRecord->vrrMode != kPsychVRROwnScheduled)) {
         // Yes. Any pending operation in progress?
         if (flipRequest->asyncstate != 0) PsychErrorExitMsg(PsychError_internal, "Tried to invoke synchronous flip while flip still in progress!");
 
@@ -2897,15 +3190,18 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
     }
 
     // Asynchronous flip mode, either request to trigger one or request to finalize one:
-    if ((flipRequest->opmode == 1) || ((flipRequest->opmode == 0) && (windowRecord->stereomode == kPsychFrameSequentialStereo))) {
-        // Async flip start request, or a sync flip turned into an async flip due to kPsychFrameSequentialStereo:
+    if ((flipRequest->opmode == 1) || ((flipRequest->opmode == 0) && ((windowRecord->stereomode == kPsychFrameSequentialStereo) || (windowRecord->vrrMode == kPsychVRROwnScheduled)))) {
+        // Async flip start request, or a sync flip turned into an async flip due to kPsychFrameSequentialStereo or VRR with our own scheduler:
         if (flipRequest->asyncstate != 0) PsychErrorExitMsg(PsychError_internal, "Tried to invoke asynchronous flip while flip still in progress!");
 
         // Current multiflip > 0 implementation is not thread-safe, so we don't support this:
         if (flipRequest->multiflip != 0) PsychErrorExitMsg(PsychError_user, "Using a non-zero 'multiflip' flag while starting an asynchronous flip! This is forbidden! Aborted.\n");
 
         if ((flipRequest->opmode == 0) && (PsychPrefStateGet_ConserveVRAM() & kPsychUseOldStyleAsyncFlips)) {
-            PsychErrorExitMsg(PsychError_user, "Tried to use frame-sequential stereo mode while Screen('Preference', 'ConserveVRAM') setting kPsychUseOldStyleAsyncFlips is set! Forbidden!");
+            if (windowRecord->vrrMode == kPsychVRROwnScheduled)
+                PsychErrorExitMsg(PsychError_user, "Tried to use VRR mode while Screen('Preference', 'ConserveVRAM') setting kPsychUseOldStyleAsyncFlips is set! Forbidden!");
+            else
+                PsychErrorExitMsg(PsychError_user, "Tried to use frame-sequential stereo mode while Screen('Preference', 'ConserveVRAM') setting kPsychUseOldStyleAsyncFlips is set! Forbidden!");
         }
 
         // PsychPreflip operations are not thread-safe due to possible callbacks into runtime interpreter thread
@@ -2917,11 +3213,11 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
         windowRecord->PipelineFlushDone = TRUE;
 
         // ... and flush & finish the pipe:
-        if (windowRecord->stereomode == kPsychFrameSequentialStereo) {
-            // In frame sequential mode we need to glFinish() to make sure our
+        if ((windowRecord->stereomode == kPsychFrameSequentialStereo) || (windowRecord->vrrMode == kPsychVRROwnScheduled)) {
+            // In frame sequential / VRR scheduling mode we need to glFinish() to make sure our
             // finalizedFBO's are really ready for immediate consumption without
-            // blocking the stereo flipperThread, as that would glitch the left-right
-            // eye alternating and break stereo:
+            // blocking the stereo/vrr flipperThread, as that would glitch the left-right
+            // eye alternating and break stereo or glitch the VRR submission within time constraints:
             glFinish();
         }
         else {
@@ -2959,13 +3255,13 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
 
             // Create & Init the two mutexes:
             if ((rc=PsychInitMutex(&(flipRequest->performFlipLock)))) {
-                printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): Could not create performFlipLock mutex lock [%s].\n", strerror(rc));
-                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for mutex creation as part of async flip setup!");
+                printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): Could not create performFlipLock mutex lock [%s].\n", strerror(rc));
+                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for mutex creation as part of flip threading setup!");
             }
 
             if ((rc=PsychInitCondition(&(flipRequest->flipperGoGoGo), NULL))) {
-                printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): Could not create flipperGoGoGo condition variable [%s].\n", strerror(rc));
-                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for condition variable creation as part of async flip setup!");
+                printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): Could not create flipperGoGoGo condition variable [%s].\n", strerror(rc));
+                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for condition variable creation as part of flip threading setup!");
             }
 
             // Set initial thread state to "inactive, not initialized at all":
@@ -2980,10 +3276,18 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
                 PsychSetupShutterGoggles(windowRecord, TRUE);
             }
 
+            // Setup for our own VRR scheduler implementation:
+            if (windowRecord->vrrMode == kPsychVRROwnScheduled) {
+                vrrSchedulersActive++;
+
+                if (PsychPrefStateGet_Verbosity() > 2)
+                    printf("PTB-INFO: Switching stimulus onset scheduling to use of our own VRR scheduler.\n");
+            }
+
             // Create and startup thread:
             if ((rc=PsychCreateThread(&(flipRequest->flipperThread), NULL, PsychFlipperThreadMain, (void*) windowRecord))) {
-                printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): Could not create flipper  [%s].\n", strerror(rc));
-                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for thread creation as part of async flip setup!");
+                printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): Could not create flipper  [%s].\n", strerror(rc));
+                PsychErrorExitMsg(PsychError_system, "Insufficient system ressources for thread creation as part of flip threading setup!");
             }
 
             // Additionally try to schedule flipperThread MMCSS: This will lift it roughly into the
@@ -3027,8 +3331,8 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
                 //printf("ENTERING THREADCREATEFINISHED MUTEX: MUTEX_LOCK\n"); fflush(NULL);
 
                 if ((rc=PsychLockMutex(&(flipRequest->performFlipLock)))) {
-                    printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): First mutex_lock in init failed  [%s].\n", strerror(rc));
-                    PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of async flip setup!");
+                    printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): First mutex_lock in init failed  [%s].\n", strerror(rc));
+                    PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of flip threading setup!");
                 }
 
                 //printf("ENTERING THREADCREATEFINISHED MUTEX: MUTEX_LOCKED!\n"); fflush(NULL);
@@ -3042,8 +3346,8 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
                 //printf("ENTERING THREADCREATEFINISHED MUTEX: MUTEX_UNLOCK\n"); fflush(NULL);
 
                 if ((rc=PsychUnlockMutex(&(flipRequest->performFlipLock)))) {
-                    printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): First mutex_unlock in init failed  [%s].\n", strerror(rc));
-                    PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of async flip setup!");
+                    printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): First mutex_unlock in init failed  [%s].\n", strerror(rc));
+                    PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of flip threading setup!");
                 }
 
                 //printf("ENTERING THREADCREATEFINISHED MUTEX: MUTEX_UNLOCKED\n"); fflush(NULL);
@@ -3053,6 +3357,10 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
 
                 //printf("ENTERING THREADCREATEFINISHED MUTEX: RETRY\n"); fflush(NULL);
             }
+
+            // On our VRR scheduler, give the VRR machinery some time to stabilize:
+            if (windowRecord->vrrMode == kPsychVRROwnScheduled)
+                PsychYieldIntervalSeconds(2);
 
             // End of first-time init for this windowRecord and its thread.
 
@@ -3074,21 +3382,21 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
 
         // Trigger the thread:
         if ((rc=PsychSignalCondition(&(flipRequest->flipperGoGoGo)))) {
-            printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): pthread_cond_signal in trigger operation failed  [%s].\n", strerror(rc));
+            printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): pthread_cond_signal in trigger operation failed  [%s].\n", strerror(rc));
             PsychErrorExitMsg(PsychError_internal, "This must not ever happen! PTB design bug or severe operating system or runtime environment malfunction!! Memory corruption?!?");
         }
 
         // Release the lock:
         if ((rc=PsychUnlockMutex(&(flipRequest->performFlipLock)))) {
-            printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): mutex_unlock in trigger operation failed  [%s].\n", strerror(rc));
+            printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): mutex_unlock in trigger operation failed  [%s].\n", strerror(rc));
             PsychErrorExitMsg(PsychError_internal, "This must not ever happen! PTB design bug or severe operating system or runtime environment malfunction!! Memory corruption?!?");
         }
 
-        // Scheduling regular async-flip as opposed to frame-seq stereo flip,
+        // Scheduling regular async-flip as opposed to frame-seq stereo / vrr flip,
         // and EGL windowing backend active? If so we must prevent binding of
         // our masterthread contexts to the EGL backing surface of the window
         // while our async flipper thread has the surface bound:
-        if ((windowRecord->stereomode != kPsychFrameSequentialStereo) && (windowRecord->specialflags & kPsychIsEGLWindow)) {
+        if ((windowRecord->stereomode != kPsychFrameSequentialStereo) && (windowRecord->vrrMode != kPsychVRROwnScheduled) && (windowRecord->specialflags & kPsychIsEGLWindow)) {
             // Yes: Veto all EGL surface binds for this windowRecords regular contexts:
             windowRecord->specialflags |= kPsychSurfacelessContexts;
         }
@@ -3104,10 +3412,10 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
         }
         else {
             // Was a sync flip turned into an async-flip begin for our
-            // frame-sequential stereo implementation. Turn this into
-            // a blocking wait for async-flip end and fall-through, so
-            // we get the effective semantics of a classic sync-flip,
-            // just executed indirectly by the flipperthread:
+            // frame-sequential stereo or VRR scheduler implementation.
+            // Turn this into a blocking wait for async-flip end and
+            // fall-through, so we get the effective semantics of a
+            // classic sync-flip, just executed indirectly by the thread:
             flipRequest->opmode = 2;
         }
     }
@@ -3127,14 +3435,15 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
                 //printf("END: MUTEX_LOCK\n"); fflush(NULL);
 
                 if ((rc=PsychLockMutex(&(flipRequest->performFlipLock)))) {
-                    printf("PTB-ERROR: In Screen('AsyncFlipEnd'): PsychFlipWindowBuffersIndirect(): mutex_lock in wait for finish failed  [%s].\n", strerror(rc));
+                    printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): mutex_lock in wait for finish failed  [%s].\n", strerror(rc));
                     PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of async flip end!");
                 }
             }
             else {
                 // Polling mode:
                 // Try to lock, return to caller if not available:
-                if (PsychTryLockMutex(&(flipRequest->performFlipLock)) > 0) return(FALSE);
+                if (PsychTryLockMutex(&(flipRequest->performFlipLock)) > 0)
+                    return(FALSE);
             }
 
             // printf("END: MUTEX_LOCKED\n"); fflush(NULL);
@@ -3149,7 +3458,7 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
 
             // Not finished. Unlock:
             if ((rc=PsychUnlockMutex(&(flipRequest->performFlipLock)))) {
-                printf("PTB-ERROR: In Screen('FlipAsyncBegin'): PsychFlipWindowBuffersIndirect(): mutex_unlock in wait/poll for finish failed  [%s].\n", strerror(rc));
+                printf("PTB-ERROR: In PsychFlipWindowBuffersIndirect(): mutex_unlock in wait/poll for finish failed  [%s].\n", strerror(rc));
                 PsychErrorExitMsg(PsychError_system, "Internal error or deadlock avoided as part of async flip end!");
             }
 
@@ -3181,14 +3490,14 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
         // Decrement the asyncFlipOpsActive count:
         asyncFlipOpsActive--;
 
-        if (windowRecord->stereomode == kPsychFrameSequentialStereo) {
-            // Finalize frame-seq stereo flip: run post-flip ops:
+        if ((windowRecord->stereomode == kPsychFrameSequentialStereo) || (windowRecord->vrrMode == kPsychVRROwnScheduled)) {
+            // Finalize frame-seq stereo flip or VRR flip: run post-flip ops:
             flipRequest->asyncstate = 0;
             PsychPostFlipOperations(windowRecord, flipRequest->dont_clear);
             flipRequest->asyncstate = 2;
         }
         else {
-            // Finalize regular async-flip (== not frame-sequential stereo ops flip)
+            // Finalize regular async-flip.
 
             // EGL-backed windows need special treatment:
             if (windowRecord->specialflags & kPsychIsEGLWindow) {
@@ -3514,7 +3823,7 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
 
     // Request flip at exactly tWhen if fine-grained onset scheduling is requested for this window,
     // subject to the required hardware + OS support:
-    if (windowRecord->specialflags & kPsychUseFineGrainedOnset)
+    if (PsychVRRActive(windowRecord))
         targetSwapFlags |= 4;
 
     // Swap at a specific video field (even or odd) requested, e.g., to select the target field
@@ -3682,6 +3991,11 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
     // Calculate final deadline for deadline-miss detection:
     tshouldflip = tshouldflip + slackfactor * currentflipestimate;
 
+    // In VRR mode, if a specific target time flipwhen is given and > 1 minimum
+    // frame duration away, then set that as tshouldflip + 1 msec slack:
+    if (PsychVRRActive(windowRecord) && (flipwhen > 0) && (flipwhen > tshouldflip))
+        tshouldflip = flipwhen + 0.001;
+
     if (!(windowRecord->specialflags & kPsychSkipSwapForFlipOnce)) {
         // Low level queries to the driver:
         // We query the timestamp and count of the last vertical retrace. This is needed for
@@ -3701,7 +4015,8 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
             // if we don't care about this, or if care has been taken already by osspecific_asyncflip_scheduled:
             flipcondition_satisfied = (windowRecord->stereomode == kPsychFrameSequentialStereo) || (windowRecord->targetFlipFieldType == -1) ||
                                         (preflip_vblcount == 0) || (((preflip_vblcount + 1) % 2) == (psych_uint64) windowRecord->targetFlipFieldType) ||
-                                        (osspecific_asyncflip_scheduled && !must_wait) || (windowRecord->specialflags & kPsychSkipWaitForFlipOnce);
+                                        (osspecific_asyncflip_scheduled && !must_wait) || (windowRecord->specialflags & kPsychSkipWaitForFlipOnce) ||
+                                        (windowRecord->vrrMode == kPsychVRROwnScheduled);
             // If in wrong video cycle, we simply sleep a millisecond, then retry...
             if (!flipcondition_satisfied) PsychWaitIntervalSeconds(0.001);
         } while (!flipcondition_satisfied);
@@ -4119,6 +4434,11 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
             *time_at_onset = time_at_vbl + onset_time_togo;
             // Now we correct our time_at_vbl by this correction value:
             time_at_vbl = time_at_vbl - vbl_time_elapsed;
+
+            // time_at_vbl is not computable on a VRR setup, so override it with the next best surrogate, the time_at_onset:
+            if (PsychVRRActive(windowRecord)) {
+                time_at_vbl = *time_at_onset;
+            }
         }
         else {
             // Beamposition queries unavailable!
@@ -4409,7 +4729,7 @@ double PsychFlipWindowBuffers(PsychWindowRecordType *windowRecord, int multiflip
         // creation of the onscreen window from the check, as deadline-miss is expected
         // in that case. We also disable the skipped frame detection if our own home-grown
         // frame-sequential stereo mode is active, as the detector can't work sensibly with it:
-        if ((time_at_vbl > tshouldflip) && (windowRecord->time_at_last_vbl!=0) && (windowRecord->stereomode != kPsychFrameSequentialStereo)) {
+        if ((time_at_vbl > tshouldflip) && (windowRecord->time_at_last_vbl != 0) && (windowRecord->stereomode != kPsychFrameSequentialStereo)) {
             // Deadline missed!
             windowRecord->nr_missed_deadlines = windowRecord->nr_missed_deadlines + 1;
         }
@@ -4838,7 +5158,7 @@ double PsychGetMonitorRefreshInterval(PsychWindowRecordType *windowRecord, int* 
 
             // Update reference timestamp:
             told = tnew;
-            
+
             // Some (buggy!) drivers, e.g., the ATI Radeon X1600 driver on
             // OS/X 10.4.10, do not limit the number of bufferswaps to 1 per refresh cycle as mandated
             // by the spec, but they allow as many bufferswaps as you want, as long as all of them happen
@@ -4904,11 +5224,13 @@ double PsychGetMonitorRefreshInterval(PsychWindowRecordType *windowRecord, int* 
             else if (PsychPrefStateGet_Verbosity() > 1) {
                 // No reliable pageflipping or pageflipping at all. This is pretty much game over for reliable
                 // visual timing or timestamping:
-                printf("PTB-WARNING: Pageflipping wasn't used %s during refresh calibration. Visual presentation timing on your system\n",
-                       (pflip_count > 0) ? "consistently" : "at all");
-                printf("PTB-WARNING: is broken on your system and all followup tests and workarounds will likely fail as well.\n");
-                printf("PTB-WARNING: On a Apple macOS system you probably don't need to even bother asking anybody for help. Just\n");
-                printf("PTB-WARNING: upgrade to Linux if you care about trustworthy visual timing and stimulation.\n\n");
+                printf("PTB-WARNING: Pageflipping wasn't used %s during refresh calibration [%i of %i].\n",
+                       (pflip_count > 0) ? "consistently" : "at all", pflip_count, i);
+                printf("PTB-WARNING: Visual presentation timing is broken on your system and all followup tests and workarounds will likely fail.\n");
+                if (PSYCH_SYSTEM == PSYCH_OSX) {
+                    printf("PTB-WARNING: On this Apple macOS system you probably don't need to even bother asking anybody for help.\n");
+                    printf("PTB-WARNING: Just upgrade to Linux if you care about trustworthy visual timing and stimulation.\n\n");
+                }
             }
         }
     } // End of IFI measurement code.
@@ -6589,6 +6911,18 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
             printf("PTB-DEBUG: Not running on Mesa graphics library.\n");
     }
 
+    #if PSYCH_SYSTEM == PSYCH_LINUX
+    // Try to query renderer gpu vendor from Mesa if supported:
+    if (glxewIsSupported("GLX_MESA_query_renderer") && (glXQueryCurrentRendererIntegerMESA != NULL) &&
+        glXQueryCurrentRendererIntegerMESA(GLX_RENDERER_VENDOR_ID_MESA, &rendergpuVendor) && (rendergpuVendor != 0xFFFFFFFF)) {
+        if (verbose)
+            printf("PTB-DEBUG: Vendor Id of render gpu - rendergpuVendor 0x%x.\n", rendergpuVendor);
+    }
+    else {
+        rendergpuVendor = 0;
+    }
+    #endif
+
     // Init Id string for GPU core to zero. This has at most 8 Bytes, including 0-terminator,
     // so use at most 7 letters!
     memset(&(windowRecord->gpuCoreId[0]), 0, 8);
@@ -6597,11 +6931,13 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
         ati = TRUE; sprintf(windowRecord->gpuCoreId, "R100");
     }
 
-    if (strstr((char*) glGetString(GL_VENDOR), "NVIDIA") || strstr((char*) glGetString(GL_RENDERER), "nouveau") || strstr((char*) glGetString(GL_VENDOR), "nouveau")) {
+    if (strstr((char*) glGetString(GL_VENDOR), "NVIDIA") || strstr((char*) glGetString(GL_RENDERER), "nouveau") || strstr((char*) glGetString(GL_VENDOR), "nouveau") ||
+        (rendergpuVendor == PCI_VENDOR_ID_NVIDIA)) {
         nvidia = TRUE; sprintf(windowRecord->gpuCoreId, "NV10");
     }
 
-    if (strstr((char*) glGetString(GL_VENDOR), "INTEL") || strstr((char*) glGetString(GL_VENDOR), "Intel") || strstr((char*) glGetString(GL_RENDERER), "Intel")) {
+    if (strstr((char*) glGetString(GL_VENDOR), "INTEL") || strstr((char*) glGetString(GL_VENDOR), "Intel") || strstr((char*) glGetString(GL_RENDERER), "Intel") ||
+        (rendergpuVendor == PCI_VENDOR_ID_INTEL)) {
         intel = TRUE; sprintf(windowRecord->gpuCoreId, "Intel");
     }
 
@@ -6610,7 +6946,8 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
     }
 
     // Detection code for Linux DRI driver stack with ATI GPU:
-    if (strstr((char*) glGetString(GL_VENDOR), "Advanced Micro Devices") || strstr((char*) glGetString(GL_RENDERER), "ATI")) {
+    if (strstr((char*) glGetString(GL_VENDOR), "Advanced Micro Devices") || strstr((char*) glGetString(GL_RENDERER), "ATI") || strstr((char*) glGetString(GL_RENDERER), "Radeon") ||
+        (rendergpuVendor == PCI_VENDOR_ID_AMD) || (rendergpuVendor == PCI_VENDOR_ID_ATI)) {
         ati = TRUE; sprintf(windowRecord->gpuCoreId, "R100");
     }
 
@@ -6621,14 +6958,13 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
     // Is this a hybrid graphics dual-gpu laptop which uses DRI PRIME for muxless render offload?
     #if PSYCH_SYSTEM == PSYCH_LINUX
     if ((getenv("DRI_PRIME") && ((const char*) getenv("DRI_PRIME"))[0] != '0') ||
-        (glxewIsSupported("GLX_MESA_query_renderer") && (glXQueryCurrentRendererIntegerMESA != NULL) &&
-        glXQueryCurrentRendererIntegerMESA(GLX_RENDERER_VENDOR_ID_MESA, &rendergpuVendor) && (rendergpuVendor != 0xFFFFFFFF) && (gpuMaintype != kPsychUnknown) &&
+        (rendergpuVendor && (rendergpuVendor != 0xFFFFFFFF) && (gpuMaintype != kPsychUnknown) &&
         glXQueryCurrentRendererIntegerMESA(GLX_RENDERER_DEVICE_ID_MESA, &rendergpuModel) && (rendergpuModel != 0xFFFFFFFF) && (gpuModel != (int) 0xFFFFFFFF) &&
         (((int) rendergpuModel != gpuModel) || (gpuMaintype == kPsychIntelIGP && rendergpuVendor != PCI_VENDOR_ID_INTEL) ||
         (gpuMaintype == kPsychGeForce && rendergpuVendor != PCI_VENDOR_ID_NVIDIA) ||
         (gpuMaintype == kPsychRadeon && rendergpuVendor != PCI_VENDOR_ID_AMD && rendergpuVendor != PCI_VENDOR_ID_ATI)))) {
         windowRecord->hybridGraphics = 1;
-        if (verbose) printf("PTB-DEBUG: Prime indicators: rendergpuVendor %x, rendergpuModel %x, displaygpuModel %x displaygpuType %x.\n", rendergpuVendor, rendergpuModel, gpuModel, gpuMaintype);
+        if (verbose) printf("PTB-DEBUG: Prime indicators: rendergpuVendor 0x%x, rendergpuModel 0x%x, displaygpuModel 0x%x displaygpuType 0x%x.\n", rendergpuVendor, rendergpuModel, gpuModel, gpuMaintype);
         if (PsychPrefStateGet_Verbosity() >= 3) printf("PTB-INFO: Hybrid graphics setup with DRI PRIME muxless render offload detected.\n");
 
         // Prime renderoffload only works with proper timing and quality if DRI3/Present
@@ -6834,6 +7170,13 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
             windowRecord->specialflags |= kPsychNeedPostSwapLockedFlush;
             if (verbose) printf("PTB-DEBUG: Linux X11 backend with non-NVidia blob drivers - Enabling locked pixeltoken-write + flush workaround for XLib thread-safety.\n");
         }
+    }
+
+    // Check if this is a NVidia GPU with (currently required) proprietary driver and G-Sync support (ie. non-Optimus configuration, Kepler or later):
+    if ((gpuMaintype == kPsychGeForce) && (gpuMinortype >= 0x0E0) && nvidia && !(windowRecord->hybridGraphics) && strstr((char*) glGetString(GL_VENDOR), "NVIDIA")) {
+        windowRecord->gfxcaps |= kPsychGfxCapGSync;
+        if (verbose)
+            printf("PTB-DEBUG: NVidia GPU with G-Sync support detected. VRR requested by usercode? %s\n", (windowRecord->vrrMode) ? "Yes" : "No");
     }
 
     while (glGetError());
@@ -7148,7 +7491,13 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
             printf("PTB-INFO: tests and calibrations so you can at least get your scripts running for demo purposes. Other\n");
             printf("PTB-INFO: presentation modalities and various Psychtoolbox functions will only work with limited functionality\n");
             printf("PTB-INFO: and precision. Only use this for demos and simple tests, not for real experiment sessions!\n\n");
-
+            #if (PSYCH_SYSTEM == PSYCH_WINDOWS) && defined(PTBOCTAVE3MEX)
+            printf("PTB-INFO: Another reason for lack of hardware OpenGL could be that GNU/Octave's own opengl32.dll library\n");
+            printf("PTB-INFO: has not been deleted or renamed by you, so it is enforcing software rendering.\n");
+            printf("PTB-INFO: You have to delete or rename that file and restart Octave for this to work.\n");
+            printf("PTB-INFO: E.g., on Octave-5.1.0, the file to delete or rename would be likely this:\n");
+            printf("PTB-INFO: C:\\Octave\\Octave-5.1.0.0\\mingw64\\bin\\opengl32.dll\n\n");            
+            #endif
             // Disable all sync tests and display timing calibrations, unless usercode already did something similar:
             if (PsychPrefStateGet_SkipSyncTests() < 1) PsychPrefStateSet_SkipSyncTests(2);
             // Disable strict OpenGL error checking, so we don't abort for minor OpenGL errors and
@@ -7400,8 +7749,9 @@ void PsychLockedTouchFramebufferIfNeeded(PsychWindowRecordType *windowRecord)
     // a) We are executing on a flipper thread, ie., not the master thread.
     // b) Any async flips ops are active on any window.
     // c) Any framesequential stereo flipping threads are active on any window.
+    // d) Any custom VRR scheduling threads are active on any window.
     if ((windowRecord->specialflags & kPsychNeedPostSwapLockedFlush) &&
-        (!PsychIsMasterThread() || (PsychGetNrAsyncFlipsActive() > 0) || (PsychGetNrFrameSeqStereoWindowsActive() > 0))
+        (!PsychIsMasterThread() || (PsychGetNrAsyncFlipsActive() > 0) || (PsychGetNrFrameSeqStereoWindowsActive() > 0) || (PsychGetNrVRRSchedulerWindowsActive() > 0))
         ) {
         // Workaround needed.
 
@@ -7412,8 +7762,8 @@ void PsychLockedTouchFramebufferIfNeeded(PsychWindowRecordType *windowRecord)
         PsychOSGetSwapCompletionTimestamp(windowRecord, 0, NULL);
 
         if (PsychPrefStateGet_Verbosity() > 15) {
-            printf("PTB-DEBUG: PsychLockedTouchFramebufferIfNeeded()! isMaster = %i   AsyncFlips = %i   StereoWindows = %i\n",
-                PsychIsMasterThread(), PsychGetNrAsyncFlipsActive(), PsychGetNrFrameSeqStereoWindowsActive());
+            printf("PTB-DEBUG: PsychLockedTouchFramebufferIfNeeded()! isMaster = %i   AsyncFlips = %i   StereoWindows = %i   VRRSchedulersActive = %i\n",
+                PsychIsMasterThread(), PsychGetNrAsyncFlipsActive(), PsychGetNrFrameSeqStereoWindowsActive(), PsychGetNrVRRSchedulerWindowsActive());
             fflush(NULL);
         }
 
@@ -7427,3 +7777,4 @@ void PsychLockedTouchFramebufferIfNeeded(PsychWindowRecordType *windowRecord)
         #endif
     }
 }
+

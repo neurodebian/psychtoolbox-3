@@ -23,12 +23,16 @@
 
 #include "Screen.h"
 
+#if PSYCH_SYSTEM == PSYCH_OSX
+double PsychCocoaGetBackingStoreScaleFactor(void* window);
+#endif
+
 // Pointer to master onscreen window during setup phase of stereomode 10 (Dual-window stereo):
 static PsychWindowRecordType* sharedContextWindow = NULL;
 
 // If you change the useString then also change the corresponding synopsis string in ScreenSynopsis.c
-static char useString[] =  "[windowPtr,rect]=Screen('OpenWindow',windowPtrOrScreenNumber [,color] [,rect][,pixelSize][,numberOfBuffers][,stereomode][,multisample][,imagingmode][,specialFlags][,clientRect][,fbOverrideRect]);";
-//                                                               1                         2        3      4           5                 6            7             8             9              10           11
+static char useString[] =  "[windowPtr,rect]=Screen('OpenWindow',windowPtrOrScreenNumber [,color] [,rect][,pixelSize][,numberOfBuffers][,stereomode][,multisample][,imagingmode][,specialFlags][,clientRect][,fbOverrideRect][,vrrParams=[]]);";
+//                                                               1                         2        3      4           5                 6            7             8             9              10           11               12
 static char synopsisString[] =
     "Open an onscreen window. Specify a screen by a windowPtr or a screenNumber (0 is "
     "the main screen, with menu bar). \"color\" is the clut index (scalar or [r g b] "
@@ -75,14 +79,7 @@ static char synopsisString[] =
     "flags is passed. A currently supported flag is the symbolic constant kPsychGUIWindow. It enables windows "
     "to behave more like regular GUI windows on your system. See 'help kPsychGUIWindow' for more info. The "
     "flag kPsychGUIWindowWMPositioned additionally leaves initial positioning of the GUI window to the window "
-    "manager. The flag kPsychUseFineGrainedOnset asks to use a more fine-grained technique to schedule "
-    "stimulus onset than the classic fixed refresh interval scheduling. This may allow to more often achieve "
-    "a visual stimulus onset exactly at the 'tWhen' onset time asked for in Screen('Flip'), instead of only at "
-    "the closest frame boundary of a fixed duration frame. This needs a suitable operating-system, graphics "
-    "driver and graphics hardware, as well as a special suitable display device that can run at a non-fixed "
-    "refresh rate. On unsuitable system hardware+software configurations the flag may do nothing. This feature "
-    "is currently considered *highly experimental* and may not work reliably or *at all*! It is currently only "
-    "implemented on Linux.\n\n"
+    "manager.\n\n"
     "\"clientRect\" This optional parameter allows to define a size of the onscreen windows drawing area "
     "that is different from the actual size of the windows framebuffer. If set, then the imaging pipeline "
     "is started and a virtual framebuffer of the size of \"clientRect\" is created. Your code will draw "
@@ -95,8 +92,42 @@ static char synopsisString[] =
     "for the purpose of image processing operations with the imaging pipeline. While the true size of the windows "
     "framebuffer is defined by the standard \"rect\" parameter, internal processing will instead use the given "
     "override size. This usually only makes sense in combination with special output devices that live outside the "
-    "regular windowing system of your computer, e.g., special Virtual reality displays.\n"
-    "\n"
+    "regular windowing system of your computer, e.g., special Virtual reality displays.\n\n"
+    "\"vrrParams\" This optional parameter allows to control the method for scheduling visual stimulus onset. "
+    "By default, if the parameter is omitted, or set to a mode of 0, "
+    "standard presentation with fixed refresh rate is used. Visual stimuli will present at the start "
+    "of a new video refresh cycle of fixed duration, ie. timing is quantized to multiples of refresh duration.\n"
+    "Non-zero values ask to use a more fine-grained technique to schedule stimulus onset than the classic fixed "
+    "refresh interval scheduling on suitable hardware and operating systems. This may allow to more often achieve "
+    "a visual stimulus onset exactly at or close to the 'when' onset time asked for in Screen('Flip'), instead of "
+    "only at the closest frame boundary of a fixed duration frame. This needs a suitable operating-system, display "
+    "driver and graphics hardware, as well as a suitable display device that can run at a non-fixed variable refresh rate. "
+    "Selecting a mode other than zero on unsuitable system hardware+software configurations will abort 'OpenWindow'. "
+    "Fine-grained stimulus onset scheduling (ie. non-zero mode) is currently only supported on Linux with some hardware.\n"
+    "Settings other than mode 0 may require passing a vector with parameters instead of just a mode selection scalar. "
+    "E.g., instead of vrrParams = mode, it could be vrrParams = [mode, styleHint, minDuration, maxDuration].\n"
+    "The 'styleHint' parameter describes or hints to the style of visual stimulation timing to be expected for the "
+    "session. It gives the scheduling algorithm some high level hint that may allow to optimize for higher precision "
+    "and robustness. The only supported styleHint at the moment is styleHint 0 for 'don't know / none / default'. "
+    "Future versions of Screen() may support more specific styleHint values for common visual stimulation paradigms.\n"
+    "'minDuration' and 'maxDuration' would define the minimum and maximum duration of a video refresh cycle that the given "
+    "display is capable of in VRR mode, e.g., in situations where this can't be auto-detected reliably by Screen().\n"
+    "If mode is set to 1, Screen() will auto-select the strategy based on the given hardware setup, operating system and "
+    "display drivers, 'styleHint' and other vrrParams to provide more fine-grained visual stimulus onset timing. See "
+    "'help VRRSupport' for hardware and software requirements and setup instructions for VRR on your system.\n"
+    "If mode is set to 2, Screen() will use VRR technology in the straightforward naive way, efficient, but of limited "
+    "timing precision and stability: If a 'when' target time is given in Screen('Flip', ...), Screen will "
+    "simply wait until that time and then submit the flip request to hardware. Immediate flips will be submitted "
+    "to hardware immediately. Special constraints of the specific operating system, display driver, graphics card "
+    "or display model are not taken into account, jitter in hardware or software is not compensated for in any way.\n"
+    "If mode is set to 3, Screen() will use its own more sophisticated implementation of a VRR scheduler on top of "
+    "the simple VRR mechanism provided by the operating system or graphics driver. It will try to take information "
+    "about current display system state, e.g., last vblank or flip completion time, minimum and maximum possible "
+    "refresh rates etc., into account, in order to do a better job at hitting desired 'when' target times than a "
+    "naive implementation.\n"
+    "Future versions of Screen() may bring additional fine-grained presentation timing modes of higher sophistication "
+    "or with different performance vs precision vs reliability tradeoffs.\n"
+    "\n\n"
     "Opening or closing a window takes about one to three seconds, depending on the type of connected display. "
     "If your system has noisy timing or flaky graphics drivers it might take up to 15 seconds to open a window.\n"
     "COMPATIBILITY TO OS-9 PTB: If you absolutely need to run old code for the old MacOS-9 or Windows "
@@ -121,7 +152,12 @@ PsychError SCREENOpenWindow(void)
     int                     dummy1;
     double                  dummy2, dummy3, dummy4;
     long                    nativewidth, nativeheight, frontendwidth, frontendheight;
-
+    int                     m, n, p;
+    double*                 vrrParams;
+    PsychVRRModeType        vrrMode;
+    PsychVRRStyleType       vrrStyleHint;
+    double                  vrrMinDuration;
+    double                  vrrMaxDuration;
     psych_bool EmulateOldPTB = PsychPrefStateGet_EmulateOldPTB();
 
     //all sub functions should have these two lines
@@ -129,13 +165,16 @@ PsychError SCREENOpenWindow(void)
     if(PsychIsGiveHelp()){PsychGiveHelp();return(PsychError_none);};
 
     //cap the number of inputs
-    PsychErrorExit(PsychCapNumInputArgs(11));   //The maximum number of inputs
-    PsychErrorExit(PsychCapNumOutputArgs(2));  //The maximum number of outputs
+    PsychErrorExit(PsychCapNumInputArgs(12));  // The maximum number of inputs
+    PsychErrorExit(PsychCapNumOutputArgs(2));  // The maximum number of outputs
 
     //get the screen number from the windowPtrOrScreenNumber.  This also checks to make sure that the specified screen exists.
     PsychCopyInScreenNumberArg(kPsychUseDefaultArgPosition, TRUE, &screenNumber);
     if(screenNumber==-1)
         PsychErrorExitMsg(PsychError_user, "The specified onscreen window has no ancestral screen.");
+
+    PsychGetScreenPixelSize(screenNumber, &nativewidth, &nativeheight);
+    PsychGetScreenSize(screenNumber, &frontendwidth, &frontendheight);
 
     /*
     The depth checking is ugly because of this stupid depth structure stuff.
@@ -271,8 +310,72 @@ PsychError SCREENOpenWindow(void)
 
     specialflags = 0;
     PsychCopyInIntegerArg64(9,FALSE, &specialflags);
-    if (specialflags < 0 || (specialflags > 0 && !(specialflags & (kPsychGUIWindow | kPsychGUIWindowWMPositioned | kPsychUseFineGrainedOnset))))
+    if (specialflags < 0 || (specialflags > 0 && !(specialflags & (kPsychGUIWindow | kPsychGUIWindowWMPositioned))))
         PsychErrorExitMsg(PsychError_user, "Invalid 'specialflags' provided.");
+
+    // Alloc in optional double vector with VRR mode and parameters:
+    vrrParams = NULL;
+    if (PsychAllocInDoubleMatArg(12, FALSE, &m, &n, &p, &vrrParams)) {
+        n = m * n;
+        if (p > 1 || n < 1)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. Must be a scalar or vector of parameters.");
+
+        // Get mode parameter:
+        vrrMode = (PsychVRRModeType) vrrParams[0];
+        if (vrrMode < kPsychVRROff || vrrMode > kPsychVRROwnScheduled)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. Scalar or 1st vector component must be a mode of 0, 1, 2 or 3.");
+
+        // Find out if vrrMode is incompatible with some other requested feature:
+        if (vrrMode > kPsychVRROff) {
+            if (stereomode == kPsychOpenGLStereo || stereomode == kPsychFrameSequentialStereo)
+                PsychErrorExitMsg(PsychError_user, "Use of VRR mode for fine-grained stimulus presentation timing is incompatible with the fixed timing requirements of frame-sequential stereo presentation via stereo shutter goggles. Choose either VRR or frame-sequential stereo. Aborting.");
+
+            if (stereomode == kPsychDualWindowStereo)
+                PsychErrorExitMsg(PsychError_user, "Use of VRR mode for fine-grained stimulus presentation timing is incompatible with dual-window stereo presentation on separate screens, as their timing can't be synchronized in VRR mode, as needed for artifact-free dual-display stereo. Choose either VRR or this stereo mode. Aborting.");
+
+            if (imagingmode == kPsychNeedDualWindowOutput)
+                PsychErrorExitMsg(PsychError_user, "Use of VRR mode for fine-grained stimulus presentation timing is incompatible with Screen's own display mirroring or dual-pipe operations on separate screens. Choose either VRR or one of these. Aborting.");
+
+            if (stereomode == kPsychDualStreamStereo)
+                PsychErrorExitMsg(PsychError_user, "Use of VRR mode for fine-grained stimulus presentation timing is incompatible with dual-stream stereo presentation on special display devices. Choose either VRR or this stereo mode. Aborting.");
+
+            if (imagingmode == kPsychNeedFinalizedFBOSinks)
+                PsychErrorExitMsg(PsychError_user, "Use of VRR mode for fine-grained stimulus presentation timing is incompatible with use of finalized FBO sinks on special display devices. Choose either VRR or finalized FBO sinks. Aborting.");
+        }
+
+        // Get optional style of VRR presentation:
+        vrrStyleHint = (n >= 2) ? (PsychVRRStyleType) vrrParams[1] : kPsychVRRStyleNone;
+        if (vrrStyleHint < kPsychVRRStyleNone || vrrStyleHint > kPsychVRRStyleNone)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. 2nd vector component must be a valid vrrStyleHint code: 0 for none/auto-detect.");
+
+        // Get optional vmin, vmax duration parameters, corresponding to the displays maximum and minimum refresh rate in VRR mode:
+        vrrMinDuration = (n >= 3) ? vrrParams[2] : 0;
+        if (vrrMinDuration < 0)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. 3rd vector component must be vrrMinDuration in seconds. 0 for unknown/auto-detect, or > 0 seconds.");
+
+        // If minimum refresh duration not given, set to the one corresponding to the nominal refresh rate of the display:
+        // TODO: Should we do this override already here, or move it to the OS specific backends for more fancy ways of doing it?
+        if (vrrMinDuration == 0) {
+            if (PsychGetNominalFramerate(screenNumber) > 0)
+                vrrMinDuration = 1.0 / PsychGetNominalFramerate(screenNumber);
+            else
+                vrrMinDuration = 1.0 / 60.0; // Fake it, if we can not get it from OS.
+        }
+
+        vrrMaxDuration = (n >= 4) ? vrrParams[3] : 0;
+        if (vrrMaxDuration < 0)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. 4th vector component must be vrrMaxDuration in seconds. 0 for unknown/auto-detect, or > 0 seconds.");
+
+        if (vrrMaxDuration != 0 && vrrMaxDuration < vrrMinDuration)
+            PsychErrorExitMsg(PsychError_user, "Invalid 'vrrParams' provided. vrrMaxDuration must be 0 or greater than vrrMinDuration. 0 for unknown/auto-detect, or > 0 seconds.");
+    }
+    else {
+        // Default to VRR et al off:
+        vrrMode = kPsychVRROff;
+        vrrStyleHint = kPsychVRRStyleNone;
+        vrrMinDuration = 0.0;
+        vrrMaxDuration = 0.0;
+    }
 
     // Optional clientRect defined? If so, we need to enable our internal panel scaler and
     // the imaging pipeline to actually use the scaler:
@@ -322,14 +425,13 @@ PsychError SCREENOpenWindow(void)
         // This creates compatible behaviour to Apple OSX default behaviour and to
         // old Psychtoolbox 3.0.11. If we are on a non-Retina standard display, then
         // we leave the panel fitter disabled by default:
-        PsychGetScreenPixelSize(screenNumber, &nativewidth, &nativeheight);
-        PsychGetScreenSize(screenNumber, &frontendwidth, &frontendheight);
 
         // Frontend and Backend resolution different?
         if ((nativewidth > frontendwidth) || (nativeheight > frontendheight)) {
             // Yes: Native backend resolution in pixels is higher than exposed
             // frontend resolution in points. --> HiDPI / Retina display in use.
-            if (PsychPrefStateGet_Verbosity() > 2) printf("PTB-INFO: Retina display. Enabling panel fitter for scaled Retina compatibility mode.\n");
+            if (PsychPrefStateGet_Verbosity() > 2)
+                printf("PTB-INFO: Retina display. Enabling panel fitter for scaled Retina compatibility mode.\n");
 
             if (!EmulateOldPTB) {
                 // Enable panel fitter by setting a clientRect the size and resolution
@@ -343,7 +445,9 @@ PsychError SCREENOpenWindow(void)
                 imagingmode |= kPsychNeedFastBackingStore;
                 imagingmode |= kPsychNeedGPUPanelFitter;
             }
-            else printf("PTB-WARNING: Sorry, Retina displays are not supported in OS-9 PTB emulation mode. Results will likely be not what you wanted.\n");
+            else {
+                printf("PTB-WARNING: Sorry, Retina displays are not supported in OS-9 PTB emulation mode. Results will likely be wrong.\n");
+            }
         }
     }
 
@@ -369,6 +473,10 @@ PsychError SCREENOpenWindow(void)
 
     // Also need imaging pipeline for dual stream stereo or output redirection:
     if (stereomode == kPsychDualStreamStereo || (imagingmode & kPsychNeedFinalizedFBOSinks)) imagingmode |= kPsychNeedFastBackingStore;
+
+    // Also need imaging pipeline for our own VRR scheduler, so request it if either user code wants the
+    // scheduler or we can not exclude it will be likely chosen by auto-selection:
+    if (vrrMode == kPsychVRRAuto || vrrMode == kPsychVRROwnScheduled) imagingmode |= kPsychNeedFastBackingStore;
 
     PsychGetScreenSettings(screenNumber, &screenSettings);
     PsychInitDepthStruct(&(screenSettings.depth));
@@ -426,7 +534,7 @@ PsychError SCREENOpenWindow(void)
     // is enabled without multisampling support, as we do all the multisampling stuff ourselves
     // within the imaging pipeline with multisampled drawbuffer FBO's...
     didWindowOpen=PsychOpenOnscreenWindow(&screenSettings, &windowRecord, numWindowBuffers, stereomode, rect, ((imagingmode==0 || imagingmode==kPsychNeedFastOffscreenWindows) ? multiSample : 0),
-                                          sharedContextWindow, specialflags);
+                                          sharedContextWindow, specialflags, vrrMode, vrrStyleHint, vrrMinDuration, vrrMaxDuration);
     if (!didWindowOpen) {
         if (!dontCaptureScreen) {
             PsychRestoreScreenSettings(screenNumber);
@@ -787,8 +895,8 @@ PsychError SCREENOpenWindow(void)
 
     PsychTestForGLErrors();
 
-    // Homegrown frame-sequential stereo mode on a EGL backed window active?
-    if ((windowRecord->stereomode == kPsychFrameSequentialStereo) && (windowRecord->specialflags & kPsychIsEGLWindow)) {
+    // Homegrown frame-sequential stereo mode or our own VRR scheduler on a EGL backed window active?
+    if ((windowRecord->stereomode == kPsychFrameSequentialStereo || windowRecord->vrrMode == kPsychVRROwnScheduled) && (windowRecord->specialflags & kPsychIsEGLWindow)) {
         // Detach the OpenGL context from window surface. The following PsychSetDrawingTarget()
         // command will rebind the context as a first step, but it will not attach it to the
         // windowing system framebuffer surface (== the associated EGLSurface) anymore due to
@@ -816,6 +924,51 @@ PsychError SCREENOpenWindow(void)
     // Reset flipcounter and missed flip deadline counter to zero:
     windowRecord->flipCount = 0;
     windowRecord->nr_missed_deadlines = 0;
+
+    // Setup HiDPI/Retina remapping scaling factors for use by Screen('GetMouseHelper') and RemapMouse.m et al.:
+    // Only needed on macOS atm.
+    windowRecord->internalMouseMultFactor = 1.0;
+    windowRecord->externalMouseMultFactor = 1.0;
+
+    #if PSYCH_SYSTEM == PSYCH_OSX
+        // Cocoa or CGL?
+        if (windowRecord->targetSpecific.windowHandle) {
+            // Cocoa:
+            double isf = PsychCocoaGetBackingStoreScaleFactor(windowRecord->targetSpecific.windowHandle);
+
+            if (PsychPrefStateGet_Verbosity() > 3)
+                printf("PTB-INFO: Cocoa + Retina scaling. Scaling factor is %fx.\n", isf);
+
+            if (windowRecord->imagingMode & kPsychNeedGPUPanelFitter) {
+                // Cocoa + Panelfitter enabled:
+                windowRecord->internalMouseMultFactor = 1.0;
+                windowRecord->externalMouseMultFactor = isf;
+            }
+            else {
+                // Cocoa with Panelfitter off:
+                windowRecord->internalMouseMultFactor = isf;
+                windowRecord->externalMouseMultFactor = 1.0;
+            }
+        }
+        else {
+            // CGL:
+            if (windowRecord->imagingMode & kPsychNeedGPUPanelFitter) {
+                // CGL with Panelfitter enabled:
+                double autoscale = (double) nativewidth / (double) frontendwidth;
+
+                if (PsychPrefStateGet_Verbosity() > 3)
+                    printf("PTB-INFO: CGL + Retina scaling. Auto scale factor is %fx.\n", autoscale);
+
+                windowRecord->internalMouseMultFactor = 1 / autoscale;
+                windowRecord->externalMouseMultFactor = autoscale;
+            }
+            else {
+                // CGL with Panelfitter off:
+                windowRecord->internalMouseMultFactor = 1.0;
+                windowRecord->externalMouseMultFactor = 1.0;
+            }
+        }
+    #endif
 
     //Return the window index and the rect argument.
     PsychCopyOutDoubleArg(1, FALSE, windowRecord->windowIndex);
