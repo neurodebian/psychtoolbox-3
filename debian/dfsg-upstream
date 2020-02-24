@@ -12,8 +12,11 @@ FINDREGEX="find -regextype posix-egrep -regex"
   find -iname nvstusb-* -print0; \
 } | xargs -0 --no-run-if-empty $RM -rf
 $FINDREGEX '.*((|Mac)OSX|Octave3OSXFiles|Windows|.bundle|.FBCLockFolder)' -print0| xargs -0 --no-run-if-empty $RM -rf
+
 # more of non-Linux OS specifics
 $RM -rf PsychSourceGL/Cohorts/libusb1-win32
+$RM -rf PsychSourceGL/Source/*_VS2*_Support.zip
+
 # HID_Utilities_64Bit
 # Seems to be used only for OSX ATM
 # Copy of them is shipped within pd-hid package (recent)
