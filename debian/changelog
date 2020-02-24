@@ -1,3 +1,12 @@
+psychtoolbox-3 (3.0.16.20200130.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release
+  * debian/patches/deb_no_so2_stripping
+    - adjusted to be of a minimal footprint, to resolve conflicts and avoid
+      future ones
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 24 Feb 2020 09:34:00 -0500
+
 psychtoolbox-3 (3.0.15.20190725.dfsg1-1) unstable; urgency=medium
 
   * Strip away ./Psychtoolbox/PsychContributed/gpuclockctl
