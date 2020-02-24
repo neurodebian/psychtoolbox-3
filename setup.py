@@ -15,8 +15,9 @@ is_64bits = sys.maxsize > 2**32
 # unified version number, read from simple text file
 def get_version():
     import re
-    VERSIONFILE="PsychPython/_version.py"
-    verstrline = open(VERSIONFILE, "rt").read()
+    VERSIONFILE = "PsychPython/psychtoolbox/_version.py"
+    with open(VERSIONFILE, "rt") as fid:
+        verstrline = fid.read()
     VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
     mo = re.search(VSRE, verstrline, re.M)
     if mo:
@@ -30,13 +31,14 @@ def get_sourcefiles(path):
     sources = []
     pattern1 = '*.c'
     pattern2 = '*.cpp'
-    for filename in os.listdir(path):
+    for filename in sorted(os.listdir(path)):
         if fnmatch.fnmatch(filename, pattern1) or fnmatch.fnmatch(filename, pattern2):
             sources += [os.path.join(path,filename)]
 
     # Fancy schmanzi, not needed atm. for recursive dir traversal:
     #    for root, dirs, files in os.walk(path):
-    #        for filename in files:
+    #        dirs.sort()
+    #        for filename in sorted(files):
     #            sources += [os.path.join(root,filename)]
 
     return(sources)
@@ -254,7 +256,8 @@ setup (name = 'psychtoolbox',
        author_email = 'mario.kleiner.de@gmail.com',
        url = 'http://psychtoolbox.org',
        packages = ['psychtoolbox', 'psychtoolbox.demos'],
-       package_dir = {'psychtoolbox' : 'PsychPython',
+       package_dir = {'' : 'PsychPython',
+                      'psychtoolbox' : 'PsychPython/psychtoolbox',
                       'psychtoolbox.demos' : 'PsychPython/demos'},
        package_data = extra_files,
        ext_package = 'psychtoolbox',

@@ -72,6 +72,7 @@ if IsOctave && exist('graphics_toolkit')
 end
 
 % Wait for release of all keys on keyboard:
+RestrictKeysForKbCheck(KbName('ESCAPE'));
 KbReleaseWait;
 
 % Perform basic initialization of the sound driver:
@@ -177,6 +178,8 @@ recordedaudio = [recordedaudio audiodata];
 
 % Close the audio device:
 PsychPortAudio('Close', pahandle);
+
+RestrictKeysForKbCheck([]);
 
 % Replay recorded data: Open 'device' for output, push recorded sound
 % data into its output buffer:

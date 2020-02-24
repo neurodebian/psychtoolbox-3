@@ -64,6 +64,13 @@ function UpdatePsychtoolbox(targetdirectory, targetRevision)
 % 04/01/16 mk  64-Bit Octave-4 support for MS-Windows established.
 % 06/01/16 mk  32-Bit Octave-4 support for MS-Windows removed.
 % 06/01/19 mk  Give automated hint about updated svn client under Matlab.
+% 10/31/19 dgp Allows UpdatePsychtoolbox to run without Psychtoolbox in path. 
+% 12/18/19 mk  Add "--accept theirs-full" to svn update, so in case of conflicts,
+%              server provided upstream files will just override/overwrite user
+%              modified files. Not super-friendly of us, but may cut down support
+%              overhead.
+
+addpath(fullfile(fileparts(mfilename('fullpath')),'PsychOneliners'));
 
 % Flush all MEX files: This is needed at least on M$-Windows for SVN to
 % work if Screen et al. are still loaded.
@@ -100,7 +107,7 @@ end
 % Check if this is 32-Bit Octave-4 on Windows, which we don't support at all:
 if isempty(strfind(computer, 'x86_64')) && ~isempty(strfind(computer, 'mingw32'))
     fprintf('Psychtoolbox 3.0.13 and later do no longer work with 32-Bit GNU/Octave-4 on MS-Windows.\n');
-    fprintf('You need to use 64-Bit Octave-4 if you want to use Psychtoolbox with Octave on Windows.\n');
+    fprintf('You need to use 64-Bit Octave-5.1.0 if you want to use Psychtoolbox with Octave on Windows.\n');
     fprintf('DownloadPsychtoolbox() with flavor ''Psychtoolbox-3.0.12'', does support 32-Bit Octave-4 on Windows.\n');
     error('Tried to setup on 32-Bit Octave, which is no longer supported on Windows.');
 end
@@ -175,15 +182,15 @@ svnpath = GetSubversionPath;
 % Currently, we only know how to check this for Mac OSX.
 if IsOSX && isempty(svnpath)
     fprintf('The Subversion client "svn" is not in its expected\n');
-    fprintf('location "/usr/local/bin/svn" on your disk. Please \n');
-    fprintf('download and install the most recent Subversion client from:\n');
-    fprintf('web http://metissian.com/projects/macosx/subversion/ -browser\n');
+    fprintf('location on your disk. Please download and install the most\n');
+    fprintf('recent Subversion client via typing this into a terminal window:\n');
+    fprintf('xcode-select --install\n');
     fprintf('and then run %s again.\n',mfilename);
     error('Subversion client is missing.');
 end
 
 fprintf('About to update your working copy of the OpenGL-based Psychtoolbox-3.\n');
-updatecommand=[svnpath 'svn update '  targetRevision ' ' strcat('"',targetdirectory,'"') ];
+updatecommand=[svnpath 'svn update --accept theirs-full '  targetRevision ' ' strcat('"',targetdirectory,'"') ];
 fprintf('Will execute the following update command:\n');
 fprintf('%s\n', updatecommand);
 
@@ -205,6 +212,10 @@ end
 if err
     fprintf('Sorry. The update command failed with error code %d:\n', err);
     fprintf('%s\n', result);
+    
+    if IsOSX && err == 69
+        fprintf('If the error output suggests running a command, this should be typed into Terminal.app found in Applications/Utilities\n')
+    end
 
     if IsOctave
         fprintf('If the error output above contains the text ''SSL handshake failed: SSL error: tlsv1 alert protocol version''\n');
