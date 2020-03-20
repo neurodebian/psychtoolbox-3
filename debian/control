@@ -46,7 +46,7 @@ Architecture: all
 Depends: ${misc:Depends}
 Recommends:
  alsa-utils,
- libgamemode0,
+ gamemode,
 Suggests: gnuplot
 Description: toolbox for vision research -- arch/interpreter independent part
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
