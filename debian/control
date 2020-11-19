@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: debhelper (>= 9), rsync, quilt,
-               lsb-base (>= 10),
+               lsb-base (>= 9.20170808~),
                matlab-support-dev,
                dh-octave | octave-pkg-dev (>= 0.5.7),
                gfortran,
