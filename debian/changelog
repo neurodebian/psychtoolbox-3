@@ -1,3 +1,13 @@
+psychtoolbox-3 (3.0.17.3.dfsg1-1) unstable; urgency=medium
+
+  * New upstream release
+  * debian/control
+    - added libvulkan1 to Recommends
+    - boost lsb-base versioned depends to >= 10 to avoid building
+      on older distros lacking recent xserver (>= 1.20)
+
+ --
+
 psychtoolbox-3 (3.0.16.20200326.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release

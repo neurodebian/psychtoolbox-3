@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: debhelper (>= 9), rsync, quilt,
-               lsb-base (>= 4.1+Debian8~),
+               lsb-base (>= 10),
                matlab-support-dev,
                dh-octave | octave-pkg-dev (>= 0.5.7),
                gfortran,
@@ -73,6 +73,7 @@ Recommends: gstreamer1.0-plugins-base,
             gstreamer1.0-plugins-bad,
             gstreamer1.0-plugins-ugly,
             gstreamer1.0-libav,
+            libvulkan1,
 Description: toolbox for vision research -- arch-specific parts
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
