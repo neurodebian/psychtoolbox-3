@@ -8,6 +8,7 @@ psychtoolbox-3 (3.0.17.3.dfsg1-1) unstable; urgency=medium
   * debian/copyright
     - boosted years for my and upstream copyright
     - added entries for *exr library and sample images
+  * debian/patches/deb_no_PTB_USE_NVSTUSB - refreshed
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 19 Nov 2020 10:05:30 -0500
 
