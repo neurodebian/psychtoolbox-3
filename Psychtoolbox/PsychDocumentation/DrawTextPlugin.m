@@ -42,17 +42,17 @@
 % ----
 %
 % On OSX with GNU/Octave, these are part of Octave, so you don't need
-% to do anything. If you use OSX with Matlab then you need to install
-% the XQuartz X11 X-Server. See this link for how to get it:
-%
-% https://support.apple.com/en-us/HT201341
-%
-% If you have GStreamer installed (help GStreamer) for multi-media support, then
-% you may not need XQuartz, as GStreamer also provides the required libraries.
+% to do anything. If you use macOS with Matlab then we recommend installing
+% GStreamer (help GStreamer) which also provides multi-media support, as
+% GStreamer provides the required libraries. Other sources than GStreamer
+% are HomeBrew, or XQuartz (X11 for macOS). Other sources of this libraries
+% may also work, as long as they are findable by the macOS linker, but this
+% is only tested with GStreamer and HomeBrew.
 %
 % Some recent Matlab versions, e.g., R2015a and R2015b will contain an
-% outdated and incompatible version of libfreetype.6.dylib which will
-% cause problems. Delete (or rename) that file, or move it out of the way.
+% outdated and incompatible version of libfreetype.6.dylib which may
+% cause problems. If you experience such problems, malfunctions or crashes,
+% then delete (or rename) that file, or move it out of the way.
 % E.g., for R2015b you'd have to delete or rename this file:
 %
 % /Applications/MATLAB_R2015b.app/bin/maci64/libfreetype.6.dylib
@@ -86,6 +86,11 @@
 % The solution is to manually delete the fontconfig cache, e.g., if your user
 % name would be "paul", you'd likely need to delete the following file:
 % "C:\Users\paul\AppData\Local\fontconfig\cache"
+%
+% Some users find that the location of the cache file could be also in a different
+% place, e.g., following the above example for user "paul" it could be under:
+% "C:\Users\paul\.cache\fontconfig\" so files in that folder would need to be
+% deleted.
 %
 % More background info about Psychtoolbox's standard text renderer:
 % =================================================================
