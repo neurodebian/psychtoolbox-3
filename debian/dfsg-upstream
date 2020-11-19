@@ -29,6 +29,7 @@ $RM -rf Psychtoolbox/*/PsychtoolboxKernelDriverUserClientTool*
 
 # Test and its data (input? output?)
 $RM -f Psychtoolbox/PsychTests/StandaloneTimingProgram Psychtoolbox/.FBCIndex
+$RM -f Psychtoolbox/PsychTests/Results_VulkanTimingTests*
 # ???
 # Psychtoolbox/PsychTests/StandaloneTimingTest.m refers StandaloneTimingTest.c which is N/A
 
