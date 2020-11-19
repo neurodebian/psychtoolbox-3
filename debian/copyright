@@ -8,7 +8,7 @@ Copyright:
   1996-2007, David Brainard
   1996-2007, Denis Pelli
   1996-2007, Allen Ingling  <allen.ingling@nyu.edu>
-  2005-2015, Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
+  2005-2020, Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
 License: Expat
 
 Files: Psychtoolbox/PsychRadiometric/PsychISO2007MPE
@@ -149,8 +149,16 @@ Files: Psychtoolbox/PsychOpenGL/MOGL/source/headers/glu_edit.h
 Copyright: 1991-2000, Silicon Graphics, Inc.
 License: SGI-FSL-B-1.1
 
+Files: PsychSourceGL/Source/Common/Screen/tinyexr.*
+Copyright: 2014 - 2019, Syoyo Fujita and many contributors
+License: BSD-3
+
+Files: Psychtoolbox/PsychDemos/OpenEXRImages
+Copyright:  2004, Industrial Light & Magic, a division of Lucasfilm Entertainment Company Ltd
+License: BSD-3
+
 Files: debian/*
-Copyright: 2010-2015, Yaroslav Halchenko <debian@onerussian.com>
+Copyright: 2010-2020, Yaroslav Halchenko <debian@onerussian.com>
 License: Expat
 
 

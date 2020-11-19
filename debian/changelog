@@ -5,8 +5,11 @@ psychtoolbox-3 (3.0.17.3.dfsg1-1) unstable; urgency=medium
     - added libvulkan1 to Recommends
     - boost lsb-base versioned depends to >= 10 to avoid building
       on older distros lacking recent xserver (>= 1.20)
+  * debian/copyright
+    - boosted years for my and upstream copyright
+    - added entries for *exr library and sample images
 
- --
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 19 Nov 2020 10:05:30 -0500
 
 psychtoolbox-3 (3.0.16.20200326.dfsg1-1) unstable; urgency=medium
 
