@@ -1,3 +1,13 @@
+psychtoolbox-3-nonfree (3.0.17.3-1) neurodebian; urgency=medium
+
+  * Fresh upstream release
+  * debian/control
+    - added B-D versioning to octave-psychtoolbox-3 (>=
+      ${source:Version}.dfsg) and removed ndall so we build/upload only where we
+      have consistent env with a dfsg version
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 20 Nov 2020 12:53:54 -0500
+
 psychtoolbox-3-nonfree (3.0.16.20200326-1~ndall+1) neurodebian; urgency=medium
 
   * Fresh upstream release
