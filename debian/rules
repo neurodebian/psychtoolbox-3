@@ -234,7 +234,7 @@ get-orig-source: debian/changelog.upstream
 get-orig-source-nonfree:
 	@beta_merge_base=$$(git merge-base origin/beta HEAD); \
     ofile=$(srcpkg)-nonfree_$(uver_nondfsg).orig.tar.gz; \
-	echo "I: Exporting non-free portion of `git describe $$beta_merge_base` to $$ofile"; \
+	echo "I: Exporting non-free portion of `git describe --tags $$beta_merge_base` to $$ofile"; \
 	git archive --format=tar --prefix=$(srcpkg)-nonfree-$(uver_nondfsg)/ $$beta_merge_base -- \
 		./Psychtoolbox/PsychBasic/*.mexa64 \
 		./Psychtoolbox/PsychJava/GetCharJava.class \
