@@ -5,7 +5,7 @@ Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends:
  debhelper (>= 9.0.0),
- octave-psychtoolbox-3 (>= 3.0.17.3),
+ octave-psychtoolbox-3 (>= 3.0.17.6),
 Standards-Version: 3.9.8
 Homepage: http://psychtoolbox.org
 Vcs-Browser: http://git.debian.org/?p=pkg-exppsy/psychtoolbox-3.git
