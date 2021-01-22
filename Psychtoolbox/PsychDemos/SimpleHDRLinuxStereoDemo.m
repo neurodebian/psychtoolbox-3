@@ -1,6 +1,6 @@
-function SimpleHDRDemo(imfilename)
-% SimpleHDRDemo([imfilename]) - Load and show a high dynamic range (HDR) image
-% on a compatible HDR display setup.
+function SimpleHDRLinuxStereoDemo(imfilename)
+% SimpleHDRLinuxStereoDemo([imfilename]) - Load and show a HDR image on a compatible
+% HDR stereo display setup.
 %
 % Press any key to terminate the demo.
 %
@@ -9,46 +9,24 @@ function SimpleHDRDemo(imfilename)
 % the default demo image is missing. Currently only '.hdr' RGBE images are
 % supported.
 %
-% See "help PsychHDR" for system requirements and setup instructions for HDR
-% display. Once these are satisfied, converting a standard Psychtoolbox visual
-% stimulation script into a HDR script is straightforward, as shown in this simple
-% demo. Modify your scripts in the following manner:
+% See SimpleHDRDemo for explanations. This is the same demos, but displaying
+% stereoscopically on Linux + X11 via the special Linux hack enabled by the
+% Linux only PsychImaging task
 %
-% 1. Use (as most minimal setup) the sequence ...
+% PsychImaging('AddTask', 'General', 'UseStaticHDRHack', hdrMeta);
 %
-%    PsychImaging('PrepareConfiguration');
-%    PsychImaging('AddTask', 'General', 'EnableHDR');
-%    win = PsychImaging('OpenWindow', screenid);
-%
-%    ... instead of ...
-%
-%    win = Screen('OpenWindow', screenid);
-%
-%    ... to open a fullscreen onscreen window on a HDR capable display device,
-%    which is attached to a HDR capable graphics card.
-%
-% 2. Use HDRRead(imfilename) instead of imread(imfilename) to load HDR
-%    image files as double() precision matrices.
-%
-% 3. Optional: Set the optional 'floatprecision' flag of Screen('MakeTexture', ...)
-%    to 1 or 2 to enforce creation of floating point precision HDR textures
-%    of a specific precision from your image matrix.
-%
-%    By default, 'floatprecision' will be selected as 2 for single
-%    precision float fp32 format, which is the maximum precision for
-%    processing and displaying HDR images.
-%
-%
-% See the section 'EnableHDR' of "help PsychImaging" for more optional parameters
-% to pass to PsychImaging('AddTask', 'General', 'EnableHDR'); for customizing the
-% HDR display mode. See "help PsychHDR" for more helper subfunctions to customize
-% HDR display further at runtime, once the fullscreen onscreen HDR display window
-% has been opened and initially set up by PsychImaging('AddTask', 'General', 'EnableHDR').
+% See help PsychImaging in the 'UseStaticHDRHack' section for explanations,
+% background info and setup instructions.
 %
 
 % History:
 %
-% 21-Jul-2020   mk  Written.
+% 18-Dec-2020   mk  Written. Derived from SimpleHDRDemo.
+
+if ~IsLinux || IsWayland
+    fprintf('Sorry, this demo only works on Linux/X11, not under Wayland or other operating systems.\n');
+    return;
+end
 
 % Make sure we run on Psychtoolbox-3. Abort otherwise. Use unified key names for
 % keyboard input across all supported operating systems. Use normalized color range,
@@ -80,24 +58,17 @@ screenid = max(Screen('Screens'));
 % script termination (error or user abort), call "sca" which will close the display:
 canary = onCleanup(@sca);
 
-% Open a double-buffered fullscreen onscreen window in HDR mode on the HDR
-% display, with black background color. Color values will be specified in
-% units of nits, the display is done according to HDR10 standard, ie.
-% Color space is BT2020, SMPTE ST-2084 PQ encoding is used to drive the
-% display, output color signals have 10 bpc precision.
-PsychImaging('PrepareConfiguration');
-PsychImaging('AddTask', 'General', 'EnableHDR', 'Nits', 'HDR10');
-% Note: This would also work, as above settings are used by default:
-% PsychImaging('AddTask', 'General', 'EnableHDR');
-win = PsychImaging('OpenWindow', screenid, 0);
-HideCursor(win);
+% Define static HDR metadata to use for the whole duration of this demo session:
+hdrMeta.MetadataType = 0;
+hdrMeta.MinLuminance = 0.050;
+hdrMeta.MaxLuminance = 600;
+hdrMeta.ColorGamut = [0.6400, 0.3000, 0.1500, 0.3127 ; 0.3300, 0.6000, 0.0600, 0.3290];
 
-% Convert img from its source colorspace to the display colorspace of the
-% HDR onscreen window. info.ColorGamut is the color gamut parsed from the
+% Convert img from its source colorspace to the display colorspace defined for
+% the mastering display. info.ColorGamut is the color gamut parsed from the
 % image file, or a default color gamut as mandated by the image file format
-% spec for the image file. win is the onscreen window handle, and the
-% function will query win for the color gamut of its associated colorspace:
-[~, img] = ConvertRGBSourceToRGBTargetColorSpace(info.ColorGamut, win, img);
+% spec for the image file:
+[foo, img] = ConvertRGBSourceToRGBTargetColorSpace(info.ColorGamut, hdrMeta.ColorGamut, img);
 
 switch info.format
     case 'rgbe'
@@ -120,12 +91,22 @@ switch info.format
         error('Unknown image format. Do not know how to convert into units of Nits.');
 end
 
-% Compute maximum and max mean luminance of the image:
+% Compute and assign maximum and max mean luminance of the image:
 [maxFALL, maxCLL] = ComputeHDRStaticMetadataType1ContentLightLevels(img);
+hdrMeta.MaxFrameAverageLightLevel = maxFALL;
+hdrMeta.MaxContentLightLevel = maxCLL;
 
-% Tell the HDR display about maximum frame average light level and maximum
-% content light level of the image:
-PsychHDR('HDRMetadata', win, 0, maxFALL, maxCLL);
+% Open a double-buffered fullscreen onscreen stereo window in HDR mode on the HDR
+% display, with black background color. Color values will be specified in
+% units of nits, the display is done according to HDR10 standard, ie.
+% Color space is BT2020, SMPTE ST-2084 PQ encoding is used to drive the
+% display, output color signals have 10 bpc precision. Use a dual-display or
+% side-by-side single display stereo configuration:
+PsychImaging('PrepareConfiguration');
+PsychImaging('AddTask', 'General', 'EnableHDR', 'Nits', 'HDR10'); %, 'Dummy');
+PsychImaging('AddTask', 'General', 'UseStaticHDRHack', hdrMeta);
+win = PsychImaging('OpenWindow', screenid, 0, [], [], [], 4);
+HideCursor(win);
 
 % Build a 32 bpc single-precision float texture from the image
 % array by setting the (optional) 'floatprecision' flag to 2.
@@ -147,6 +128,9 @@ tstart = vbl;
 
 % Animation loop: Show a rotating HDR image, until key press:
 while ~KbCheck
+    % Draw left eye stim:
+    Screen('SelectStereoDrawBuffer', win, 0);
+
     % Draw our HDR texture at specified rotation angle, centered in the window:
     Screen('DrawTexture', win, texid, [], [], rotAngle);
 
@@ -155,9 +139,17 @@ while ~KbCheck
     % ie. a yellow oval with 300 nits:
     Screen('FillOval', win, [300 300 0], [500 500 600 600]);
 
-    % And some text, 30 pixels high, centered, in a 200 nits green:
-    Screen('TextSize', win, 30);
-    DrawFormattedText(win, 'If it works, it works.\nIf it doesn''t, it doesn''t.\n(Quoc Vuong, 2006)', 'center', 'center', [0 200 0]);
+    % Draw right eye stim:
+    Screen('SelectStereoDrawBuffer', win, 1);
+
+    % Draw our HDR texture at specified rotation angle, centered in the window:
+    Screen('DrawTexture', win, texid, [], [], rotAngle);
+
+    % Draw some 2D filled oval, with a bounding box of [left,top,right,bottom]
+    % = [520 500 620 600], and a color value of [R, G, B] = [300 nits, 300 nits, 0 nits],
+    % ie. a yellow oval with 300 nits. This is shifted 40 pixels to the left, wrt.
+    % the otherwise identical left-eye stimulus to create a teeny tiny bit of stereo:
+    Screen('FillOval', win, [300 300 0], [460 500 560 600]);
 
     % Show updated HDR framebuffer at next vertical retrace:
     vbl = Screen('Flip', win, vbl);
@@ -175,5 +167,5 @@ sca;
 % Print the stats:
 duration = vbl - tstart;
 averagefps = framecounter / duration;
-fprintf('Displayed %i frames in %f seconds, for an average framerate of %f fps.\n', framecounter, duration, averagefps);
+fprintf('Displayed %i stereo-frames in %f seconds, for an average framerate of %f fps.\n', framecounter, duration, averagefps);
 fprintf('Bye bye!\n');
