@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.17.9.dfsg1-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+    - debian/rules -- use DFSG version of the splash screen without pixabay
+      frog
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 09:46:58 -0500
+
 psychtoolbox-3 (3.0.17.6.dfsg1-1) unstable; urgency=medium
 
   * New upstream release
