@@ -7,6 +7,7 @@ psychtoolbox-3 (3.0.17.9.dfsg1-1) UNRELEASED; urgency=medium
   * debian/control
     + libopenhmd-dev build-dependency
     + libvulkan-dev (>= 1.1~) build-dependency
+    + added 1.8~ as minimal version for gstreamer (plugins base)
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 09:46:58 -0500
 
