@@ -76,6 +76,7 @@ build-stamp:
 
 	install --mode=0644 PsychSourceGL/Cohorts/FTGLTextRenderer/libptbdrawtext_ftgl.so.1 \
 	   Psychtoolbox/PsychBasic/PsychPlugins
+	install -T --mode=0644 managementtools/WelcomeSplash-dfsg.ppm ./Psychtoolbox/PsychBasic/WelcomeSplash.ppm
 	touch $@
 
 override_dh_auto_test:
@@ -215,6 +216,7 @@ override_dh_installchangelogs:
 override_dh_clean:
 	$(MAKE) -C PsychSourceGL/Cohorts/PortAudio clean || :
 	dh_clean
+	rm -f ./Psychtoolbox/PsychBasic/WelcomeSplash.ppm
 	rm -rf build-stamp build
 	: # Manually remove  additional trash
 	find Psych* -regextype posix-egrep -regex '.*\.(o|mex|so(|\..*))' -delete
