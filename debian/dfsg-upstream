@@ -77,6 +77,9 @@ $RM -rf Psychtoolbox/PsychContributed/macidpascalsource
 # Docs without sources... may be  into non-free?
 $RM -f ./Psychtoolbox/PsychDocumentation/{ECVP2010Poster,Psychtoolbox3-Slides}*.pdf
 
+# Non-DFSG welcome screen - a frog from pixabay with ad-hoc license non DFSG
+$RM -f ./managementtools/WelcomeSplash-upstream.ppm ./Psychtoolbox/PsychBasic/WelcomeSplash.ppm
+
 # _TODO:
 # Remove things which are said to be superseeded and NA for Linux
 # See Psychtoolbox/PsychDocumentation/ExperimentalStuff.m
