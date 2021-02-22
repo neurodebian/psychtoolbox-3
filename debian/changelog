@@ -6,6 +6,7 @@ psychtoolbox-3 (3.0.17.9.dfsg1-1) UNRELEASED; urgency=medium
     - build also 11  13 14 15 extensions 
   * debian/control
     + libopenhmd-dev build-dependency
+    + libvulkan-dev (>= 1.1~) build-dependency
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 09:46:58 -0500
 
