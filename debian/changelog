@@ -8,8 +8,11 @@ psychtoolbox-3 (3.0.17.9.dfsg1-1) unstable; urgency=medium
     + libopenhmd-dev build-dependency
     + libvulkan-dev (>= 1.1~) build-dependency
     + added 1.8~ as minimal version for gstreamer (plugins base)
+    - made libdc1394-dev to be of preference over libdc1394-22-dev in B-Depends
+      (Closes: #970839).  Left old libdc1394-22-dev as an alternative for
+      easier backports
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 11:37:11 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 13:03:01 -0500
 
 psychtoolbox-3 (3.0.17.6.dfsg1-1) unstable; urgency=medium
 
