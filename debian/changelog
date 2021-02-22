@@ -1,3 +1,10 @@
+psychtoolbox-3 (3.0.17.9.dfsg1-2) unstable; urgency=medium
+
+  * Disable building extension 13 for RPi (we have no libwiringpi-dev in
+    Debian yet).  Should resolve FTBFS on ARMs.
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 22 Feb 2021 15:22:04 -0500
+
 psychtoolbox-3 (3.0.17.9.dfsg1-1) unstable; urgency=medium
 
   * New upstream release

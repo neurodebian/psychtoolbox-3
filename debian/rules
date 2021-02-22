@@ -51,6 +51,7 @@ override_dh_quilt_unpatch:
 
 # 10 - PsychCV
 # 12 - PsychOculusVRCore.mex  -- oculus VR stuff
+# 13 - ARM only for RPi, needs libwiringpi-dev
 override_dh_auto_build: build-stamp
 build-stamp:
 	mkdir -p $(BDIRS)
@@ -58,7 +59,7 @@ build-stamp:
 	: # Build all extensions, but:
 	: #  4  libeyelink -- non-distributable binary blob with open-sourced API
 	cd PsychSourceGL/Source/; \
-		for mode in 0 1 2 3   5 6 7 8 9  11  13 14 15; do \
+		for mode in 0 1 2 3   5 6 7 8 9  11  14 15; do \
 		  octave -p $(CURDIR)/Psychtoolbox/PsychOneliners -q --eval "linuxmakeitoctave3($$mode)" || exit 1; \
 	done
 
