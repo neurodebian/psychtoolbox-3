@@ -43,6 +43,7 @@ override_dh_link:
 	  while read f; do \
 		fname=$$(basename $$f); fdir=$$(dirname $$f); \
 		mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.m); \
+        echo "Found $$mfile for $$fname;"; \
 		[ ! -z "$$mfile" ] || mfile=$$(/usr/bin/find /usr/share/psychtoolbox-3 -name $${fname%.$$ext}.mex); \
 		[ ! -z "$$mfile" ] && mdir=$$(dirname $$mfile) || { echo "no $$mfile for ext $$ext fname $$f. skipping";  continue; }; \
 		echo "/usr/lib$${f#*usr/lib}	$$mdir/$$fname" >> debian/$$pkg.links; \
