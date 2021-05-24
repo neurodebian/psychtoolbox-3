@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -67,7 +67,7 @@ if mode==0
+@@ -80,7 +80,7 @@ if mode==0
      % Build Screen.mex:
  
      % Build against system installed GStreamer-1.8+, ideally 1.18+.
