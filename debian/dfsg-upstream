@@ -75,7 +75,7 @@ $RM -rf ./PsychSourceGL/Cohorts/FTGLTextRenderer/libftgles_*.a # libftgl-dev -- 
 $RM -rf Psychtoolbox/PsychContributed/macidpascalsource
 
 # Docs without sources... may be  into non-free?
-$RM -f ./Psychtoolbox/PsychDocumentation/{ECVP2010Poster,Psychtoolbox3-Slides}*.pdf
+$RM -f ./Psychtoolbox/PsychDocumentation/*.pdf
 
 # Non-DFSG welcome screen - a frog from pixabay with ad-hoc license non DFSG
 $RM -f ./managementtools/WelcomeSplash-upstream.ppm ./Psychtoolbox/PsychBasic/WelcomeSplash.ppm
