@@ -1,8 +1,10 @@
-psychtoolbox-3 (3.0.17.12.dfsg1-1) experimental; urgency=medium
+psychtoolbox-3 (3.0.17.12.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release
+    - after the delay, uploading straight to unstable since bullseye was
+      released
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 24 May 2021 15:50:32 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 15 Aug 2021 15:40:49 -0400
 
 psychtoolbox-3 (3.0.17.9.dfsg1-2) unstable; urgency=medium
 
