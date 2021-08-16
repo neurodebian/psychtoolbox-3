@@ -1,3 +1,9 @@
+psychtoolbox-3-nonfree (3.0.17.12-1) neurodebian; urgency=medium
+
+  * Recent upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 16 Aug 2021 12:28:49 -0400
+
 psychtoolbox-3-nonfree (3.0.17.9-1) neurodebian; urgency=medium
 
   * Fresh upstream release
