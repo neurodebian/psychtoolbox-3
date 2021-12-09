@@ -97,13 +97,17 @@ if nargin > 0 && isscalar(cmd) && isnumeric(cmd)
                 Screen('Preference', 'ScreenToHead', screenId, outputMappings{screenId + 1}(1, 1), outputMappings{screenId + 1}(2, 1), 0);
             end
 
+            % predictedOnset is the last known vbl timestamp from Screen():
             predictedOnset = winfo.LastVBLTime;
-            % If predictedOnset is valid, use it. Otherwise fall back to vblTime:
-            if predictedOnset > 0
+
+            % If predictedOnset is valid and not stale, use it. Otherwise fall back to vblTime:
+            if (predictedOnset > 0) && (predictedOnset ~= vulkan{win}.LastVBLTime)
                 vblTime = predictedOnset;
             else
                 predictedOnset = vblTime;
             end
+
+            vulkan{win}.LastVBLTime = predictedOnset;
 
             % Inject vblTime and visual stimulus onset time into Screen(), for usual handling
             % and reporting back to usercode via Screen('Flip'), also current beamposition:
@@ -133,7 +137,9 @@ if nargin > 0 && isscalar(cmd) && isnumeric(cmd)
         end
 
         if vulkan{win}.needsNvidiaWa
-            system(sprintf('xrandr --screen %i --output %s --auto ; sleep 1', screenId, vulkan{win}.outputName));
+            % Reenable output at auto-selected preferred mode and old (x,y) starting location of viewport in X-Screen space:
+            syscmd = sprintf('sleep 1; xrandr --screen %i --output %s --auto --pos %ix%i ; sleep 1', screenId, vulkan{win}.outputName, ceil(vulkan{win}.windowRect(1)), ceil(vulkan{win}.windowRect(2)));
+            system(syscmd);
         end
 
         % Do we need a complete driver shutdown to work around Mesa < 20.1.2 bugs?
@@ -535,6 +541,15 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
     % Restore rank 0 output setting in Screen:
     Screen('Preference', 'ScreenToHead', screenId, outputMappings{screenId + 1}(1, 1), outputMappings{screenId + 1}(2, 1), 0);
 
+    % NVidia gpu under Linux/X11 with NVIDIA proprietary driver? And onscreen window fills complete target X-Screen?
+    % Or this is a single-output display NVidia Optimus PRIME render offload setup, where NVIDIA's RandR output leasing does not work?
+    if IsLinux && ~IsWayland && ~isempty(strfind(winfo.GLVendor, 'NVIDIA')) && ...
+       (isequal(Screen('GlobalRect', win), Screen('GlobalRect', screenId)) || ~isempty(getenv('__NV_PRIME_RENDER_OFFLOAD')))
+        % Do not use direct display mode via RandR output leasing. This window can
+        % be pageflipped under X11 as well, without need for Vulkan direct display:
+        isFullscreen = 0;
+    end
+
     % AMD gpu under MS-Windows?
     if IsWin && ~isempty(strfind(winfo.GLVendor, 'ATI'))
         % For some of these the AMD Vulkan driver is buggy in that
@@ -542,10 +557,17 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
         % causes massive malfunctions and a black screen display only,
         % e.g., the Radeon RX 460 (Polaris, pci device id 0x67EF).
         % Check gpu against badFSEIds list and enable a workaround if it is
-        % one of the bad gpu's:
+        % one of the bad gpu's.
+        % Additionally driver version raw >= 8388767 aka 20.11.2+ seems to have
+        % generally broken fullscreen-exclusive mode, as verified by Dale Stolizka,
+        % and by kleinerm with version 21.11.2 from one year later - November 2021!
+        % This on the Windows 10 21H1 edition. So we fall back to non-fs-exclusive
+        % mode and accept broken timing and potentially impaired HDR - what choice do
+        % we have?!
         badFSEIds = hex2dec({'67EF'});
         for i=1:length(devs)
-            if (devs(i).VendorId == 4098) && strcmp(winfo.GLRenderer, devs(i).GpuName) && ismember(devs(i).DeviceId, badFSEIds)
+            if (devs(i).VendorId == 4098) && strcmp(winfo.GLRenderer, devs(i).GpuName) && ...
+               (ismember(devs(i).DeviceId, badFSEIds) || (devs(i).DriverVersionRaw >= 8388767))
                 % Got a bad one! Disable fullscreen-exclusive mode for fullscreen windows:
                 flags = mor(flags, 2);
                 fprintf('PsychVulkan-INFO: AMD gpu [%s] with buggy Vulkan driver for fullscreen mode detected! Enabling workaround, timing reliability may suffer.\n', devs(i).GpuName);
@@ -617,14 +639,6 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
                     if strcmp(output.name, outputName)
                         % This output i is the right output.
                         usedOutput = i;
-
-                        % Position our onscreen window accordingly:
-                        winRect = OffsetRect([0, 0, output.width, output.height], output.xStart, output.yStart);
-                        if verbosity >= 3
-                            fprintf('PsychVulkan-INFO: Positioning onscreen window at rect [%i, %i, %i, %i] to align with display output %i [%s] of screen %i.\n', ...
-                                    winRect(1), winRect(2), winRect(3), winRect(4), i, outputName, screenId);
-                        end
-
                         break;
                     else
                         output = [];
@@ -650,6 +664,13 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
             outputHandle = uint64(output.outputHandle);
             outputName = output.name;
             refreshHz = output.hz;
+
+            % Position our onscreen window accordingly:
+            windowRect = OffsetRect([0, 0, output.width, output.height], output.xStart, output.yStart);
+            if verbosity >= 3
+                fprintf('PsychVulkan-INFO: Positioning onscreen window at rect [%i, %i, %i, %i] to align with display output %i [%s] of screen %i.\n', ...
+                        windowRect(1), windowRect(2), windowRect(3), windowRect(4), usedOutput, outputName, screenId);
+            end
 
             % More than 8 bpc output precision desired?
             % Note that colorPrecision == 0 and hdrMode > 0 gets handled automatically
@@ -717,7 +738,7 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
     end
 
     % Is the special fullscreen direct display mode workaround for NVidia blobs on Linux needed?
-    needsNvidiaWa = IsLinux && isFullscreen && strcmp(winfo.DisplayCoreId, 'NVidia') && ~isempty(strfind(winfo.GLVendor, 'NVIDIA'));
+    needsNvidiaWa = IsLinux && isFullscreen && strcmp(winfo.DisplayCoreId, 'NVidia') && (~isempty(strfind(winfo.GLVendor, 'NVIDIA')) || noInterop);
 
     % Try to open the Vulkan window and setup Vulkan side of interop:
     try
@@ -761,6 +782,15 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
             if verbosity >= 3
                 fprintf('PsychVulkan-INFO: Loaded identity gamma table into output for HDR.\n');
             end
+
+            % HDR mode 1 aka HDR-10 on MS-Windows, in fullscreen, but fullscreen
+            % exclusive mode disabled by flags?
+            if IsWin && isFullscreen && (hdrMode == 1) && bitand(flags, 2) && (colorPrecision < 2)
+                % Yes. The only reliably supported HDR-10 mode across gpu
+                % vendors is fp16 scRGB. Enforce colorPrecision 2 == fp16,
+                % which will enforce fp16 scRGB HDR under Windows DWM:
+                colorPrecision = 2;
+            end
         end
 
         % Open the Vulkan window:
@@ -785,7 +815,7 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
     catch
         % Failed! Reenable RandR output if this was a failed attempt at output leasing on Linux + NVidia:
         if needsNvidiaWa
-            system(sprintf('xrandr --screen %i --output %s --auto ; sleep 1', screenId, outputName));
+            system(sprintf('sleep 1; xrandr --screen %i --output %s --auto --pos %ix%i ; sleep 1', screenId, outputName, ceil(windowRect(1)), ceil(windowRect(2))));
         end
 
         % Close all windows:
@@ -864,6 +894,7 @@ if strcmpi(cmd, 'PerformPostWindowOpenSetup')
     vulkan{win}.outputHandle = outputHandle;
     vulkan{win}.outputName = outputName;
     vulkan{win}.needsNvidiaWa = needsNvidiaWa;
+    vulkan{win}.LastVBLTime = nan;
 
     % Find out which Vulkan device was chosen to drive this window:
     hdrInfo = PsychVulkanCore('GetHDRProperties', vwin);
