@@ -392,6 +392,10 @@ if IsOctave
         elseif ismember(octavemajorv, [3,4]) && IsLinux
             % Octave-3 and Octave-4.0/4.2 can share the same mex files in the Octave-3 folder on Linux:
             rdir = [PsychtoolboxRoot 'PsychBasic' filesep 'Octave3'];
+            fprintf('\nOctave versions < 4.4 are no longer suppported on Linux. This will likely fail!\n');
+            fprintf('Upgrade to Ubuntu 20.04-LTS or an equivalent modern Linux distribution.\n');
+            fprintf('Press any key to confirm you read and understand this message.\n');
+            pause;
         else
             % Everything else (aka other OS'es) goes by Octave major version:
             rdir = [PsychtoolboxRoot 'PsychBasic' filesep 'Octave' num2str(octavemajorv)];
@@ -423,6 +427,11 @@ if IsOctave
         fprintf(' %s ...\n', rdir);
         addpath(rdir);
 
+        % No Wayland specific subfolder on path by default:
+        if exist([rdir filesep 'Wayland'], 'dir')
+            rmpath([rdir filesep 'Wayland']);
+        end
+
         rc = savepath;
     catch
         rc = 2;
@@ -439,22 +448,22 @@ if IsOctave
         fprintf('=====================================================================\n\n');
     end
 
-    if (~IsLinux && (octavemajorv ~= 6 || ~ismember(octaveminorv, [1,2]))) || ...
-        (IsLinux && ((octavemajorv < 3) || (octavemajorv == 3 && octaveminorv < 8) || (octavemajorv > 5)))
-        fprintf('\n\n==============================================================================================\n');
+    if (~IsLinux && (octavemajorv ~= 6 || ~ismember(octaveminorv, [3,4]))) || ...
+        (IsLinux && ((octavemajorv < 4) || (octavemajorv == 4 && octaveminorv < 4) || (octavemajorv > 6)))
+        fprintf('\n\n===============================================================================================\n');
         fprintf('WARNING: Your version %s of Octave is incompatible with this release. We strongly recommend\n', version);
         if IsLinux
-            % On Linux everything from 3.8 to 5 is fine:
-            fprintf('WARNING: using the latest stable version of the Octave 3.8, 4.0, 4.2, 4.4, 5.1 or 5.2 series.\n');
-            fprintf('WARNING: You can get Psychtoolbox for more recent versions of Octave from NeuroDebian.\n');
+            % On Linux everything from 4.4 to 6.2 is fine:
+            fprintf('WARNING: using the latest stable version of the Octave 4.4, 5.1, 5.2, 6.1 or 6.2 series.\n');
+            fprintf('WARNING: You can get Psychtoolbox for other or more recent versions of Octave from NeuroDebian.\n');
         else
-            % On Windows/OSX we only care about 6.1 and 6.2 atm:
-            fprintf('WARNING: only using Octave 6.1 or 6.2 with this version of Psychtoolbox.\n');
+            % On Windows/OSX we only care about 6.3, 6.4 atm:
+            fprintf('WARNING: only using Octave 6.3 or better 6.4 with this version of Psychtoolbox.\n');
         end
         fprintf('WARNING: Stuff may not work at all or only suboptimal with other versions and we\n');
         fprintf('WARNING: don''t provide any support for such old versions.\n');
         fprintf('\nPress any key to continue with setup.\n');
-        fprintf('==============================================================================================\n\n');
+        fprintf('===============================================================================================\n\n');
         pause;
     end
 
@@ -462,13 +471,13 @@ if IsOctave
         % Need to copy the Octave runtime libraries somewhere our mex files can find them. The only low-maintenance
         % way of dealing with this mess of custom library pathes per octave version, revision and packaging format.
         % Preferred location is the folder with our mex files - found by rpath = @loader_path
-        if ~copyfile([GetOctlibDir filesep 'liboctinterp.8.dylib'], [rdir filesep], 'f') || ...
+        if ~copyfile([GetOctlibDir filesep 'liboctinterp.9.dylib'], [rdir filesep], 'f') || ...
            ~copyfile([GetOctlibDir filesep 'liboctave.8.dylib'], [rdir filesep], 'f')
             % Copy into our mex files folder failed. A second location where the linker will search is the
             % $HOME/lib directory of the current user, so try that as target location:
             tdir = PsychHomeDir('lib');
             fprintf('\n\nFailed to copy Octave runtime libraries to mex file folder [%s].\nRetrying in users private lib dir: %s ...\n', rdir, tdir);
-            if ~copyfile([GetOctlibDir filesep 'liboctinterp.8.dylib'], tdir, 'f') || ...
+            if ~copyfile([GetOctlibDir filesep 'liboctinterp.9.dylib'], tdir, 'f') || ...
                ~copyfile([GetOctlibDir filesep 'liboctave.8.dylib'], tdir, 'f')
                 fprintf('\nFailed to copy runtime libs to [%s] as well :(.\n', tdir);
                 fprintf('Our mex files will likely not work this way. Maybe the directories lack file write permissions?\n');
@@ -525,19 +534,19 @@ if IsWin && ~IsOctave
         % Remove DLL folders from path:
         rmpath([PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\']);
 
-        % Is this a Release2007a (Version 7.4.0) or later Matlab?
-        if ~exist('verLessThan') || verLessThan('matlab', '7.4.0') %#ok<EXIST>
-            % This is a pre-R2007a Matlab: No longer supported by V 3.0.10+
-            fprintf('Matlab release prior to R2007a detected. This version is no longer\n');
-            fprintf('supported by Psychtoolbox 3.0.10 and later. Aborted.');
+        % Is this a Release2014b (Version 8.4.0) or later Matlab?
+        if ~exist('verLessThan') || verLessThan('matlab', '8.4.0') %#ok<EXIST>
+            % This is a pre-R2014b Matlab: No longer supported by V 3.0.18+
+            fprintf('Matlab release prior to R2014b detected. This version is no longer\n');
+            fprintf('supported by Psychtoolbox 3.0.18 and later. Aborted.');
             fprintf('\n\nInstallation aborted. Fix the reported problem and retry.\n\n');
             return;
         else
-            % This is a R2007a or post R2007a Matlab:
+            % This is a R2014b or later Matlab:
             % Add PsychBasic/MatlabWindowsFilesR2007a/ subfolder to Matlab
             % path:
             rdir = [PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\'];
-            fprintf('Matlab release 2007a or later detected. Will prepend the following\n');
+            fprintf('Matlab release 2014b or later detected. Will prepend the following\n');
             fprintf('folder to your Matlab path: %s ...\n', rdir);
             addpath(rdir);
         end

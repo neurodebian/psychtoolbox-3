@@ -21,7 +21,7 @@ function varargout = PsychHDR(cmd, varargin)
 % - Modern AMD graphics cards (like above) under modern GNU/Linux (Ubuntu 18.04.4-LTS
 %   at a minimum (untested!), or better Ubuntu 20.04-LTS and later recommended), with
 %   the AMD open-source Vulkan driver "amdvlk". Install driver release 2020-Q3.5 from
-%   September 2020, which was tested, or likely any later versions. This webpage has
+%   September 2020, which was tested, or any later versions. The following webpage has
 %   amdvlk download and installation instructions:
 %
 %   https://github.com/GPUOpen-Drivers/AMDVLK/releases
@@ -42,9 +42,13 @@ function varargout = PsychHDR(cmd, varargin)
 %   we do not provide any support for this feature. As always, if you care about
 %   the quality of your results, use preferrably Linux, or Windows-10 instead.
 %
+%   You need at least MoltenVK version 1.1.4 and LunarG Vulkan SDK 1.2.182.0 from
+%   5th July 2021 or later. MoltenVK v1.1.5 or later is recommended at this time.
+%
 %   Download link for the MoltenVK open-source "Vulkan on Metal" driver:
 %
-%   https://vulkan.lunarg.com/sdk/home
+%   https://sdk.lunarg.com/sdk/download/latest/mac/vulkan-sdk.dmg
+%   Overview on: https://vulkan.lunarg.com/sdk/home
 %
 %
 % HDR functionality is demonstrated in multiple demos:
@@ -488,7 +492,7 @@ if strcmpi(cmd, 'HDRMetadata') && (length(varargin) == 2) && isstruct(varargin{2
     meta = varargin{2};
 
     % Check if this window is associated with a Vulkan/WSI / Vulkan window:
-    winfo = Screen('GetWindowInfo', window);
+    winfo = Screen('GetWindowInfo', window, 7);
     if ~bitand(winfo.ImagingMode, kPsychNeedFinalizedFBOSinks)
         % Nope: Must be part of the static HDR stereo hack.
 
@@ -747,7 +751,7 @@ if ~isempty(strfind(lower(cmd), 'hdr')) %#ok<*STREMP>
     if ~isempty(varargin)
         % Check if 1st arg is a window and if it is associated with a Vulkan/WSI / Vulkan window:
         if ~isempty(varargin{1}) && isscalar(varargin{1}) && isreal(varargin{1}) && (Screen('WindowKind', varargin{1}) == 1)
-            winfo = Screen('GetWindowInfo', varargin{1});
+            winfo = Screen('GetWindowInfo', varargin{1}, 7);
             if ~bitand(winfo.ImagingMode, kPsychNeedFinalizedFBOSinks)
                 % Nope: Windows must be part of the static HDR stereo hack. Can we handle it?
                 if strcmpi(cmd, 'HDRMetadata')

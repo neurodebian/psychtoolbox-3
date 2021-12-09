@@ -115,7 +115,7 @@ winfo = Screen('GetWindowInfo', windowPtr);
 % Get current clut for use as backup copy later on:
 oldClut = Screen('ReadNormalizedGammaTable', windowPtr);
 
-if disableDithering && IsWin
+if disableDithering && IsWin && ~isempty([strfind(winfo.GLVendor, 'AMD') strfind(winfo.GLVendor, 'ATI')])
     fprintf('LoadIdentityClut: Trying to disable digital display dithering.\n');
     % Try to use PsychGPUControl() method to disable display dithering
     % globally on all connected GPUs and displays. We only use this
@@ -280,18 +280,9 @@ else
             end
 
             % Is it a Geforce-8000 or later (G80 core or later) and is this OS/X?
-            if ~isempty(strfind(winfo.GPUCoreId, 'G80')) && IsOSX
-                % 10.5.x Leopard?
-                if (osxversion(1) == 10) && (osxversion(2) == 5) && (osxversion(3) >=0)
-                    % Yes. One of the releases with an embarassing amount of bugs,
-                    % brought to you by Apple. Need to apply an especially ugly
-                    % clut to force these cards into an identity mapping:
-                    fprintf('LoadIdentityClut: NVidia Geforce 8000 or later on OS/X 10.5.x detected. Enabling special type-I LUT hacks for totally broken operating systems.\n');
-                    gfxhwtype = 2;
-                end
-
-                % 10.6.x Snow Leopard or later?
-                if (osxversion(1) == 10) && (osxversion(2) >= 6) && (osxversion(3) >=0)
+            if IsOSX && ~isempty(strfind(winfo.GPUCoreId, 'G80'))
+                % 10.6 - 10.13 Snow Leopard to High Sierra? 10.14+ no longer supports NVidia at all.
+                if (osxversion(1) == 10) && (osxversion(2) >= 6)
                     % Yes. One of the releases with an embarassing amount of bugs,
                     % brought to you by Apple. Need to apply an especially ugly
                     % clut to force these cards into an identity mapping:
@@ -307,13 +298,6 @@ else
                         gfxhwtype = 3;
                     end
                 end
-            end
-
-            if IsLinux
-                % LUT type 3 seems to be right for both GeForce under nouveau-kms, and Quadro under
-                % nvidia blob, so probably for all NVidia gpus on Linux:
-                gfxhwtype = 3;
-                fprintf('LoadIdentityClut: NVidia gpu detected. Enabling type-III LUT.\n');
             end
         else
             if ~isempty(strfind(winfo.DisplayCoreId, 'AMD')) || (~IsLinux && (~isempty(strfind(gfxhwtype, 'ATI')) || ~isempty(strfind(gfxhwtype, 'AMD')) || ~isempty(strfind(gfxhwtype, 'Advanced Micro Devices')) || ...
@@ -356,6 +340,17 @@ else
                         if (linuxversion(1) < 5) || (linuxversion(1) == 5 && linuxversion(2) < 3)
                             fprintf('LoadIdentityClut: Your Linux kernel %i.%i may be too old for proper identity pixel passthrough.\n', linuxversion(1), linuxversion(2));
                             fprintf('LoadIdentityClut: I recommend upgrading to at least Linux 5.3 to get identity passthrough fixed.\n');
+                        end
+
+                        % modesetting-ddx in use for this screen / window?
+                        if ~IsWayland && Screen('GetWindowInfo', windowPtr, 8)
+                            % Yes: This won't work on X-Server 1.20 and earlier, only on
+                            % the 21.1 series and later:
+                            fprintf('LoadIdentityClut: WARNING! The modesetting-ddx video driver is in use, instead of the standard\n');
+                            fprintf('LoadIdentityClut: WARNING! amdgpu/radeon/ati-ddx for AMD GPU''s. This *will* cause failure of\n');
+                            fprintf('LoadIdentityClut: WARNING! identity pixel passthrough, unless you are using X-Server 21.1 or later.\n');
+                            fprintf('LoadIdentityClut: WARNING! In case of failure, XOrgConfCreator and XOrgConfSelector will allow you\n');
+                            fprintf('LoadIdentityClut: WARNING! to switch back to the AMD standard driver to fix this problem..\n');
                         end
                     elseif ~isempty(strfind(winfo.GPUCoreId, 'R600'))
                         % At least the Radeon R9 380 Tonga Pro with DCE10 display engine under Linux with DRI2 Mesa needs type 3

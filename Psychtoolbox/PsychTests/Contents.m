@@ -54,6 +54,7 @@
 %   MelanopsinFundamentalTest       - Test the PTB routines generate a good melanopsin fundamental.
 %   MonoImageToSRGBTest             - Test/demo for routine PsychColorimetric/MonoImageToSRGB.
 %   MultiWindowLockStepTest         - Exercise asynchronous flip scheduling and timestamping on multiple onscreen windows in parallel.
+%   MultiWindowVulkanTest           - Test multi-window / multi-display exclusive operation under Vulkan.
 %   OSAUCSTest                      - Test OSA UCS <-> XYZ conversion routines.
 %   OSXCompositorIdiocyTest         - Test for potential OSX compositor brokeness.
 %   OMLBasicTest                    - Very basic correctness test for OpenML flip timestamping.
@@ -75,7 +76,6 @@
 %   TextInitBugTest                 - Test for failure of 'DrawText' default font.
 %   TextInOffscreenWindowTest       - Compare text rendered into onscreen and offscreen windows.
 %   TextureChannelsTest             - Test assignment of matrix layers to RGBA texture channels.
-%   TextureTest                     - Exercise Screen('DrawTexture').
 %   TrolandTest                     - Colorimetric conversions.
 %   VBLSyncTest                     - Tests syncing of PTB-OSX to the vertical retrace.
 %   VRRTest                         - Test support of your setup for Variable refresh rate mode.

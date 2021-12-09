@@ -234,6 +234,7 @@ typedef struct PsychPADevice {
     psych_condition         changeSignal;   // Condition variable or event object for change signalling (see above).
     int                     opmode;         // Mode of operation: Playback, capture or full duplex? Master, Slave or standalone?
     int                     runMode;        // Runmode: 0 = Stop engine at end of playback, 1 = Keep engine running in hot-standby, ...
+    int                     latencyclass;   // Selected latencyclass in 'Open'.
     PaStream *stream;                       // Pointer to associated portaudio stream.
     const PaStreamInfo*     streaminfo;     // Pointer to stream info structure, provided by PortAudio.
     PaHostApiTypeId         hostAPI;        // Type of host API.
@@ -906,6 +907,9 @@ static int paCallback( const void *inputBuffer, void *outputBuffer,
     // Query host API: Done without mutex held, as it doesn't change during device lifetime:
     hA=dev->hostAPI;
 
+    // Count number of timestamp failures:
+    if (timeInfo->currentTime == 0) dev->noTime++;
+
     // Only compute timestamps from raw data if we're not a slave:
     if (!isSlave) {
         // Buffer timestamp computation code:
@@ -941,6 +945,14 @@ static int paCallback( const void *inputBuffer, void *outputBuffer,
 
             // Returned current time timestamp closer to tMonotonic than to GetSecs time?
             if (fabs(timeInfo->currentTime - tMonotonic) < fabs(timeInfo->currentTime - now)) {
+                // Timing information from host API broken/invalid?
+                if (timeInfo->currentTime == 0) {
+                    // Yes: Set tMonotonic to zero, so currentTime, outputBufferDacTime, inputBufferAdcTime
+                    // end up being current system time 'now'. Bad for timing, but keeps us going. Currently
+                    // as of Ubuntu 20.04-LTS, the pulseaudio ALSA plugin delivers broken timing:
+                    tMonotonic = 0;
+                }
+
                 // Timestamps are in monotonic time! Need to remap.
                 // tMonotonic shall be the offset between GetSecs and monotonic time,
                 // i.e., the offset that needs to be added to monotonic timestamps to
@@ -1038,9 +1050,6 @@ static int paCallback( const void *inputBuffer, void *outputBuffer,
 
     // Count total number of calls:
     dev->paCalls++;
-
-    // Call number of timestamp failures:
-    if (timeInfo->currentTime == 0) dev->noTime++;
 
     // Keep track of maximum number of frames requested:
     if (dev->batchsize < (psych_int64) framesPerBuffer) dev->batchsize = (psych_int64) framesPerBuffer;
@@ -1740,6 +1749,8 @@ void PsychPACloseStream(int id)
             }
 
             // Destruction for both master- and regular audio devices:
+            if ((audiodevices[id].noTime > 0) && (audiodevices[id].latencyclass > 0) && (verbosity >= 2))
+                printf("PTB-WARNING:PsychPortAudio('Close'): Audio device with handle %i had broken audio timestamping - and therefore timing - during this run. Don't trust the timing!\n", id);
 
             // Close and destroy the hardware portaudio stream:
             Pa_CloseStream(stream);
@@ -2278,7 +2289,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
             outputDevInfo = Pa_GetDeviceInfo(outputParameters.device);
             if (outputDevInfo && (Pa_GetDeviceCount() > 1) &&
                 (strstr(outputDevInfo->name, "HDMI") || strstr(outputDevInfo->name, "hdmi") || strstr(outputDevInfo->name, "isplay") ||
-                 ((outputDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && pulseaudio_isSuspended && (strstr(outputDevInfo->name, "default") || strstr(outputDevInfo->name, "pulse"))))) {
+                 ((outputDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && (pulseaudio_isSuspended || latencyclass > 0) && (strstr(outputDevInfo->name, "default") || strstr(outputDevInfo->name, "pulse"))))) {
                 // Selected output default device seems to be a HDMI or DisplayPort output
                 // of a graphics card. Try to find a better default choice.
                 paHostAPI = outputDevInfo->hostApi;
@@ -2288,7 +2299,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
                     if (!referenceDevInfo || (referenceDevInfo->hostApi != paHostAPI) ||
                         (referenceDevInfo->maxOutputChannels < 1) ||
                         (strstr(referenceDevInfo->name, "HDMI") || strstr(referenceDevInfo->name, "hdmi") || strstr(referenceDevInfo->name, "isplay") ||
-                        ((referenceDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && pulseaudio_isSuspended && (strstr(referenceDevInfo->name, "default") || strstr(referenceDevInfo->name, "pulse"))))) {
+                        ((referenceDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && (pulseaudio_isSuspended || latencyclass > 0) && (strstr(referenceDevInfo->name, "default") || strstr(referenceDevInfo->name, "pulse"))))) {
                         // Unsuitable.
                         continue;
                     }
@@ -2326,7 +2337,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
             inputDevInfo = Pa_GetDeviceInfo(inputParameters.device);
             if (inputDevInfo && (Pa_GetDeviceCount() > 1) &&
                 (strstr(inputDevInfo->name, "HDMI") || strstr(inputDevInfo->name, "hdmi") || strstr(inputDevInfo->name, "isplay") ||
-                 ((inputDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && pulseaudio_isSuspended && (strstr(inputDevInfo->name, "default") || strstr(inputDevInfo->name, "pulse"))))) {
+                 ((inputDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && (pulseaudio_isSuspended || latencyclass > 0) && (strstr(inputDevInfo->name, "default") || strstr(inputDevInfo->name, "pulse"))))) {
                 // Selected input default device seems to be a HDMI or DisplayPort output
                 // of a graphics card. Try to find a better default choice.
                 paHostAPI = inputDevInfo->hostApi;
@@ -2336,7 +2347,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
                     if (!referenceDevInfo || (referenceDevInfo->hostApi != paHostAPI) ||
                         (referenceDevInfo->maxInputChannels < 1) ||
                         (strstr(referenceDevInfo->name, "HDMI") || strstr(referenceDevInfo->name, "hdmi") || strstr(referenceDevInfo->name, "isplay") ||
-                        ((referenceDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && pulseaudio_isSuspended && (strstr(referenceDevInfo->name, "default") || strstr(referenceDevInfo->name, "pulse"))))) {
+                        ((referenceDevInfo->hostApi == Pa_HostApiTypeIdToHostApiIndex(paALSA)) && (pulseaudio_isSuspended || latencyclass > 0) && (strstr(referenceDevInfo->name, "default") || strstr(referenceDevInfo->name, "pulse"))))) {
                         // Unsuitable.
                         continue;
                     }
@@ -2829,26 +2840,38 @@ PsychError PSYCHPORTAUDIOOpen(void)
     if (specialFlags & 16) sflags |= paDitherOff;
 
     #if PSYCH_SYSTEM == PSYCH_LINUX
+        int major, minor;
+
         // On ALSA in aggressive low-latency mode, reduce number of periods (aka device buffers) to 2 for double-buffering.
         // The default in Portaudio is 4 periods, so that's what we use in non-aggressive mode
         if (Pa_GetHostApiInfo(referenceDevInfo->hostApi)->type == paALSA)
             PaAlsa_SetNumPeriods((latencyclass > 2) ? 2 : 4);
-    #endif
 
-    // Check if the requested sample format and settings are likely supported by Audio API:
-    // Note: The Portaudio library on Linux, as of Ubuntu 20.10, has a very old bug in the ALSA backend code of Pa_IsFormatSupported(),
-    //       which asks the Linux kernel to test-allocate an absurdly huge amount of audio hardware buffer space. While this bug lay dormant,
-    //       not triggering on older Linux kernels for the last 13+ years, Linux 5.6 introduced a configurable limit of allowable max hw buffer size.
-    //       At a default of 32 MB, the limit is massively exceeded by Pa_IsFormatSupported() even in the most trivial configurations, e.g.,
-    //       requesting 59.9 MB or memory for a simple 44.1Khz stereo stream! The result is the Linux 5.6+ kernel rejecting the request, which
-    //       leads to a false positive failure of Pa_IsFormatSupported() with paUnanticipatedHostError!
-    //       Workaround: We just skip the check on Linux atm., until upstream Portaudio is fixed, and luckily the actual Pa_OpenStream()
-    //       function below will request very reasonable settings during execution, which the kernel happily accepts, e.g., only 15 kB in
-    //       the same scenario. This way we can continue working against the flawed Portaudio library shipping with Ubuntu 20.10.
-    if (PSYCH_SYSTEM != PSYCH_LINUX)
-        err = Pa_IsFormatSupported(((mode & kPortAudioCapture) ?  &inputParameters : NULL), ((mode & kPortAudioPlayBack) ? &outputParameters : NULL), freq);
-    else
+        // Check if the requested sample format and settings are likely supported by Audio API:
+        // Note: The Portaudio library on Linux, as of Ubuntu 20.10, has a very old bug in the ALSA backend code of Pa_IsFormatSupported(),
+        //       which asks the Linux kernel to test-allocate an absurdly huge amount of audio hardware buffer space. While this bug lay dormant,
+        //       not triggering on older Linux kernels for the last 13+ years, Linux 5.6 introduced a configurable limit of allowable max hw buffer size.
+        //       At a default of 32 MB, the limit is massively exceeded by Pa_IsFormatSupported() even in the most trivial configurations, e.g.,
+        //       requesting 59.9 MB or memory for a simple 44.1Khz stereo stream! The result is the Linux 5.6+ kernel rejecting the request, which
+        //       leads to a false positive failure of Pa_IsFormatSupported() with paUnanticipatedHostError!
+        //       Workaround: We just skip the check on Linux atm., until upstream Portaudio is fixed, and luckily the actual Pa_OpenStream()
+        //       function below will request very reasonable settings during execution, which the kernel happily accepts, e.g., only 15 kB in
+        //       the same scenario. This way we can continue working against the flawed Portaudio library shipping with Ubuntu 20.10.
+
+        // Assume no validation error in case we skip Pa_IsFormatSupported() validation on pre-Linux 5.13 kernels:
         err = paNoError;
+
+        // Find out which kernel we are running on:
+        PsychOSGetLinuxVersion(&major, &minor, NULL);
+
+        // Pa_IsFormatSupported() should be fine on Linux 5.13 and later, due to a kernel fix for this overallocation issue, cfe.
+        // https://github.com/alsa-project/alsa-lib/issues/125 and kernel commit 12b2b508300d08206674bfb3f53bb84f69cf2555
+        // Corresponding Portaudio issue: https://github.com/PortAudio/portaudio/issues/526
+        //
+        // Execute check if Linux is 5.13+, skip otherwise with err = paNoError. Our setup will always execute the check on non-Linux:
+        if ((major > 5) || (major == 5 && minor >= 13))
+    #endif
+            err = Pa_IsFormatSupported(((mode & kPortAudioCapture) ?  &inputParameters : NULL), ((mode & kPortAudioPlayBack) ? &outputParameters : NULL), freq);
 
     if ((err != paNoError) && (err != paDeviceUnavailable)) {
         printf("PTB-ERROR: Desired audio parameters for device %i unsupported by audio device: %s \n", deviceid, Pa_GetErrorText(err));
@@ -2875,7 +2898,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
                             buffersize,                                                     /* Requested buffer size. */
                             sflags,                                                         /* Define special stream property flags. */
                             paCallback,                                                     /* Our processing callback. */
-                            &audiodevices[id]);                               /* Our own device info structure */
+                            &audiodevices[id]);                                             /* Our own device info structure */
 
     if (err != paNoError || stream == NULL) {
         printf("PTB-ERROR: Failed to open audio device %i. PortAudio reports this error: %s \n", deviceid, Pa_GetErrorText(err));
@@ -2907,6 +2930,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
     // Setup our final device structure:
     audiodevices[id].opmode = mode;
     audiodevices[id].runMode = 1; // Keep engine running by default. Minimal extra cpu-load for significant reduction in startup latency.
+    audiodevices[id].latencyclass = latencyclass;
     audiodevices[id].stream = stream;
     audiodevices[id].streaminfo = Pa_GetStreamInfo(stream);
     audiodevices[id].hostAPI = Pa_GetHostApiInfo(referenceDevInfo->hostApi)->type;
@@ -3007,7 +3031,7 @@ PsychError PSYCHPORTAUDIOOpen(void)
             // to a different hostBufferSizeMode may be required...
             if (((mode & kPortAudioFullDuplex) == kPortAudioCapture) &&
                 (buffersize == paFramesPerBufferUnspecified) &&
-                (Pa_GetVersion() < paMakeVersionNumber(19,6,1))) {
+                (Pa_GetVersion() < paMakeVersionNumber(19,7,1))) {
                 PseudoBufferProcessor* bp;
 
                 // Cast PaStream* into ALSA backend specific AlsaStream*, using the pseudo-
@@ -5158,6 +5182,9 @@ PsychError PSYCHPORTAUDIOStopAudioDevice(void)
         // Copy out estimated stopTime:
         PsychCopyOutDoubleArg(4, kPsychArgOptional, -1);
     }
+
+    if ((audiodevices[pahandle].noTime > 0) && (audiodevices[pahandle].latencyclass > 0) && (verbosity >= 2))
+        printf("PTB-WARNING:PsychPortAudio('Stop'): Audio device with handle %i had broken audio timestamping - and therefore timing - during this run. Don't trust the timing!\n", pahandle);
 
     return(PsychError_none);
 }
