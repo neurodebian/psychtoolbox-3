@@ -1,3 +1,11 @@
+psychtoolbox-3 (3.0.18.2.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release
+  * d/control
+    - new build-depends libxcb-present-dev, libxcomposite-dev
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 08 Dec 2021 23:39:30 -0500
+
 psychtoolbox-3 (3.0.17.12.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release
