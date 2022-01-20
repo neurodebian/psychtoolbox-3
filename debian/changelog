@@ -1,4 +1,10 @@
-psychtoolbox-3 (3.0.18.2.dfsg1-1) unstable; urgency=medium
+psychtoolbox-3 (3.0.18.4.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release (prior one was never uploaded)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 20 Jan 2022 09:53:45 -0500
+
+psychtoolbox-3 (3.0.18.2.dfsg1-1) UNRELEASED; urgency=medium
 
   * Fresh upstream release
   * d/control
