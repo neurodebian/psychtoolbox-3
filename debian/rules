@@ -244,5 +244,5 @@ get-orig-source-nonfree:
 		./Psychtoolbox/PsychBasic/*.mexa64 \
 		./Psychtoolbox/PsychJava/GetCharJava.class \
 		./PsychSourceGL/Cohorts/libwaffle/libwaffle*.so* \
-		./Psychtoolbox/PsychBasic/Octave3LinuxFiles{,64}/{Eyelink,Datapixx}.mex \
+		./Psychtoolbox/PsychBasic/Octave5LinuxFiles64/{Eyelink,Datapixx}.mex \
 	| gzip -9 > $$ofile; 
