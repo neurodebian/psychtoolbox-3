@@ -22,8 +22,7 @@ endif
 override_dh_install:
 	dh_install
 	[ -z "$arch64" ] || dh_install -poctave-psychtoolbox-3-nonfree \
-		Psychtoolbox/PsychBasic/Octave5LinuxFiles$(arch64)/*.mex
-	dh_install -poctave-psychtoolbox-3-nonfree \
+		Psychtoolbox/PsychBasic/Octave5LinuxFiles$(arch64)/*.mex \
 		usr/lib/psychtoolbox-3/PsychtoolboxAddons/
 	dh_install -pmatlab-psychtoolbox-3-nonfree \
 		Psychtoolbox/PsychBasic/*.mex$(mexext) \
