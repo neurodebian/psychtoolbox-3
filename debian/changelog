@@ -1,3 +1,12 @@
+psychtoolbox-3 (3.0.18.7.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release. Upstream notes: "mostly to deal better with
+    Wayland, now that the new Ubuntu 22.04-LTS logs users into Wayland
+    sessions by default, which are disastrous for neuroscience use cases. And
+    generally Ubuntu 22.04-LTS fixes"
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 02 May 2022 16:45:16 -0400
+
 psychtoolbox-3 (3.0.18.4.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release (prior one was never uploaded)
