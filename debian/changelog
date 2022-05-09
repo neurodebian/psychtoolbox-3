@@ -1,3 +1,10 @@
+psychtoolbox-3 (3.0.18.9.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream bugfix release addressing octave users issues under
+    wayland
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 09 May 2022 14:26:14 -0400
+
 psychtoolbox-3 (3.0.18.7.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release. Upstream notes: "mostly to deal better with
