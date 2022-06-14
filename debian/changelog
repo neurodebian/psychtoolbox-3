@@ -2,6 +2,7 @@ psychtoolbox-3-nonfree (3.0.18.9-2) neurodebian; urgency=medium
 
   * Add libdc1394-25 to Depends and remove libdc1394-22 from Recommends
     per upstream recommendation.
+  * boost freenect to libfreenect0.5 Recommends
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 14 Jun 2022 15:14:22 -0400
 
