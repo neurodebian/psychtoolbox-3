@@ -164,7 +164,7 @@ double PsychGetVblankTimestamps(PsychWindowRecordType *windowRecord, double *vbl
     if (vbl_endline == -1 || currentrefreshestimate <= 0.0)
         return(-1);
 
-    beamPosAtFlip = PsychGetDisplayBeamPosition((CGDirectDisplayID) NULL, windowRecord->screenNumber);
+    beamPosAtFlip = PsychGetDisplayBeamPosition((CGDirectDisplayID) 0, windowRecord->screenNumber);
     PsychGetAdjustedPrecisionTimerSeconds(&time_at_vbl);
 
     // Failed / Unsupported?
@@ -372,7 +372,7 @@ psych_bool PsychOpenOnscreenWindow(PsychScreenSettingsType *screenSettings, Psyc
             printf("PTB-INFO: Type 'PsychtoolboxVersion' for more detailed version information.\n");
             printf("PTB-INFO: Most parts of the Psychtoolbox distribution are licensed to you under terms of the MIT License, with\n");
             printf("PTB-INFO: some restrictions. See file 'License.txt' in the Psychtoolbox root folder for the exact licensing conditions.\n\n");
-            printf("PTB-INFO: For information about paid priority support, community membership and commercial services, please type\n");
+            printf("PTB-INFO: For information about paid support, support memberships and other commercial services, please type\n");
             printf("PTB-INFO: 'PsychPaidSupportAndServices'.\n\n");
         }
 
@@ -3290,6 +3290,9 @@ psych_bool PsychFlipWindowBuffersIndirect(PsychWindowRecordType *windowRecord)
             else
                 PsychErrorExitMsg(PsychError_user, "Tried to use frame-sequential stereo mode while Screen('Preference', 'ConserveVRAM') setting kPsychUseOldStyleAsyncFlips is set! Forbidden!");
         }
+
+        if (windowRecord->specialflags & kPsychDontUseFlipperThread)
+            PsychErrorExitMsg(PsychError_user, "Tried to use some functionality that requires use of the background flipper thread, but this is forbidden for this window due to specialFlags setting kPsychDontUseFlipperThread!");
 
         // PsychPreflip operations are not thread-safe due to possible callbacks into runtime interpreter thread
         // as part of hookchain processing when the imaging pipeline is enabled: We perform/trigger them here
@@ -7681,7 +7684,8 @@ void PsychDetectAndAssignGfxCapabilities(PsychWindowRecordType *windowRecord)
     // Running under Chromium OpenGL virtualization or some other known software renderer / rasterizer?
     if ((strstr((char*) glGetString(GL_VENDOR), "Humper") && strstr((char*) glGetString(GL_RENDERER), "Chromium")) ||
         (strstr((char*) glGetString(GL_VENDOR), "VMware")) ||
-        (strstr((char*) glGetString(GL_VENDOR), "Mesa") && strstr((char*) glGetString(GL_RENDERER), "Software Rasterizer"))) {
+        (strstr((char*) glGetString(GL_VENDOR), "Mesa") && strstr((char*) glGetString(GL_RENDERER), "Software Rasterizer")) ||
+        (strstr((char*) glGetString(GL_VENDOR), "Mesa") && strstr((char*) glGetString(GL_RENDERER), "llvmpipe"))) {
         // Yes: We're very likely running inside a Virtual Machine, e.g., VirtualBox.
         // This does not provide sufficiently accurate display timing for production use of Psychtoolbox.
         // Output a info message for user and disable all calibrations and sync tests -- they would fail anyway.

@@ -123,7 +123,7 @@ if onoctave == 0
 
             movefile(['moglcore.' mexext], [PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\']);
         catch
-            lasterr %#ok<LERR> 
+            lasterr %#ok<LERR>
         end
         cd(curdir);
     end
@@ -236,6 +236,16 @@ if onoctave == 0
         mex -outdir ..\Projects\Windows\build -output PsychVulkanCore -DPTBMODULE_PsychVulkanCore -largeArrayDims -DMEX_DOUBLE_HANDLE -L"C:\VulkanSDK\1.2.189.2\Lib" -I"C:\VulkanSDK\1.2.189.2\Include" -ICommon\Base -IWindows\Base -ICommon\PsychVulkanCore Windows\Base\*.c Common\Base\*.c Common\PsychVulkanCore\*.c kernel32.lib user32.lib winmm.lib gdi32.lib vulkan-1.lib dxgi.lib dxguid.lib
         movefile(['..\Projects\Windows\build\PsychVulkanCore.' mexext], [PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\']);
     end
+
+    if what == 16
+        % Build PsychOpenXRCore for 64-Bit Matlab:
+        % Needs the official Khronos OpenXR SDK for 64-Bit Windows from
+        % https://github.com/KhronosGroup/OpenXR-SDK
+        % installed side-by-side to the Psychtoolbox-3 folder, so that it
+        % shares the same parent folder as Psychtoolbox-3.
+        mex -outdir ..\Projects\Windows\build -output PsychOpenXRCore -DPTBMODULE_PsychOpenXRCore -largeArrayDims -DMEX_DOUBLE_HANDLE -L..\..\..\OpenXR-SDK\build\win64\src\loader\Release -I..\..\..\OpenXR-SDK\include\ -ICommon\Base -IWindows\Base -ICommon\PsychOpenXRCore Windows\Base\*.c Common\Base\*.c Common\PsychOpenXRCore\*.c kernel32.lib user32.lib winmm.lib openxr_loader.lib
+        movefile(['..\Projects\Windows\build\PsychOpenXRCore.' mexext], [PsychtoolboxRoot 'PsychBasic\MatlabWindowsFilesR2007a\']);
+    end
 else
     % Octave build:
     if Is64Bit
@@ -255,9 +265,9 @@ else
             setenv('LDFLAGS', ['-LC:\gstreamer\1.0\msvc_x86_64\lib ' oldoctavelinkoptions]);
 
             if Is64Bit
-                mexoctave --output ..\Projects\Windows\build\Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBOCTAVE3MEX -DGLEW_STATIC -LC:\gstreamer\1.0\msvc_x86_64\lib -IC:\gstreamer\1.0\msvc_x86_64\include -IC:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0 -IC:\gstreamer\1.0\msvc_x86_64\include\glib-2.0 -IC:\gstreamer\1.0\msvc_x86_64\include\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0\include -IC:\gstreamer\1.0\msvc_x86_64\include\libxml2 -ICommon\Base -ICommon\Screen -IWindows\Base -IWindows\Screen Windows\Screen\*.c Windows\Base\*.c Common\Base\*.c Common\Screen\*.c Common\Screen\tinyexr.cc kernel32.lib user32.lib gdi32.lib advapi32.lib glu32.lib opengl32.lib winmm.lib delayimp.lib -lgobject-2.0 -lglib-2.0 -lgstreamer-1.0 -lgstapp-1.0 -lgstvideo-1.0 -lgstpbutils-1.0
+                mexoctave -fno-exceptions --output ..\Projects\Windows\build\Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBOCTAVE3MEX -DGLEW_STATIC -LC:\gstreamer\1.0\msvc_x86_64\lib -IC:\gstreamer\1.0\msvc_x86_64\include -IC:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0 -IC:\gstreamer\1.0\msvc_x86_64\include\glib-2.0 -IC:\gstreamer\1.0\msvc_x86_64\include\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0\include -IC:\gstreamer\1.0\msvc_x86_64\include\libxml2 -ICommon\Base -ICommon\Screen -IWindows\Base -IWindows\Screen Windows\Screen\*.c Windows\Base\*.c Common\Base\*.c Common\Screen\*.c Common\Screen\tinyexr.cc kernel32.lib user32.lib gdi32.lib advapi32.lib glu32.lib opengl32.lib winmm.lib delayimp.lib -lgobject-2.0 -lglib-2.0 -lgstreamer-1.0 -lgstapp-1.0 -lgstvideo-1.0 -lgstpbutils-1.0
             else
-                mexoctave --output ..\Projects\Windows\build\Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBOCTAVE3MEX -DGLEW_STATIC -LC:\gstreamer\1.0\msvc_x86\lib -IC:\gstreamer\1.0\msvc_x86\include -IC:\gstreamer\1.0\msvc_x86\include\gstreamer-1.0 -IC:\gstreamer\1.0\msvc_x86\include\glib-2.0 -IC:\gstreamer\1.0\msvc_x86\include\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86\lib\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86\lib\gstreamer-1.0\include -IC:\gstreamer\1.0\msvc_x86\include\libxml2 -ICommon\Base -ICommon\Screen -IWindows\Base -IWindows\Screen Windows\Screen\*.c Windows\Base\*.c Common\Base\*.c Common\Screen\*.c kernel32.lib user32.lib gdi32.lib advapi32.lib glu32.lib opengl32.lib winmm.lib delayimp.lib -lgobject-2.0 -lglib-2.0 -lgstreamer-1.0 -lgstapp-1.0 -lgstvideo-1.0 -lgstpbutils-1.0
+                mexoctave -fno-exceptions --output ..\Projects\Windows\build\Screen.mex -DPTBMODULE_Screen -DPTB_USE_GSTREAMER -DPTBOCTAVE3MEX -DGLEW_STATIC -LC:\gstreamer\1.0\msvc_x86\lib -IC:\gstreamer\1.0\msvc_x86\include -IC:\gstreamer\1.0\msvc_x86\include\gstreamer-1.0 -IC:\gstreamer\1.0\msvc_x86\include\glib-2.0 -IC:\gstreamer\1.0\msvc_x86\include\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86\lib\glib-2.0\include -IC:\gstreamer\1.0\msvc_x86\lib\gstreamer-1.0\include -IC:\gstreamer\1.0\msvc_x86\include\libxml2 -ICommon\Base -ICommon\Screen -IWindows\Base -IWindows\Screen Windows\Screen\*.c Windows\Base\*.c Common\Base\*.c Common\Screen\*.c Common\Screen\tinyexr.cc kernel32.lib user32.lib gdi32.lib advapi32.lib glu32.lib opengl32.lib winmm.lib delayimp.lib -lgobject-2.0 -lglib-2.0 -lgstreamer-1.0 -lgstapp-1.0 -lgstvideo-1.0 -lgstpbutils-1.0
             end
         catch
         end
@@ -476,6 +486,20 @@ else
         try
             mexoctave --output ..\Projects\Windows\build\PsychVulkanCore.mex -DPTBMODULE_PsychVulkanCore -DPTBOCTAVE3MEX -LC:\VulkanSDK\1.2.189.2\Lib -IC:\VulkanSDK\1.2.189.2\Include -ICommon\Base -IWindows\Base -ICommon\PsychVulkanCore Windows\Base\*.c Common\Base\*.c Common\PsychVulkanCore\*.c kernel32.lib user32.lib winmm.lib gdi32.lib vulkan-1.lib dxgi.lib dxguid.lib
             movefile(['..\Projects\Windows\build\PsychVulkanCore.' mexext], target);
+        catch
+            disp(psychlasterror);
+        end
+    end
+
+    if what == 16
+        % Build PsychOpenXRCore.mex for 64-Bit Octave:
+        % Needs the official Khronos OpenXR SDK for 64-Bit Windows from
+        % https://github.com/KhronosGroup/OpenXR-SDK
+        % installed side-by-side to the Psychtoolbox-3 folder, so that it
+        % shares the same parent folder as Psychtoolbox-3.
+        try
+            mexoctave --output ..\Projects\Windows\build\PsychOpenXRCore.mex -DPTBMODULE_PsychOpenXRCore -DPTBOCTAVE3MEX -L..\..\..\OpenXR-SDK\build\win64\src\loader\Release -I..\..\..\OpenXR-SDK\include -ICommon\Base -IWindows\Base -ICommon\PsychOpenXRCore Windows\Base\*.c Common\Base\*.c Common\PsychOpenXRCore\*.c kernel32.lib user32.lib winmm.lib openxr_loader.lib
+            movefile(['..\Projects\Windows\build\PsychOpenXRCore.' mexext], target);
         catch
             disp(psychlasterror);
         end
