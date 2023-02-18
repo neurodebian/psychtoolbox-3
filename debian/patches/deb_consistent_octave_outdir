@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/linuxmakeitoctave3.m
 +++ b/PsychSourceGL/Source/linuxmakeitoctave3.m
-@@ -65,6 +65,9 @@ if ~isempty(strfind(computer, '_64'))
+@@ -66,6 +66,9 @@ if ~isempty(strfind(computer, '_64'))
  else
      target = 'PsychBasic/Octave3LinuxFiles/';
  end
