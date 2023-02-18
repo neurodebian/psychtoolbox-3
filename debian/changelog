@@ -2,6 +2,9 @@ psychtoolbox-3 (3.0.19.0.dfsg1-1) experimental; urgency=medium
 
   * New "major" upstream release. Upoad to experimental due to
     freeze of bookworm.
+  * debian/control
+    - add libopenxr-dev to build-depends and sort all build-depends
+    - add suggests on libopenxr-loader1
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 17 Feb 2023 21:42:49 -0500
 
