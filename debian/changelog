@@ -4,7 +4,7 @@ psychtoolbox-3 (3.0.19.0.dfsg1-1) experimental; urgency=medium
     freeze of bookworm.
   * debian/control
     - add libopenxr-dev to build-depends and sort all build-depends
-    - add suggests on libopenxr-loader1
+    - add suggests on libopenxr-loader1 and libopenxr1-monado
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 17 Feb 2023 21:42:49 -0500
 

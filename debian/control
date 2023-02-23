@@ -80,7 +80,7 @@ Recommends: gstreamer1.0-plugins-base (>= 1.8~),
             gstreamer1.0-plugins-ugly,
             gstreamer1.0-libav,
             libvulkan1,
-Suggests: libopenxr-loader1,
+Suggests: libopenxr-loader1, libopenxr1-monado,
 Description: toolbox for vision research -- arch-specific parts
  Psychophysics Toolbox Version 3 (PTB-3) is a free set of Matlab and
  GNU/Octave functions for vision research. It makes it easy to
