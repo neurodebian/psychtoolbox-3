@@ -49,6 +49,8 @@ override_dh_quilt_unpatch:
 	 || { find -iname glew.c__ | while read f; do mv $$f $${f//__/}; done; \
 	      sed -i -e '/deb_use_system_GLEW/d' debian/patches/series; }
 
+# Build all extensions, but:
+#  4 - libeyelink -- non-distributable binary blob with open-sourced API
 # 10 - PsychCV
 # 12 - PsychOculusVRCore.mex  -- oculus VR stuff
 # 13 - ARM only for RPi, needs libwiringpi-dev
@@ -56,10 +58,10 @@ override_dh_auto_build: build-stamp
 build-stamp:
 	mkdir -p $(BDIRS)
 
-	: # Build all extensions, but:
-	: #  4  libeyelink -- non-distributable binary blob with open-sourced API
 	cd PsychSourceGL/Source/; \
-		for mode in 0 1 2 3   5 6 7 8 9  11  14 15; do \
+        sed -n -e 's,if mode *== *\([0-9]*\).*,\1,gp' PsychSourceGL/Source/linuxmakeit64.m \
+        | grep -v -E '^(4|10|12|13)$$' \
+        | while read mode; do \
 		  octave -p $(CURDIR)/Psychtoolbox/PsychOneliners -q --eval "linuxmakeitoctave3($$mode)" || exit 1; \
 	done
 
