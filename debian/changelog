@@ -6,6 +6,9 @@ psychtoolbox-3 (3.0.19.0.dfsg1-2) experimental; urgency=medium
   * debian/control
     - per upstream recommendation moved libopenxr-loader1 to recommends 
       from suggests
+    - boost compat to 11
+    - provide no-version in pkgname for some libraries as the one to prefer
+    - boost lsb-base pkg version requirement to new series
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 10 Mar 2023 15:36:51 -0500
 
