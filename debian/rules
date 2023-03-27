@@ -59,7 +59,7 @@ build-stamp:
 	mkdir -p $(BDIRS)
 
 	cd PsychSourceGL/Source/; \
-        sed -n -e 's,if mode *== *\([0-9]*\).*,\1,gp' PsychSourceGL/Source/linuxmakeit64.m \
+        sed -n -e 's,if mode *== *\([0-9]*\).*,\1,gp' linuxmakeit64.m \
         | grep -v -E '^(4|10|12|13)$$' \
         | while read mode; do \
 		  octave -p $(CURDIR)/Psychtoolbox/PsychOneliners -q --eval "linuxmakeitoctave3($$mode)" || exit 1; \
