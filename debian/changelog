@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.19.0.dfsg1-3) UNRELEASED; urgency=medium
+
+  * Remove managementtools/stats.html from the (next) source distribution
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 28 Mar 2023 09:33:11 -0400
+
 psychtoolbox-3 (3.0.19.0.dfsg1-2) experimental; urgency=medium
 
   * Explicitly exclude modes for which not to build extensions and build

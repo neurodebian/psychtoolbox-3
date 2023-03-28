@@ -128,6 +128,10 @@ $RM -rf ./Psychtoolbox/PsychHardware/iViewXToolbox/tcp_udp_ip/tcpip*
 ## OSX: Cocoa/Cocoa.h used in StoreBitLib_Prefix.pch
 ## Check more on compatibility with Linux of components under Psychtoolbox/PsychHardware
 
+# Some extra produced files without sources
+#
+$RM -f managementtools/stats.html
+
 #
 # Some final look
 #
