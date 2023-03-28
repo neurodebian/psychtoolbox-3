@@ -51,7 +51,9 @@ override_dh_link:
 	link_exts octave-psychtoolbox-3-nonfree mex; \
 	link_exts matlab-psychtoolbox-3-nonfree mex$(mexext)
 	: # Manually adding few links where there is no .m
-	echo "/usr/lib/matlab/site/psychtoolbox-3/PsychOpenHMDVRCore.mexa64    /usr/share/psychtoolbox-3/PsychBasic/PsychOpenHMDVRCore.mexa64" >> debian/matlab-psychtoolbox-3-nonfree.links
+	for l in PsychOpenHMDVRCore.mexa64 PsychOpenXRCore.mexa64; do \
+	    echo "/usr/lib/matlab/site/psychtoolbox-3/$$l  /usr/share/psychtoolbox-3/PsychBasic/$$l" >> debian/matlab-psychtoolbox-3-nonfree.links; \
+    done
 	dh_link
 
 # failed to figure out how to please dh_shlibdeps

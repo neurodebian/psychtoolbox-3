@@ -1,3 +1,9 @@
+psychtoolbox-3-nonfree (3.0.19.0-2) neurodebian; urgency=medium
+
+  * debian/rules: Also link PsychOpenXRCore.mexa64
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Tue, 28 Mar 2023 09:53:48 -0400
+
 psychtoolbox-3-nonfree (3.0.19.0-1) neurodebian; urgency=medium
 
   * Fresh (kinda) upstream release. Forgotten to package when -1 of dfsg
