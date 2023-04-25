@@ -1,6 +1,6 @@
 --- a/PsychSourceGL/Source/striplibsfrommexfile.m
 +++ b/PsychSourceGL/Source/striplibsfrommexfile.m
-@@ -46,6 +46,9 @@ if exist(filename, 'file')
+@@ -51,6 +51,9 @@ if exist(filename, 'file')
      image = stripLibrary(image, 'libcruft');
      image = stripLibrary(image, 'liboctave');
  
