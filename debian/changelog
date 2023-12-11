@@ -1,3 +1,10 @@
+psychtoolbox-3 (3.0.19.5.dfsg1-2) UNRELEASED; urgency=medium
+
+  * debian/control: make libglut-dev as the contemporary alternative to
+    freeglut3-dev.  There is a transitional package in place so no rush
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 11 Dec 2023 09:37:56 -0500
+
 psychtoolbox-3 (3.0.19.5.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release
