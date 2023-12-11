@@ -1,3 +1,10 @@
+psychtoolbox-3-nonfree (3.0.19.5-2) neurodebian; urgency=medium
+
+  * Specify libglut3.12 as the current name for freeglut3.
+    Closes https://github.com/neurodebian/Psychtoolbox-3/issues/1
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 11 Dec 2023 09:32:58 -0500
+
 psychtoolbox-3-nonfree (3.0.19.5-1) neurodebian; urgency=medium
 
   * Fresh upstream release

@@ -40,7 +40,7 @@ Architecture: amd64
 Depends: ${misc:Depends},
          psychtoolbox-3-lib (>= ${source:Version}.dfsg),
          psychtoolbox-3-common (>= ${source:Version}.dfsg),
-         libx11-6, libxext6, libxfixes3, libxi6, freeglut3,
+         libx11-6, libxext6, libxfixes3, libxi6, libglut3.12 | freeglut3,
          libgl1-mesa-glx, libxmu6, libxpm4, libdc1394-25,
 Recommends: libasound2, libfreenect0.5,
             libglib2.0-0, libglu1-mesa,
