@@ -1,3 +1,9 @@
+psychtoolbox-3 (3.0.19.7.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release (was promised to be the last this year)
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 16 Dec 2023 19:40:43 -0500
+
 psychtoolbox-3 (3.0.19.6.dfsg1-1) unstable; urgency=medium
 
   * Fresh upstream release
