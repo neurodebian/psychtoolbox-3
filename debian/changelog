@@ -1,4 +1,12 @@
-psychtoolbox-3 (3.0.19.8.dfsg1-1) unstable; urgency=medium
+psychtoolbox-3 (3.0.19.9.dfsg1-1) unstable; urgency=medium
+
+  * Fresh upstream release which chased prior one
+  * debian/control
+    - add libapriltag-dev to build-depends
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 20 Mar 2024 11:43:06 -0400
+
+psychtoolbox-3 (3.0.19.8.dfsg1-1) UNRELEASED; urgency=medium
 
   * Fresh upstream release
 
