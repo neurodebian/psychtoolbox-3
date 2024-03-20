@@ -53,6 +53,7 @@ Architecture: all
 Depends: ${misc:Depends}
 Recommends:
  alsa-utils,
+ apriltag,
  gamemode,
 Suggests: gnuplot
 Description: toolbox for vision research -- arch/interpreter independent part
