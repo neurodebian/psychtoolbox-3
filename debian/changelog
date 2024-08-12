@@ -2,6 +2,10 @@ psychtoolbox-3 (3.0.19.14.dfsg1-1) unstable; urgency=medium
 
   * debian/dfsg-upstream - improve listing of left non-source - list only
     binary files along with their mime type
+  * debian/rules
+    - do build PsychCV.mex (10) - it was excluded from the beginning for
+      some reason (was not stated) and upstream announced its availability
+      this May in 3.0.19.9 but we did not include it then.
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 12 Aug 2024 09:38:17 -0400
 
